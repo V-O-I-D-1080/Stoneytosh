@@ -88,6 +88,7 @@ class Support {
     mach_vm_address_t orgPopulateDeviceMemory {0};
     mach_vm_address_t orgNotifyLinkChange {0};
     mach_vm_address_t orgGetAtomConnectorInfo {0};
+    mach_vm_address_t orgGetGpioPinInfo {0};
     mach_vm_address_t orgGetNumberOfConnectors {0};
     mach_vm_address_t orgCreateAtomBiosParser {0};
 
@@ -96,6 +97,7 @@ class Support {
     static bool doNotTestVram(IOService *ctrl, uint32_t reg, bool retryOnFail);
     static IOReturn wrapPopulateDeviceMemory(void *that, uint32_t reg);
     static IOReturn wrapGetAtomConnectorInfo(void *that, uint32_t connector, AtomConnectorInfo *coninfo);
+    static IOReturn wrapGetGpioPinInfo(void *that, uint32_t pin, void *pininfo);
     static uint32_t wrapGetNumberOfConnectors(void *that);
     static void *wrapCreateAtomBiosParser(void *that, void *param1, unsigned char *param2, uint32_t dceVersion);
 };

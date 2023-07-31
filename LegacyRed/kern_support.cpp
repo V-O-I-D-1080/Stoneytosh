@@ -25,6 +25,7 @@ bool Support::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_
         auto vbiosdbg = checkKernelArgument("-lredvbiosdbg");
         auto condbg = checkKernelArgument("-lredcondbg");
         auto adcpatch = checkKernelArgument("-lredadcpatch");
+        auto gpiodbg = checkKernelArgument("-lredgpiodbg");
         auto isCarrizo = (LRed::callback->chipType == ChipType::Carrizo);
 
         RouteRequestPlus requests[] = {
@@ -39,6 +40,7 @@ bool Support::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_
                 orgGetNumberOfConnectors, condbg},
             {"__ZN24AtiAtomFirmwareInterface16createAtomParserEP18BiosParserServicesPh11DCE_Version",
                 wrapCreateAtomBiosParser, orgCreateAtomBiosParser, vbiosdbg},
+            {"__ZN25AtiGpioPinLutInterface_V114getGpioPinInfoEjRNS_11GpioPinInfoE", wrapGetGpioPinInfo, orgGetGpioPinInfo},
         };
         PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "support",
             "Failed to route symbols");
@@ -106,6 +108,14 @@ IOReturn Support::wrapGetAtomConnectorInfo(void *that, uint32_t connector, AtomC
     DBGLOG("support", "getAtomConnectorInfo: connector %x", connector);
     auto ret = FunctionCast(wrapGetAtomConnectorInfo, callback->orgGetAtomConnectorInfo)(that, connector, coninfo);
     DBGLOG("support", "getAtomConnectorInfo: returned %x", ret);
+    return ret;
+}
+
+IOReturn Support::wrapGetGpioPinInfo(void *that, uint32_t pin, void *pininfo) {
+    auto member = getMember<uint32_t>(that, 0x30);
+    DBGLOG("support", "getGpioPinInfo: pin %x, member: %x", pin, member);
+    auto ret = FunctionCast(wrapGetGpioPinInfo, callback->orgGetGpioPinInfo)(that, pin, pininfo);
+    DBGLOG("support", "getGpioPinInfo: returned %x", ret);
     return ret;
 }
 
