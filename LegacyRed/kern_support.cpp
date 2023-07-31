@@ -1,4 +1,4 @@
-//  Copyright © 2022-2023 ChefKiss Inc. Licensed under the Thou Shalt Not Profit License version 1.0. See LICENSE for
+//  Copyright © 2022-2023 ChefKiss Inc. Licensed under the Thou Shalt Not Profit License version 1.5. See LICENSE for
 //  details.
 
 #include "kern_support.hpp"
@@ -95,12 +95,9 @@ bool Support::doNotTestVram([[maybe_unused]] IOService *ctrl, [[maybe_unused]] u
     if (model) {
         auto len = static_cast<uint32_t>(strlen(model) + 1);
         LRed::callback->iGPU->setProperty("model", const_cast<char *>(model), len);
-        if (LRed::callback->chipType >= ChipType::Carrizo) {
-            // ATY,FamilyName and ATY,DeviceName appears to only be set on Polaris+? confirmation needed
-            LRed::callback->iGPU->setProperty("ATY,FamilyName", const_cast<char *>("Radeon"), 7);
-            LRed::callback->iGPU->setProperty("ATY,DeviceName", const_cast<char *>(model) + 11,
-                len - 11); /** TODO: Figure out if this works on LRed or not */
-        }
+        LRed::callback->iGPU->setProperty("ATY,FamilyName", const_cast<char *>("Radeon"), 7);
+        LRed::callback->iGPU->setProperty("ATY,DeviceName", const_cast<char *>(model) + 11,
+            len - 11);
     }
     return true;
 }

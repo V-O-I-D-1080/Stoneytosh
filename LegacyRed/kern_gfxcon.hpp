@@ -17,6 +17,9 @@ class GFXCon {
     mach_vm_address_t orgHwReadReg8 {0};
     mach_vm_address_t orgHwReadReg16 {0};
     mach_vm_address_t orgHwReadReg32 {0};
+    mach_vm_address_t orgRegr8 {0};
+    mach_vm_address_t orgRegr16 {0};
+    mach_vm_address_t orgRegr32 {0};
     mach_vm_address_t orgPopulateDeviceInfo {0};
     mach_vm_address_t orgGetFamilyId {0};
 
@@ -24,6 +27,9 @@ class GFXCon {
     static uint8_t wrapHwReadReg8(void *that, uint8_t param1);
     static uint16_t wrapHwReadReg16(void *that, uint16_t param1);
     static uint32_t wrapHwReadReg32(void *that, uint32_t param1);
+    static uint8_t wrapRegr8(void *that, uint8_t param1);
+    static uint16_t wrapRegr16(void *that, uint16_t param1);
+    static uint32_t wrapRegr32(void *that, uint32_t param1);
     static uint16_t wrapGetFamilyId(void);
 };
 

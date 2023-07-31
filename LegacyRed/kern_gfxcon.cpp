@@ -1,4 +1,4 @@
-//  Copyright © 2022-2023 ChefKiss Inc. Licensed under the Thou Shalt Not Profit License version 1.0. See LICENSE for
+//  Copyright © 2022-2023 ChefKiss Inc. Licensed under the Thou Shalt Not Profit License version 1.5. See LICENSE for
 //  details.
 
 #include "kern_gfxcon.hpp"
@@ -101,6 +101,9 @@ bool GFXCon::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
             {"__ZN21BaffinRegisterService11hwReadReg32Ej", wrapHwReadReg32, this->orgHwReadReg32, regDbg},
             {"__ZN17ASIC_INFO__BAFFIN18populateDeviceInfoEv", wrapPopulateDeviceInfo, this->orgPopulateDeviceInfo,
                 !highsierra},
+            {"__ZN22BaffinSharedController6regr32Ej", wrapRegr32, orgRegr32, regDbg},
+            {"__ZN22BaffinSharedController6regr16Ej", wrapRegr16, orgRegr16, regDbg},
+            {"__ZN22BaffinSharedController6regr8Ej", wrapRegr8, orgRegr8, regDbg},
         };
         PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "gfxcon",
             "Failed to route symbols");
@@ -137,6 +140,24 @@ uint32_t GFXCon::wrapHwReadReg32(void *that, uint32_t reg) {
     DBGLOG("gfxcon", "readReg32: reg: %x", reg);
     // turned on by using -lredregdbg
     return FunctionCast(wrapHwReadReg32, callback->orgHwReadReg32)(that, reg);
+}
+
+uint8_t GFXCon::wrapRegr8(void *that, uint8_t reg) {
+    DBGLOG("gfxcon", "Regr8: reg: %x", reg);
+    // turned on by using -lredregdbg
+    return FunctionCast(wrapRegr8, callback->orgRegr8)(that, reg);
+}
+
+uint16_t GFXCon::wrapRegr16(void *that, uint16_t reg) {
+    DBGLOG("gfxcon", "Regr16: reg: %x", reg);
+    // turned on by using -lredregdbg
+    return FunctionCast(wrapRegr16, callback->orgRegr16)(that, reg);
+}
+
+uint32_t GFXCon::wrapRegr32(void *that, uint32_t reg) {
+    DBGLOG("gfxcon", "Regr32: reg: %x", reg);
+    // turned on by using -lredregdbg
+    return FunctionCast(wrapRegr32, callback->orgRegr32)(that, reg);
 }
 
 uint16_t GFXCon::wrapGetFamilyId(void) {
