@@ -2,7 +2,7 @@
 
 An AMD Legacy iGPU support [Lilu](https://github.com/acidanthera/Lilu) plugin.
 
-The Source Code of this Derivative Work is licensed under the `Thou Shalt Not Profit License version 1.0`. See `LICENSE`
+The LegacyRed derivative work/project is licensed under the `Thou Shalt Not Profit License version 1.5`. See `LICENSE`
 
 Thanks to [Acidanthera](https://github.com/acidanthera) for the [WhateverGreen](https://github.com/acidanthera/WhateverGreen) kern_agdc code used in kern_support
 
@@ -24,7 +24,7 @@ Great news, FB-Only is confirmed to work on Kabini and Kaveri APUs, the Accelera
 
 ### On which macOS versions am I able to use this on?
 
-I/We plan to support as old High Sierra
+I/We plan to support as old High Sierra, if we don't end up having to re-work all our patches for it
 
 Now for Ventura and onwards we run into a problem
 
