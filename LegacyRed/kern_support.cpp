@@ -40,7 +40,7 @@ bool Support::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_
                 orgGetNumberOfConnectors, condbg},
             {"__ZN24AtiAtomFirmwareInterface16createAtomParserEP18BiosParserServicesPh11DCE_Version",
                 wrapCreateAtomBiosParser, orgCreateAtomBiosParser, vbiosdbg},
-            {"__ZN25AtiGpioPinLutInterface_V114getGpioPinInfoEjRNS_11GpioPinInfoE", wrapGetGpioPinInfo, orgGetGpioPinInfo},
+            {"__ZN25AtiGpioPinLutInterface_V114getGpioPinInfoEjRNS_11GpioPinInfoE", wrapGetGpioPinInfo, orgGetGpioPinInfo, gpiodbg},
         };
         PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "support",
             "Failed to route symbols");
