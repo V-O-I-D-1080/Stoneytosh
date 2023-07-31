@@ -114,6 +114,7 @@ IOReturn Support::wrapGetAtomConnectorInfo(void *that, uint32_t connector, AtomC
 IOReturn Support::wrapGetGpioPinInfo(void *that, uint32_t pin, void *pininfo) {
     auto member = getMember<uint32_t>(that, 0x30);
     DBGLOG("support", "getGpioPinInfo: pin %x, member: %x", pin, member);
+    (void)member; // to also get clang-analyze to shut up
     auto ret = FunctionCast(wrapGetGpioPinInfo, callback->orgGetGpioPinInfo)(that, pin, pininfo);
     DBGLOG("support", "getGpioPinInfo: returned %x", ret);
     return ret;
