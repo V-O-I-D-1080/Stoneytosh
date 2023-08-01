@@ -182,7 +182,7 @@ IOReturn GFXCon::wrapPopulateDeviceInfo(void *that) {
 
 UInt32 GFXCon::wrapGetPllClock(void *that, uint8_t pll, void *clockparams) {
     DBGLOG("gfxcon", "getPllClock: pll: %x", pll);
-    auto ret = FunctioonCast(wrapGetPllClock, callback->orgGetPllClock)(that, pll, clockparams);
+    auto ret = FunctionCast(wrapGetPllClock, callback->orgGetPllClock)(that, pll, clockparams);
     DBGLOG("gfxcon", "getPllClock: returned %x", ret);
     return ret;
 }
