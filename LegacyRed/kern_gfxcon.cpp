@@ -94,7 +94,6 @@ bool GFXCon::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
         LRed::callback->setRMMIOIfNecessary();
         auto highsierra = getKernelVersion() == KernelVersion::HighSierra;
         auto regDbg = checkKernelArgument("-lredregdbg");
-        auto isCarrizo = (LRed::callback->chipType == ChipType::Carrizo);
 
         RouteRequestPlus requests[] = {
             {"__ZNK22BaffinSharedController11getFamilyIdEv", wrapGetFamilyId, orgGetFamilyId, !highsierra},
@@ -106,7 +105,7 @@ bool GFXCon::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
             {"__ZN22BaffinSharedController6regr32Ej", wrapRegr32, orgRegr32, regDbg},
             {"__ZN22BaffinSharedController6regr16Ej", wrapRegr16, orgRegr16, regDbg},
             {"__ZN22BaffinSharedController6regr8Ej", wrapRegr8, orgRegr8, regDbg},
-            {"__ZN17AMD9500Controller11getPllClockEhP11ClockParams", wrapGetPllClock, orgGetPllClock, isCarrizo},
+            {"__ZN17AMD9500Controller11getPllClockEhP11ClockParams", wrapGetPllClock, orgGetPllClock},
         };
         PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "gfxcon",
             "Failed to route symbols");
