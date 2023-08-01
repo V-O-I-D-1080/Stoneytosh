@@ -26,7 +26,7 @@ bool Support::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_
         auto condbg = checkKernelArgument("-lredcondbg");
         auto adcpatch = checkKernelArgument("-lredadcpatch");
         auto gpiodbg = checkKernelArgument("-lredgpiodbg");
-        auto isCarrizo = (LRed::callback->chipType == ChipType::Carrizo);
+        //auto isCarrizo = (LRed::callback->chipType == ChipType::Carrizo);
 
         RouteRequestPlus requests[] = {
             {"__ZN13ATIController20populateDeviceMemoryE13PCI_REG_INDEX", wrapPopulateDeviceMemory,
@@ -49,8 +49,8 @@ bool Support::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_
             {&kextRadeonSupport, kAtiDeviceControlGetVendorInfoOriginal, kAtiDeviceControlGetVendorInfoMask,
                 kAtiDeviceControlGetVendorInfoPatched, kAtiDeviceControlGetVendorInfoMask,
                 arrsize(kAtiDeviceControlGetVendorInfoOriginal), 1, adcpatch},
-            {&kextRadeonSupport, kAtiBiosParser1SetDisplayClockOriginal, kAtiBiosParser1SetDisplayClockPatched,
-                arrsize(kAtiBiosParser1SetDisplayClockOriginal), 1, isCarrizo},
+            //{&kextRadeonSupport, kAtiBiosParser1SetDisplayClockOriginal, kAtiBiosParser1SetDisplayClockPatched,
+                //arrsize(kAtiBiosParser1SetDisplayClockOriginal), 1, isCarrizo},
         };
         PANIC_COND(!LookupPatchPlus::applyAll(&patcher, patches, address, size), "support",
             "Failed to apply patches: %d", patcher.getError());
