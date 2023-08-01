@@ -123,9 +123,9 @@ bool X4000::wrapAccelStart(void *that, IOService *provider) {
 // Likely to be unused, here for incase we need to use it for X4000::setupAndInitializeHWCapabilities
 enum HWCapability : uint64_t {
     DisplayPipeCount = 0x04,    // uint32_t // unsure
-    SECount = 0x24,             // uint32_t
-    SHPerSE = 0x2C,             // uint32_t
-    CUPerSH = 0x60,             // uint32_t
+    SECount = 0x34,             // uint32_t
+    SHPerSE = 0x3C,             // uint32_t
+    CUPerSH = 0x70,             // uint32_t
 };
 
 template<typename T>
@@ -270,7 +270,7 @@ void X4000::wrapSetupAndInitializeHWCapabilities(void *that) {
 
 void X4000::wrapInitializeFamilyType(void *that) {
     DBGLOG("x4000", "initializeFamilyType << %x", LRed::callback->currentFamilyId);
-    getMember<uint32_t>(that, 0x2F8) = LRed::callback->currentFamilyId;
+    getMember<uint32_t>(that, 0x308) = LRed::callback->currentFamilyId;
 }
 
 void *X4000::wrapGetHWChannel(void *that, uint32_t engineType, uint32_t ringId) {
