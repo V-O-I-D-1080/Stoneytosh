@@ -259,10 +259,6 @@ class LRed {
 
     static size_t wrapFunctionReturnZero();
     static bool wrapApplePanelSetDisplay(IOService *that, IODisplay *display);
-
-    mach_vm_address_t orgCsValidatePage {0};
-    static void csValidatePage(vnode *vp, memory_object_t pager, memory_object_offset_t page_offset, const void *data,
-        int *validated_p, int *tainted_p, int *nx_p);
 };
 
 #endif /* kern_lred_hpp */

@@ -110,7 +110,6 @@ void LRed::processPatcher(KernelPatcher &patcher) {
 
     KernelPatcher::RouteRequest requests[] = {
         {"__ZN15OSMetaClassBase12safeMetaCastEPKS_PK11OSMetaClass", wrapSafeMetaCast, this->orgSafeMetaCast},
-        {"_cs_validate_page", csValidatePage, this->orgCsValidatePage},
     };
 
     size_t num = arrsize(requests);
@@ -143,40 +142,12 @@ OSMetaClassBase *LRed::wrapSafeMetaCast(const OSMetaClassBase *anObject, const O
     return ret;
 }
 
-void LRed::csValidatePage(vnode *vp, memory_object_t pager, memory_object_offset_t page_offset, const void *data,
-    int *validated_p, int *tainted_p, int *nx_p) {
-    FunctionCast(csValidatePage, callback->orgCsValidatePage)(vp, pager, page_offset, data, validated_p, tainted_p,
-        nx_p);
-
-    char path[PATH_MAX];
-    int pathlen = PATH_MAX;
-    if (!vn_getpath(vp, path, &pathlen)) {
-        if (UserPatcher::matchSharedCachePath(path)) {
-            if (UNLIKELY(
-                    KernelPatcher::findAndReplace(const_cast<void *>(data), PAGE_SIZE, kVideoToolboxDRMModelOriginal,
-                        arrsize(kVideoToolboxDRMModelOriginal), BaseDeviceInfo::get().modelIdentifier, 20)))
-                DBGLOG("lred", "Relaxed VideoToolbox DRM model check");
-
-            if (UNLIKELY(KernelPatcher::findAndReplace(const_cast<void *>(data), PAGE_SIZE, kBoardIdOriginal,
-                    arrsize(kBoardIdOriginal), kBoardIdPatched, arrsize(kBoardIdPatched))))
-                DBGLOG("lred", "Patched 'board-id' -> 'hwgva-id'");
-        } else if (UNLIKELY(!strncmp(path, kCoreLSKDMSEPath, arrsize(kCoreLSKDMSEPath))) ||
-                   UNLIKELY(!strncmp(path, kCoreLSKDPath, arrsize(kCoreLSKDPath)))) {
-            if (UNLIKELY(KernelPatcher::findAndReplace(const_cast<void *>(data), PAGE_SIZE, kCoreLSKDOriginal,
-                    arrsize(kCoreLSKDOriginal), kCoreLSKDPatched, arrsize(kCoreLSKDPatched))))
-                DBGLOG("lred", "Patched streaming CPUID to Haswell");
-        }
-    }
-}
-
 void LRed::setRMMIOIfNecessary() {
     if (UNLIKELY(!this->rmmio || !this->rmmio->getLength())) {
         this->rmmio = this->iGPU->mapDeviceMemoryWithRegister(kIOPCIConfigBaseAddress5);
         PANIC_COND(!this->rmmio || !this->rmmio->getLength(), "lred", "Failed to map RMMIO");
         this->rmmioPtr = reinterpret_cast<uint32_t *>(this->rmmio->getVirtualAddress());
-
         this->fbOffset = static_cast<uint64_t>(this->readReg32(0x296B)) << 24;
-
         switch (this->deviceId) {
                 // Who thought it would be a good idea to use this many Device IDs and Revisions?
             case 0x1309:

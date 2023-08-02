@@ -10,6 +10,8 @@
 		408F2020288ACBE6002EEC15 /* kern_fw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 408F201F288ACBE6002EEC15 /* kern_fw.cpp */; };
 		CE405ED91E4A080700AA0B3D /* plugin_start.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CE405ED81E4A080700AA0B3D /* plugin_start.cpp */; };
 		CE8DA0832517C41A008C44E8 /* libkmod.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE8DA0822517C41A008C44E8 /* libkmod.a */; };
+		F011C00A2A7A4C7F007E8F8C /* kern_dyld_patches.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F011C0082A7A4C7F007E8F8C /* kern_dyld_patches.cpp */; };
+		F011C00B2A7A4C7F007E8F8C /* kern_dyld_patches.hpp in Headers */ = {isa = PBXBuildFile; fileRef = F011C0092A7A4C7F007E8F8C /* kern_dyld_patches.hpp */; };
 		F067C21329D82E58004BB52E /* kern_gfxcon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F067C20329D82E57004BB52E /* kern_gfxcon.cpp */; };
 		F067C21529D82E58004BB52E /* kern_x4000.hpp in Headers */ = {isa = PBXBuildFile; fileRef = F067C20529D82E57004BB52E /* kern_x4000.hpp */; };
 		F067C21629D82E58004BB52E /* kern_lred.hpp in Headers */ = {isa = PBXBuildFile; fileRef = F067C20629D82E57004BB52E /* kern_lred.hpp */; };
@@ -61,6 +63,8 @@
 		CE405ED81E4A080700AA0B3D /* plugin_start.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = plugin_start.cpp; sourceTree = "<group>"; };
 		CE405EDA1E4A080F00AA0B3D /* plugin_start.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = plugin_start.hpp; sourceTree = "<group>"; };
 		CE8DA0822517C41A008C44E8 /* libkmod.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libkmod.a; path = ../Lilu/MacKernelSDK/Library/x86_64/libkmod.a; sourceTree = "<group>"; };
+		F011C0082A7A4C7F007E8F8C /* kern_dyld_patches.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = kern_dyld_patches.cpp; sourceTree = "<group>"; };
+		F011C0092A7A4C7F007E8F8C /* kern_dyld_patches.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = kern_dyld_patches.hpp; sourceTree = "<group>"; };
 		F067C20329D82E57004BB52E /* kern_gfxcon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = kern_gfxcon.cpp; sourceTree = "<group>"; };
 		F067C20529D82E57004BB52E /* kern_x4000.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = kern_x4000.hpp; sourceTree = "<group>"; };
 		F067C20629D82E57004BB52E /* kern_lred.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = kern_lred.hpp; sourceTree = "<group>"; };
@@ -128,6 +132,8 @@
 				408F201A288AC068002EEC15 /* Firmware */,
 				1C748C2E1C21952C0024EED2 /* Info.plist */,
 				F067C21029D82E58004BB52E /* kern_amd.hpp */,
+				F011C0082A7A4C7F007E8F8C /* kern_dyld_patches.cpp */,
+				F011C0092A7A4C7F007E8F8C /* kern_dyld_patches.hpp */,
 				408F201F288ACBE6002EEC15 /* kern_fw.cpp */,
 				F067C20C29D82E58004BB52E /* kern_fw.hpp */,
 				F067C20329D82E57004BB52E /* kern_gfxcon.cpp */,
@@ -230,6 +236,7 @@
 				F067C22029D82E59004BB52E /* kern_amd.hpp in Headers */,
 				F0D396B82A3EE76200424389 /* kern_patcherplus.hpp in Headers */,
 				F067C21729D82E59004BB52E /* kern_vbios.hpp in Headers */,
+				F011C00B2A7A4C7F007E8F8C /* kern_dyld_patches.hpp in Headers */,
 				F067C21529D82E58004BB52E /* kern_x4000.hpp in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -339,6 +346,7 @@
 				F0D396B72A3EE76200424389 /* kern_patcherplus.cpp in Sources */,
 				CE405ED91E4A080700AA0B3D /* plugin_start.cpp in Sources */,
 				F067C21329D82E58004BB52E /* kern_gfxcon.cpp in Sources */,
+				F011C00A2A7A4C7F007E8F8C /* kern_dyld_patches.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
