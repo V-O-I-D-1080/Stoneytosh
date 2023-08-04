@@ -1,4 +1,4 @@
-//  Copyright © 2022-2023 ChefKiss Inc. Licensed under the Thou Shalt Not Profit License version 1.0. See LICENSE for
+//  Copyright © 2022-2023 ChefKiss Inc. Licensed under the Thou Shalt Not Profit License version 1.5. See LICENSE for
 //  details.
 
 #include "kern_hwlibs.hpp"
@@ -41,7 +41,7 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
                     {"_SPECTRE_GoldenSettings_A0_8812_E", goldenCaps[static_cast<uint32_t>(ChipType::Spectre)],
                         needsECaps},
                 };
-                PANIC_COND(!SolveRequestPlus::solveAll(&patcher, index, solveRequests, address, size), "hwlibs",
+                PANIC_COND(!SolveRequestPlus::solveAll(patcher, index, solveRequests, address, size), "hwlibs",
                     "Failed to resolve symbols");
                 DBGLOG("hwlibs", "Set ASIC caps to Spectre");
                 break;
@@ -57,7 +57,7 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
                     {"_SPECTRE_GoldenSettings_A0_8812_E", goldenCaps[static_cast<uint32_t>(ChipType::Spectre)],
                         needsECaps},
                 };
-                PANIC_COND(!SolveRequestPlus::solveAll(&patcher, index, solveRequests, address, size), "hwlibs",
+                PANIC_COND(!SolveRequestPlus::solveAll(patcher, index, solveRequests, address, size), "hwlibs",
                     "Failed to resolve symbols");
                 DBGLOG("hwlibs", "Set ASIC caps to Spectre");
                 break;
@@ -80,7 +80,7 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
                             {"_KALINDI_GoldenSettings_A0_4882_E", goldenCaps[static_cast<uint32_t>(ChipType::Kalindi)],
                                 needsECaps},
                         };
-                        PANIC_COND(!SolveRequestPlus::solveAll(&patcher, index, solveRequests, address, size), "hwlibs",
+                        PANIC_COND(!SolveRequestPlus::solveAll(patcher, index, solveRequests, address, size), "hwlibs",
                             "Failed to resolve symbols");
                         break;
                     }
@@ -95,7 +95,7 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
                             {"_KALINDI_GoldenSettings_A0_4882_E", goldenCaps[static_cast<uint32_t>(ChipType::Kalindi)],
                                 needsECaps},
                         };
-                        PANIC_COND(!SolveRequestPlus::solveAll(&patcher, index, solveRequests, address, size), "hwlibs",
+                        PANIC_COND(!SolveRequestPlus::solveAll(patcher, index, solveRequests, address, size), "hwlibs",
                             "Failed to resolve symbols");
                         break;
                     }
@@ -107,7 +107,7 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
                             {"_KALINDI_GoldenSettings_A0_4882_E", goldenCaps[static_cast<uint32_t>(ChipType::Kalindi)],
                                 needsECaps},
                         };
-                        PANIC_COND(!SolveRequestPlus::solveAll(&patcher, index, solveRequests, address, size), "hwlibs",
+                        PANIC_COND(!SolveRequestPlus::solveAll(patcher, index, solveRequests, address, size), "hwlibs",
                             "Failed to resolve symbols");
                         break;
                     }
@@ -123,7 +123,7 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
                     {"_CAIL_DDI_CAPS_GODAVARI_A0", ddiCaps[static_cast<uint32_t>(ChipType::Godavari)]},
                     {"_GODAVARI_GoldenSettings_A0_2411", goldenCaps[static_cast<uint32_t>(ChipType::Godavari)]},
                 };
-                PANIC_COND(!SolveRequestPlus::solveAll(&patcher, index, solveRequests, address, size), "hwlibs",
+                PANIC_COND(!SolveRequestPlus::solveAll(patcher, index, solveRequests, address, size), "hwlibs",
                     "Failed to resolve symbols");
                 DBGLOG("hwlibs", "Set ASIC Caps to Goadavari");
                 break;
@@ -136,7 +136,7 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
                         {"_CAIL_DDI_CAPS_CARRIZO_A1", ddiCaps[static_cast<uint32_t>(ChipType::Carrizo)]},
                         {"_CARRIZO_GoldenSettings_A1", goldenCaps[static_cast<uint32_t>(ChipType::Carrizo)]},
                     };
-                    PANIC_COND(!SolveRequestPlus::solveAll(&patcher, index, solveRequests, address, size), "hwlibs",
+                    PANIC_COND(!SolveRequestPlus::solveAll(patcher, index, solveRequests, address, size), "hwlibs",
                         "Failed to resolve symbols");
                     DBGLOG("hwlibs", "Set ASIC Caps to Carrizo, variant A1");
                     break;
@@ -145,7 +145,7 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
                         {"_CAIL_DDI_CAPS_CARRIZO_A0", ddiCaps[static_cast<uint32_t>(ChipType::Carrizo)]},
                         {"_CARRIZO_GoldenSettings_A0", goldenCaps[static_cast<uint32_t>(ChipType::Carrizo)]},
                     };
-                    PANIC_COND(!SolveRequestPlus::solveAll(&patcher, index, solveRequests, address, size), "hwlibs",
+                    PANIC_COND(!SolveRequestPlus::solveAll(patcher, index, solveRequests, address, size), "hwlibs",
                         "Failed to resolve symbols");
                     DBGLOG("hwlibs", "Set ASIC Caps to Carrizo, variant A0");
                     break;
@@ -161,7 +161,7 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
                         !needs2cuSettings},
                     {"_CAIL_DDI_CAPS_STONEY_A0", ddiCaps[static_cast<uint32_t>(ChipType::Stoney)]},
                 };
-                PANIC_COND(!SolveRequestPlus::solveAll(&patcher, index, solveRequests, address, size), "hwlibs",
+                PANIC_COND(!SolveRequestPlus::solveAll(patcher, index, solveRequests, address, size), "hwlibs",
                     "Failed to resolve symbols");
                 DBGLOG("hwlibs", "Set ASIC Caps to Stoney, needs2cuSettings: %x", needs2cuSettings);
                 break;
@@ -181,7 +181,7 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
             {"_CAILAsicCapsInitTable", orgCapsInitTable},
             {"_CIslands_SendMsgToSmc", this->orgCISendMsgToSmc, LRed::callback->chipType < ChipType::Carrizo},
         };
-        PANIC_COND(!SolveRequestPlus::solveAll(&patcher, index, solveRequests, address, size), "hwlibs",
+        PANIC_COND(!SolveRequestPlus::solveAll(patcher, index, solveRequests, address, size), "hwlibs",
             "Failed to resolve symbols");
 
         KernelPatcher::RouteRequest requests[] = {

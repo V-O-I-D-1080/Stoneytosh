@@ -325,17 +325,6 @@ void LRed::setRMMIOIfNecessary() {
                 PANIC("lred", "Unknown device ID: %x", deviceId);
         }
         DBGLOG_COND(this->isGCN3, "lred", "iGPU is GCN 3 derivative");
-        int PGOff = 1;
-        if (this->chipType < ChipType::Carrizo) {
-            //  https://github.com/torvalds/linux/blob/master/drivers/gpu/drm/amd/amdgpu/cik.c#L2078
-            this->iGPU->setProperty("CAIL_DisableAcpPowerGating", PGOff, 0);
-            this->iGPU->setProperty("CAIL_DisableDrmdmaPowerGating", PGOff, 0);
-            this->iGPU->setProperty("CAIL_DisableDynamicGfxMGPowerGating", PGOff, 0);
-            this->iGPU->setProperty("CAIL_DisableGfxCGPowerGating", PGOff, 0);
-            this->iGPU->setProperty("CAIL_DisableGmcPowerGating", PGOff, 0);
-            this->iGPU->setProperty("CAIL_DisableSAMUPowerGating", PGOff, 0);
-            if (this->chipType > ChipType::Spooky) { this->iGPU->setProperty("CAIL_DisableVCEPowerGating", PGOff, 0); }
-        };
         this->currentEmulatedRevisionId = 
         // why ChipType instead of ChipVariant? - For mullins we set it as 'Godavari', which is technically just
         // Kalindi+, by the looks of AMDGPU code

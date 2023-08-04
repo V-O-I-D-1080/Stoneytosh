@@ -32,7 +32,7 @@ PluginConfiguration ADDPR(config) {
     bootargBeta,
     arrsize(bootargBeta),
     KernelVersion::HighSierra,    // we cannot go older, AMD patches only support HS+
-    KernelVersion::Monterey,      // we don't actually support Monterey, here for debugging/testing
+    KernelVersion::Ventura,      // we don't actually support Ventura, here for debugging/testing
     []() { lred.init(); },
 };
 

@@ -1,4 +1,4 @@
-//  Copyright © 2022-2023 ChefKiss Inc. Licensed under the Thou Shalt Not Profit License version 1.0. See LICENSE for
+//  Copyright © 2022-2023 ChefKiss Inc. Licensed under the Thou Shalt Not Profit License version 1.5. See LICENSE for
 //  details.
 
 #include "kern_x4000.hpp"
@@ -61,7 +61,7 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
                 isStoney},
             {"__ZN26AMDRadeonX4000_AMDHardware14startHWEnginesEv", startHWEngines},
         };
-        PANIC_COND(!SolveRequestPlus::solveAll(&patcher, index, solveRequests, address, size), "x4000",
+        PANIC_COND(!SolveRequestPlus::solveAll(patcher, index, solveRequests, address, size), "x4000",
             "Failed to resolve symbols");
 
         RouteRequestPlus requests[] = {
@@ -98,12 +98,12 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
 
             LookupPatchPlus const allocHWEnginesPatch {&kextRadeonX4000, kAMDEllesmereHWallocHWEnginesOriginal,
                 kAMDEllesmereHWallocHWEnginesPatched, 1, isStoney};
-            PANIC_COND(!allocHWEnginesPatch.apply(&patcher, address, size), "x4000",
+            PANIC_COND(!allocHWEnginesPatch.apply(patcher, address, size), "x4000",
                 "Failed to apply AllocateHWEngines patch: %d", patcher.getError());
 
             LookupPatchPlus const patch {&kextRadeonX4000, kStartHWEnginesOriginal, kStartHWEnginesMask,
                 kStartHWEnginesPatched, kStartHWEnginesMask, 1};
-            PANIC_COND(!patch.apply(&patcher, startHWEngines, PAGE_SIZE), "x4000", "Failed to patch startHWEngines");
+            PANIC_COND(!patch.apply(patcher, startHWEngines, PAGE_SIZE), "x4000", "Failed to patch startHWEngines");
             DBGLOG("x4000", "Applied Singular SDMA lookup patch");
         }
         return true;

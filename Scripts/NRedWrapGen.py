@@ -8,7 +8,7 @@ def fix_type(type: str) -> str:
         ret = "uint8_t"
     elif type in ["short", "ushort", "undefined2"]:
         ret = "uint16_t"
-    elif type in ["int", "uint", "undefined4", "AMDReturn"]:
+    elif type in ["int", "uint", "undefined4"]:
         ret = "uint32_t"
     elif type in ["long", "ulong", "ulonglong", "undefined8"]:
         ret = "uint64_t"
@@ -43,6 +43,7 @@ def get_fmt_type(type: str) -> str:
     table = {
         "uint64_t": "0x%llX",
         "uint32_t": "0x%X",
+        "CAILResult": "0x%X",
         "uint16_t": "0x%hX",
         "uint8_t": "0x%hhX",
         "bool": "%d",
@@ -77,11 +78,21 @@ def locate_line(lines: list[str], needle: str) -> int:
     for i, line in enumerate(lines):
         if needle in line:
             return i
-    raise AssertionError()
+    assert False
 
 
-cpp_path: str = "./LegacyRed/kern_lred.cpp"
-hpp_path: str = "./LegacyRed/kern_lred.hpp"
+moduleToClass = {
+    "hwlibs": "X5000HWLibs",
+    "x5000": "X5000",
+    "x6000": "X6000",
+    "x6000fb": "X6000FB",
+}
+
+module: str = input("Filename without extension: ./NootedRed/kern_")
+assert module in moduleToClass
+className = moduleToClass[module]
+cpp_path: str = f"./NootedRed/kern_{module}.cpp"
+hpp_path: str = f"./NootedRed/kern_{module}.hpp"
 
 with open(cpp_path) as cpp_file:
     cpp_lines: list[str] = cpp_file.readlines()
@@ -91,67 +102,72 @@ with open(hpp_path) as hpp_file:
 
 signature: str = input("Signature from \"Edit Function\": ").strip().replace(
     " *", "*")
-signature_parts = signature.split(" ")
+signature_parts: list[str] = signature.split(" ")
 
-return_type = fix_type(signature_parts[0].replace("*", " *"))
+return_type: str = fix_type(signature_parts[0].replace("*", " *"))
 
-func_ident = signature_parts[1]
-func_ident_pascal = to_pascal_case(func_ident)
+func_ident: str = signature_parts[1]
+func_ident_pascal: str = to_pascal_case(func_ident)
 
-parameters = [x.strip()
-              for x in signature.split("(")[1].split(")")[0].split(",")]
-parameters = [parse_param(x) for x in parameters]
+parameters: list[tuple[str, str]] = [parse_param(x) for x in [x.strip()
+                                                              for x in signature.split("(")[1].split(")")[0].split(",")]]
 
-params_stringified = ", ".join([" ".join(x) for x in parameters])
+params_stringified: str = ", ".join([" ".join(x) for x in parameters])
 
-target_line = len(cpp_lines)
-function = [
+target_line: int = len(cpp_lines)
+function: list[str] = [
     "\n",
-    f"{return_type} LRed::wrap{func_ident_pascal}({params_stringified}) {{\n",
+    f"{return_type} {className}::wrap{func_ident_pascal}({params_stringified}) {{\n",
 ]
 
-fmt_types = " ".join(
+fmt_types: str = " ".join(
     f"{get_fmt_name(x[1])}: {get_fmt_type(x[0])}" for x in parameters)
-arguments = ", ".join(x[1] for x in parameters)
-function.append(
-    f"    DBGLOG(\"lred\", \"{func_ident} << ({fmt_types})\", {arguments});\n")
+arguments: str = ", ".join(x[1] for x in parameters)
+function += [f"    DBGLOG(\"{module}\", \"{func_ident} << ({fmt_types})\", {arguments});\n"]
 
 if return_type == "void":
-    function.append(
-        f"    FunctionCast(wrap{func_ident_pascal}, callback->org{func_ident_pascal})({arguments});\n")
-    function.append(f"    DBGLOG(\"lred\", \"{func_ident} >> void\");\n")
+    function += [
+        f"    FunctionCast(wrap{func_ident_pascal}, callback->org{func_ident_pascal})({arguments});\n",
+        f"    DBGLOG(\"{module}\", \"{func_ident} >> void\");\n",
+    ]
 else:
-    function.append(
-        f"    auto ret = FunctionCast(wrap{func_ident_pascal}, callback->org{func_ident_pascal})({arguments});\n")
-    function.append(
-        f"    DBGLOG(\"lred\", \"{func_ident} >> {get_fmt_type(return_type)}\", ret);\n")
-    function.append("    return ret;\n")
+    function += [
+        f"    auto ret = FunctionCast(wrap{func_ident_pascal}, callback->org{func_ident_pascal})({arguments});\n",
+        f"    DBGLOG(\"{module}\", \"{func_ident} >> {get_fmt_type(return_type)}\", ret);\n",
+        "    return ret;\n",
+    ]
 
-function.append("}\n")  # -- End of function --
-function.append("\n")
+function += ["}\n"]  # -- End of function --
 
 cpp_lines[target_line:target_line] = function  # Extend at index
 
-kext: str = input("Kext: ").strip()
 symbol: str = input("Symbol: ").strip()
 target_line: int = locate_line(
-    cpp_lines, f"Failed to route {kext} symbols")
+    cpp_lines, "Failed to route symbols")
 
-while not cpp_lines[target_line].endswith("};\n"):
+while "};" not in cpp_lines[target_line]:
     target_line -= 1
 
-indent = cpp_lines[target_line][:-3]
+indent = cpp_lines[target_line].split("};")[0]
 
 cpp_lines.insert(
-    target_line, f"{indent}    {{\"{symbol}\", wrap{func_ident_pascal}, org{func_ident_pascal}}},\n")
+    target_line, f"{indent}    {{\"{symbol}\", wrap{func_ident_pascal}, this->org{func_ident_pascal}}},\n")
 
 target_line = len(hpp_lines) - 1
-while hpp_lines[target_line] != "};\n":
+while "wrap" not in hpp_lines[target_line]:
     target_line -= 1
-
+while ");" not in hpp_lines[target_line]:
+    target_line += 1
+target_line += 1
 hpp_lines[target_line:target_line] = [
-    f"    mach_vm_address_t org{func_ident_pascal}{{}};\n",
     f"    static {return_type} wrap{func_ident_pascal}({params_stringified});\n",
+]
+
+while not hpp_lines[target_line].startswith("    mach_vm_address_t org"):
+    target_line -= 1
+target_line += 1
+hpp_lines[target_line:target_line] = [
+    f"    mach_vm_address_t org{func_ident_pascal} {{0}};\n",
 ]
 
 with open(cpp_path, "w") as f:
