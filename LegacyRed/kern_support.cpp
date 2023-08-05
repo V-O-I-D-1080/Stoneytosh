@@ -54,6 +54,7 @@ bool Support::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_
                 wrapTranslateAtomConnectorInfo, orgTranslateAtomConnectorInfo},
             {"__ZN13ATIController5startEP9IOService", wrapATIControllerStart, orgATIControllerStart},
             {"__ZN14AtiGpuWrangler5startEP9IOService", wrapAtiGpuWranglerStart, orgAtiGpuWranglerStart},
+            {"__ZN13ATIController10doGPUPanicEPKcz", wrapDoGPUPanic},
         };
         PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "support",
             "Failed to route symbols");
@@ -346,4 +347,9 @@ void *Support::wrapCreateAtomBiosParser(void *that, void *param1, unsigned char 
     auto ret =
         FunctionCast(wrapCreateAtomBiosParser, callback->orgCreateAtomBiosParser)(that, param1, param2, dceVersion);
     return ret;
+}
+
+void Support::wrapDoGPUPanic() {
+    DBGLOG("support", "doGPUPanic << ()");
+    while (true) { IOSleep(3600000); }
 }

@@ -243,6 +243,7 @@ class Support {
     static IOReturn wrapTranslateAtomConnectorInfo(void *that, AtomConnectorInfo *info, Connector *connector);
     static bool wrapATIControllerStart(IOService *ctrl, IOService *provider);
     static bool wrapAtiGpuWranglerStart(IOService *ctrl, IOService *provider);
+    static void wrapDoGPUPanic();
 
     ThreadLocal<IOService *, 8> currentPropProvider;
 
