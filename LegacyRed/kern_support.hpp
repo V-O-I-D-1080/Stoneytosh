@@ -221,6 +221,7 @@ class Support {
     mach_vm_address_t orgGetNumberOfConnectors {0};
     mach_vm_address_t orgCreateAtomBiosParser {0};
     mach_vm_address_t orgATIControllerStart {0};
+    mach_vm_address_t orgAtiGpuWranglerStart {0};
 
     static bool wrapNotifyLinkChange(void *atiDeviceControl, kAGDCRegisterLinkControlEvent_t event, void *eventData,
         uint32_t eventFlags);
@@ -241,10 +242,12 @@ class Support {
     static IOReturn wrapGetConnectorsInfo(void *that, Connector *connectors, uint8_t *sz);
     static IOReturn wrapTranslateAtomConnectorInfo(void *that, AtomConnectorInfo *info, Connector *connector);
     static bool wrapATIControllerStart(IOService *ctrl, IOService *provider);
+    static bool wrapAtiGpuWranglerStart(IOService *ctrl, IOService *provider);
 
     ThreadLocal<IOService *, 8> currentPropProvider;
 
     bool dviSingleLink {false};
+    int count {0};
 };
 
 #endif /* kern_support_hpp */

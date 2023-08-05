@@ -53,6 +53,7 @@ bool Support::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_
              "V117AtomConnectorInfoER13ConnectorInfo",
                 wrapTranslateAtomConnectorInfo, orgTranslateAtomConnectorInfo},
             {"__ZN13ATIController5startEP9IOService", wrapATIControllerStart, orgATIControllerStart},
+            {"__ZN14AtiGpuWrangler5startEP9IOService", wrapAtiGpuWranglerStart, orgAtiGpuWranglerStart},
         };
         PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "support",
             "Failed to route symbols");
@@ -115,7 +116,23 @@ bool Support::doNotTestVram([[maybe_unused]] IOService *ctrl, [[maybe_unused]] u
     return true;
 }
 
+bool Support::wrapAtiGpuWranglerStart(IOService *ctrl, IOService *provider) {
+    callback->count = callback->count++;
+    if (callback->count == 2) {
+        IOSleep(3600000);    // keep AMD9000Controller in a limbo state, lasts for around an hour
+        return false;        // we don't want AMD9000Controller overriding AMD9500Controller.
+    }
+    DBGLOG("support", "starting wrangler " PRIKADDR, CASTKADDR(current_thread()));
+    bool r = FunctionCast(wrapATIControllerStart, callback->orgATIControllerStart)(ctrl, provider);
+    DBGLOG("support", "starting wrangler done %d " PRIKADDR, r, CASTKADDR(current_thread()));
+    return r;
+}
+
 bool Support::wrapATIControllerStart(IOService *ctrl, IOService *provider) {
+    if (callback->count == 2) {
+        IOSleep(3600000);    // keep AMD9000Controller in a limbo state, lasts for around an hour
+        return false;        // we don't want AMD9000Controller overriding AMD9500Controller.
+    }
     DBGLOG("support", "starting controller " PRIKADDR, CASTKADDR(current_thread()));
     callback->currentPropProvider.set(provider);
     bool r = FunctionCast(wrapATIControllerStart, callback->orgATIControllerStart)(ctrl, provider);
@@ -254,7 +271,7 @@ IOReturn Support::wrapGetConnectorsInfo(void *that, Connector *connectors, uint8
         callback->updateConnectorsInfo(nullptr, nullptr, *props, connectors, sz);
     } else {
         DBGLOG("support", "getConnectorsInfo failed %X or undefined %d", code, props == nullptr);
-		callback->updateConnectorsInfo(nullptr, nullptr, *props, connectors, sz);
+        callback->updateConnectorsInfo(nullptr, nullptr, *props, connectors, sz);
         return kIOReturnSuccess;
     }
 
