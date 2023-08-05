@@ -124,7 +124,7 @@ bool Support::wrapAtiGpuWranglerStart(IOService *ctrl, IOService *provider) {
         return false;        // we don't want AMD9000Controller overriding AMD9500Controller.
     }
     DBGLOG("support", "starting wrangler " PRIKADDR, CASTKADDR(current_thread()));
-    bool r = FunctionCast(wrapATIControllerStart, callback->orgATIControllerStart)(ctrl, provider);
+    bool r = FunctionCast(wrapAtiGpuWranglerStart, callback->orgAtiGpuWranglerStart)(ctrl, provider);
     DBGLOG("support", "starting wrangler done %d " PRIKADDR, r, CASTKADDR(current_thread()));
     return r;
 }
