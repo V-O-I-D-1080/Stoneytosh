@@ -50,17 +50,17 @@ bool GFXCon::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
         };
         PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "gfxcon",
             "Failed to route symbols");
-/*
-        LookupPatchPlus const patches[] = {
-            //{&kextRadeonGFX7Con, kAsicInfoCIPopulateDeviceInfoOriginal, kAsicInfoCIPopulateDeviceInfoPatched,
-                //arrsize(kAsicInfoCIPopulateDeviceInfoOriginal), 1},
-            {&kextRadeonGFX7Con, kCISharedControllerGetFamilyIdOriginal, kCISharedControllerGetFamilyIdPatched,
-                arrsize(kCISharedControllerGetFamilyIdOriginal), 1},
-        };
-        PANIC_COND(!LookupPatchPlus::applyAll(&patcher, patches, address, size), "gfxcon",
-            "Failed to apply patches: %d", patcher.getError());
-        DBGLOG("gfxcon", "Applied patches.");
-*/
+        /*
+                LookupPatchPlus const patches[] = {
+                    //{&kextRadeonGFX7Con, kAsicInfoCIPopulateDeviceInfoOriginal, kAsicInfoCIPopulateDeviceInfoPatched,
+                        //arrsize(kAsicInfoCIPopulateDeviceInfoOriginal), 1},
+                    {&kextRadeonGFX7Con, kCISharedControllerGetFamilyIdOriginal, kCISharedControllerGetFamilyIdPatched,
+                        arrsize(kCISharedControllerGetFamilyIdOriginal), 1},
+                };
+                PANIC_COND(!LookupPatchPlus::applyAll(&patcher, patches, address, size), "gfxcon",
+                    "Failed to apply patches: %d", patcher.getError());
+                DBGLOG("gfxcon", "Applied patches.");
+        */
         return true;
     } else if (kextRadeonGFX8Con.loadIndex == index) {
         LRed::callback->setRMMIOIfNecessary();
@@ -78,17 +78,18 @@ bool GFXCon::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
         };
         PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "gfxcon",
             "Failed to route symbols");
-/*
-        LookupPatchPlus const patches[] = {
-            //{&kextRadeonGFX8Con, kAsicInfoVIPopulateDeviceInfoOriginal, kAsicInfoVIPopulateDeviceInfoPatched,
-                //arrsize(kAsicInfoVIPopulateDeviceInfoOriginal), 1},
-            {&kextRadeonGFX8Con, kVIBaffinSharedControllerGetFamilyIdOriginal,
-                kVIBaffinSharedControllerGetFamilyIdPatched, arrsize(kVIBaffinSharedControllerGetFamilyIdOriginal), 1},
-        };
-        PANIC_COND(!LookupPatchPlus::applyAll(&patcher, patches, address, size), "gfxcon",
-            "Failed to apply patches: %d", patcher.getError());
-        DBGLOG("gfxcon", "Applied patches.");
-*/
+        /*
+                LookupPatchPlus const patches[] = {
+                    //{&kextRadeonGFX8Con, kAsicInfoVIPopulateDeviceInfoOriginal, kAsicInfoVIPopulateDeviceInfoPatched,
+                        //arrsize(kAsicInfoVIPopulateDeviceInfoOriginal), 1},
+                    {&kextRadeonGFX8Con, kVIBaffinSharedControllerGetFamilyIdOriginal,
+                        kVIBaffinSharedControllerGetFamilyIdPatched,
+           arrsize(kVIBaffinSharedControllerGetFamilyIdOriginal), 1},
+                };
+                PANIC_COND(!LookupPatchPlus::applyAll(&patcher, patches, address, size), "gfxcon",
+                    "Failed to apply patches: %d", patcher.getError());
+                DBGLOG("gfxcon", "Applied patches.");
+        */
         return true;
     } else if (kextRadeonPolarisCon.loadIndex == index) {
         LRed::callback->setRMMIOIfNecessary();
@@ -109,17 +110,19 @@ bool GFXCon::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
         };
         PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "gfxcon",
             "Failed to route symbols");
-/*
-        LookupPatchPlus const patches[] = {
-            //{&kextRadeonPolarisCon, kAsicInfoVIPopulateDeviceInfoOriginal, kAsicInfoVIPopulateDeviceInfoPatched,
-                //arrsize(kAsicInfoVIPopulateDeviceInfoOriginal), 1},
-            {&kextRadeonPolarisCon, kVIBaffinSharedControllerGetFamilyIdOriginal,
-                kVIBaffinSharedControllerGetFamilyIdPatched, arrsize(kVIBaffinSharedControllerGetFamilyIdOriginal), 1},
-        }; 
-        PANIC_COND(!LookupPatchPlus::applyAll(&patcher, patches, address, size), "gfxcon",
-            "Failed to apply patches: %d", patcher.getError());
-        DBGLOG("gfxcon", "Applied patches.");
-*/
+        /*
+                LookupPatchPlus const patches[] = {
+                    //{&kextRadeonPolarisCon, kAsicInfoVIPopulateDeviceInfoOriginal,
+           kAsicInfoVIPopulateDeviceInfoPatched,
+                        //arrsize(kAsicInfoVIPopulateDeviceInfoOriginal), 1},
+                    {&kextRadeonPolarisCon, kVIBaffinSharedControllerGetFamilyIdOriginal,
+                        kVIBaffinSharedControllerGetFamilyIdPatched,
+           arrsize(kVIBaffinSharedControllerGetFamilyIdOriginal), 1},
+                };
+                PANIC_COND(!LookupPatchPlus::applyAll(&patcher, patches, address, size), "gfxcon",
+                    "Failed to apply patches: %d", patcher.getError());
+                DBGLOG("gfxcon", "Applied patches.");
+        */
         return true;
     }
 
@@ -165,7 +168,7 @@ uint32_t GFXCon::wrapRegr32(void *that, uint32_t reg) {
 uint16_t GFXCon::wrapGetFamilyId(void) {
     auto id = FunctionCast(wrapGetFamilyId, callback->orgGetFamilyId)();
     DBGLOG("gfxcon", "getFamilyId >> %d", id);
-    (void)id; // to get clang-analyze to shut up
+    (void)id;    // to get clang-analyze to shut up
     DBGLOG("gfxcon", "getFamilyId << %d", LRed::callback->currentFamilyId);
     return LRed::callback->currentFamilyId;
 }

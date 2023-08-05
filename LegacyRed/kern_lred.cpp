@@ -325,12 +325,12 @@ void LRed::setRMMIOIfNecessary() {
                 PANIC("lred", "Unknown device ID: %x", deviceId);
         }
         DBGLOG_COND(this->isGCN3, "lred", "iGPU is GCN 3 derivative");
-        this->currentEmulatedRevisionId = 
-        // why ChipType instead of ChipVariant? - For mullins we set it as 'Godavari', which is technically just
-        // Kalindi+, by the looks of AMDGPU code
-        ((LRed::callback->chipType == ChipType::Kalindi)) ?
-            static_cast<uint32_t>(LRed::callback->enumeratedRevision) :
-            static_cast<uint32_t>(LRed::callback->enumeratedRevision) + LRed::callback->revision;    // rough guess
+        this->currentEmulatedRevisionId =
+            // why ChipType instead of ChipVariant? - For mullins we set it as 'Godavari', which is technically just
+            // Kalindi+, by the looks of AMDGPU code
+            ((LRed::callback->chipType == ChipType::Kalindi)) ?
+                static_cast<uint32_t>(LRed::callback->enumeratedRevision) :
+                static_cast<uint32_t>(LRed::callback->enumeratedRevision) + LRed::callback->revision;    // rough guess
     }
 }
 

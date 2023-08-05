@@ -78,132 +78,131 @@ struct AGDCValidateDetailedTiming_t {
 };
 
 struct AtomConnectorInfo {
-	uint16_t *atomObject;
-	uint16_t usConnObjectId;
-	uint16_t usGraphicObjIds;
-	uint8_t *hpdRecord;
-	uint8_t *i2cRecord;
+    uint16_t *atomObject;
+    uint16_t usConnObjectId;
+    uint16_t usGraphicObjIds;
+    uint8_t *hpdRecord;
+    uint8_t *i2cRecord;
 };
 
 using t_getAtomObjectTableForType = void *(*)(void *that, AtomObjectTableType type, uint8_t *sz);
 constexpr t_getAtomObjectTableForType orgGetAtomObjectTableForType {nullptr};
 
 enum ConnectorType {
-	ConnectorLVDS = 0x2,
-	ConnectorDigitalDVI = 0x4,
-	ConnectorSVID = 0x8,
-	ConnectorVGA = 0x10,
-	ConnectorDP = 0x400,
-	ConnectorHDMI = 0x800,
-	ConnectorAnalogDVI = 0x2000
+    ConnectorLVDS = 0x2,
+    ConnectorDigitalDVI = 0x4,
+    ConnectorSVID = 0x8,
+    ConnectorVGA = 0x10,
+    ConnectorDP = 0x400,
+    ConnectorHDMI = 0x800,
+    ConnectorAnalogDVI = 0x2000
 };
 
 struct LegacyConnector {
-	uint32_t type;
-	uint32_t flags;
-	uint16_t features;
-	uint16_t priority;
-	uint8_t transmitter;
-	uint8_t encoder;
-	uint8_t hotplug;
-	uint8_t sense;
+    uint32_t type;
+    uint32_t flags;
+    uint16_t features;
+    uint16_t priority;
+    uint8_t transmitter;
+    uint8_t encoder;
+    uint8_t hotplug;
+    uint8_t sense;
 };
 
 struct ModernConnector {
-	uint32_t type;
-	uint32_t flags;
-	uint16_t features;
-	uint16_t priority;
-	uint32_t reserved1;
-	uint8_t transmitter;
-	uint8_t encoder;
-	uint8_t hotplug;
-	uint8_t sense;
-	uint32_t reserved2;
+    uint32_t type;
+    uint32_t flags;
+    uint16_t features;
+    uint16_t priority;
+    uint32_t reserved1;
+    uint8_t transmitter;
+    uint8_t encoder;
+    uint8_t hotplug;
+    uint8_t sense;
+    uint32_t reserved2;
 };
 
 union Connector {
-	LegacyConnector legacy;
-	ModernConnector modern;
+    LegacyConnector legacy;
+    ModernConnector modern;
 
-	static_assert(sizeof(LegacyConnector) == 16, "LegacyConnector has wrong size");
-	static_assert(sizeof(ModernConnector) == 24, "ModernConnector has wrong size");
+    static_assert(sizeof(LegacyConnector) == 16, "LegacyConnector has wrong size");
+    static_assert(sizeof(ModernConnector) == 24, "ModernConnector has wrong size");
 
-	template <typename T, typename Y>
-	static inline void assign(T &out, const Y &in) {
-		memset(&out, 0, sizeof(T));
-		out.type = in.type;
-		out.flags = in.flags;
-		out.features = in.features;
-		out.priority = in.priority;
-		out.transmitter = in.transmitter;
-		out.encoder = in.encoder;
-		out.hotplug = in.hotplug;
-		out.sense = in.sense;
-	}
+    template<typename T, typename Y>
+    static inline void assign(T &out, const Y &in) {
+        memset(&out, 0, sizeof(T));
+        out.type = in.type;
+        out.flags = in.flags;
+        out.features = in.features;
+        out.priority = in.priority;
+        out.transmitter = in.transmitter;
+        out.encoder = in.encoder;
+        out.hotplug = in.hotplug;
+        out.sense = in.sense;
+    }
 };
 
 inline const char *printType(uint32_t type) {
-	switch (type) {
-		case ConnectorLVDS:
-			return "LVDS";
-		case ConnectorDigitalDVI:
-			return "DVI ";
-		case ConnectorSVID:
-			return "SVID";
-		case ConnectorVGA:
-			return "VGA ";
-		case ConnectorDP:
-			return "DP  ";
-		case ConnectorHDMI:
-			return "HDMI";
-		case ConnectorAnalogDVI:
-			return "ADVI";
-		default:
-			return "UNKN";
-	}
+    switch (type) {
+        case ConnectorLVDS:
+            return "LVDS";
+        case ConnectorDigitalDVI:
+            return "DVI ";
+        case ConnectorSVID:
+            return "SVID";
+        case ConnectorVGA:
+            return "VGA ";
+        case ConnectorDP:
+            return "DP  ";
+        case ConnectorHDMI:
+            return "HDMI";
+        case ConnectorAnalogDVI:
+            return "ADVI";
+        default:
+            return "UNKN";
+    }
 }
 
-template <typename T, size_t N>
+template<typename T, size_t N>
 inline char *printConnector(char (&out)[N], T &connector) {
-	snprintf(out, N, "type %08X (%s) flags %08X feat %04X pri %04X txmit %02X enc %02X hotplug %02X sense %02X", connector.type, printType(connector.type),
-			 connector.flags, connector.features, connector.priority, connector.transmitter, connector.encoder, connector.hotplug, connector.sense);
-	return out;
+    snprintf(out, N, "type %08X (%s) flags %08X feat %04X pri %04X txmit %02X enc %02X hotplug %02X sense %02X",
+        connector.type, printType(connector.type), connector.flags, connector.features, connector.priority,
+        connector.transmitter, connector.encoder, connector.hotplug, connector.sense);
+    return out;
 }
 
 inline void print(Connector *con, uint8_t num) {
 #ifdef DEBUG
-	for (uint8_t i = 0; con && i < num; i++) {
-		char tmp[192];
-		DBGLOG("support", "%u is %s", i, (getKernelVersion() >= KernelVersion::HighSierra) ?
-				printConnector(tmp, (&con->modern)[i]) : printConnector(tmp, (&con->legacy)[i]));
-	}
+    for (uint8_t i = 0; con && i < num; i++) {
+        char tmp[192];
+        DBGLOG("support", "%u is %s", i,
+            (getKernelVersion() >= KernelVersion::HighSierra) ? printConnector(tmp, (&con->modern)[i]) :
+                                                                printConnector(tmp, (&con->legacy)[i]));
+    }
 #endif
 }
 
 inline bool valid(uint32_t size, uint8_t num) {
-	return  (size % sizeof(ModernConnector) == 0 && size / sizeof(ModernConnector) == num) ||
-		      (size % sizeof(LegacyConnector) == 0 && size / sizeof(LegacyConnector) == num);
+    return (size % sizeof(ModernConnector) == 0 && size / sizeof(ModernConnector) == num) ||
+           (size % sizeof(LegacyConnector) == 0 && size / sizeof(LegacyConnector) == num);
 }
 
 inline void copy(Connector *out, uint8_t num, const Connector *in, uint32_t size) {
-	bool outModern = (getKernelVersion() >= KernelVersion::HighSierra);
-	bool inModern = size % sizeof(ModernConnector) == 0 && size / sizeof(ModernConnector) == num;
+    bool outModern = (getKernelVersion() >= KernelVersion::HighSierra);
+    bool inModern = size % sizeof(ModernConnector) == 0 && size / sizeof(ModernConnector) == num;
 
-	for (uint8_t i = 0; i < num; i++) {
-		if (outModern) {
-			if (inModern)
-				Connector::assign((&out->modern)[i], (&in->modern)[i]);
-			else
-				Connector::assign((&out->modern)[i], (&in->legacy)[i]);
-		} else {
-			if (inModern)
-				Connector::assign((&out->legacy)[i], (&in->modern)[i]);
-			else
-				Connector::assign((&out->legacy)[i], (&in->legacy)[i]);
-		}
-
-	}
+    for (uint8_t i = 0; i < num; i++) {
+        if (outModern) {
+            if (inModern) Connector::assign((&out->modern)[i], (&in->modern)[i]);
+            else
+                Connector::assign((&out->modern)[i], (&in->legacy)[i]);
+        } else {
+            if (inModern) Connector::assign((&out->legacy)[i], (&in->modern)[i]);
+            else
+                Connector::assign((&out->legacy)[i], (&in->legacy)[i]);
+        }
+    }
 }
 
 class Support {
@@ -231,14 +230,16 @@ class Support {
     static IOReturn wrapGetGpioPinInfo(void *that, uint32_t pin, void *pininfo);
     static uint32_t wrapGetNumberOfConnectors(void *that);
     static void *wrapCreateAtomBiosParser(void *that, void *param1, unsigned char *param2, uint32_t dceVersion);
-	void applyPropertyFixes(IOService *service, uint32_t connectorNum=0);
-    void updateConnectorsInfo(void *atomutils, t_getAtomObjectTableForType gettable, IOService *ctrl, Connector *connectors, uint8_t *sz);
-	void autocorrectConnectors(uint8_t *baseAddr, AtomDisplayObjectPath *displayPaths, uint8_t displayPathNum, AtomConnectorObject *connectorObjects,
-							   uint8_t connectorObjectNum, Connector *connectors, uint8_t sz);
-	void autocorrectConnector(uint8_t connector, uint8_t sense, uint8_t txmit, uint8_t enc, Connector *connectors, uint8_t sz);
-	void processConnectorOverrides(KernelPatcher &patcher, mach_vm_address_t address, size_t size, bool modern);
-	static uint32_t wrapGetConnectorsInfo(void *that, Connector *connectors, uint8_t *sz);
-    static uint32_t wrapTranslateAtomConnectorInfo(void *that, AtomConnectorInfo *info, Connector *connector);
+    void applyPropertyFixes(IOService *service, uint32_t connectorNum = 0);
+    void updateConnectorsInfo(void *atomutils, t_getAtomObjectTableForType gettable, IOService *ctrl,
+        Connector *connectors, uint8_t *sz);
+    void autocorrectConnectors(uint8_t *baseAddr, AtomDisplayObjectPath *displayPaths, uint8_t displayPathNum,
+        AtomConnectorObject *connectorObjects, uint8_t connectorObjectNum, Connector *connectors, uint8_t sz);
+    void autocorrectConnector(uint8_t connector, uint8_t sense, uint8_t txmit, uint8_t enc, Connector *connectors,
+        uint8_t sz);
+    void processConnectorOverrides(KernelPatcher &patcher, mach_vm_address_t address, size_t size, bool modern);
+    static IOReturn wrapGetConnectorsInfo(void *that, Connector *connectors, uint8_t *sz);
+    static IOReturn wrapTranslateAtomConnectorInfo(void *that, AtomConnectorInfo *info, Connector *connector);
     static bool wrapATIControllerStart(IOService *ctrl, IOService *provider);
 
     ThreadLocal<IOService *, 8> currentPropProvider;
