@@ -43,7 +43,7 @@ bool Support::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_
             {"__ZN30AtiObjectInfoTableInterface_V120getAtomConnectorInfoEjRNS_17AtomConnectorInfoE",
                 wrapGetAtomConnectorInfo, orgGetAtomConnectorInfo, condbg},
             {"__ZN30AtiObjectInfoTableInterface_V121getNumberOfConnectorsEv", wrapGetNumberOfConnectors,
-                orgGetNumberOfConnectors, condbg},
+                orgGetNumberOfConnectors},
             {"__ZN24AtiAtomFirmwareInterface16createAtomParserEP18BiosParserServicesPh11DCE_Version",
                 wrapCreateAtomBiosParser, orgCreateAtomBiosParser, vbiosdbg},
             {"__ZN25AtiGpioPinLutInterface_V114getGpioPinInfoEjRNS_11GpioPinInfoE", wrapGetGpioPinInfo,
@@ -266,6 +266,7 @@ void Support::autocorrectConnectors(uint8_t *baseAddr, AtomDisplayObjectPath *di
 IOReturn Support::wrapGetConnectorsInfo(void *that, Connector *connectors, uint8_t *sz) {
     auto props = callback->currentPropProvider.get();
     callback->updateConnectorsInfo(nullptr, nullptr, *props, connectors, sz);
+	void *objtableinterface = getMember<void *>(that, 0x118);
     IOReturn code = FunctionCast(wrapGetConnectorsInfo, callback->orgGetConnectorsInfo)(that, connectors, sz);
 
     if (code == kIOReturnSuccess && sz && props && *props) {
@@ -328,16 +329,12 @@ IOReturn Support::wrapGetGpioPinInfo(void *that, uint32_t pin, void *pininfo) {
 }
 
 uint32_t Support::wrapGetNumberOfConnectors(void *that) {
+	uint32_t objInfoRev = getMember<uint32_t>(that, 0x20);
+	struct ATOMObjTable *conInfoTbl = getMember<ATOMObjTable *>(that, 0x38);
+	DBGLOG("support", "Object Info Table revision == %x", objInfoRev);
+	DBGLOG("support", "connectorInfoTable values: objects: %x, objectId: %x, objectTableRev: %x", conInfoTbl->numberOfObjects, conInfoTbl->objects->objectID);
     auto ret = FunctionCast(wrapGetNumberOfConnectors, callback->orgGetNumberOfConnectors)(that);
     DBGLOG("support", "getNumberOfConnectors returned: %x", ret);
-    unsigned int conCountOverride;
-    if (PE_parse_boot_argn("lredconoverride", &conCountOverride, sizeof(conCountOverride))) {
-        // temporary fix for my main machine, still needs to be fixed, but, here for now.
-        // AtomConnectorInfo should have all we need in the future.
-        DBGLOG("support", "Connector Count override selected, using a count of %x", conCountOverride);
-        getMember<unsigned int>(that, 0x10) = conCountOverride;
-        return conCountOverride;
-    }
     return ret;
 }
 

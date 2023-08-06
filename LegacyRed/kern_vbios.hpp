@@ -161,6 +161,19 @@ struct ATOMDispObjPath_V2 {
     uint8_t reserved;
 };
 
+struct ATOMObj {
+    uint16_t objectID;
+    uint16_t srcDstTableOffset;
+    uint16_t recordOffset;
+    uint16_t reserved;
+} PACKED;
+
+struct ATOMObjTable {
+    uint8_t numberOfObjects;
+    uint8_t padding[3];
+    ATOMObj objects[];
+} PACKED;
+
 // this is NOT the same as AtomConnectorInfo seen in AtiObjectInfoTableInterface_V1
 // as to how AtiObjectInfoTableInterface_V2's AtomConnectorInfo differs? I don't know exactly.
 struct AtomConnectorInfo_V2 {
