@@ -363,33 +363,6 @@ void *Support::wrapGetImage(void *that, uint32_t offset, uint32_t length) {
     return ret;
 }
 
-static constexpr int CONNECTOR_Unknown = 0;
-static constexpr int CONNECTOR_VGA = 1;
-static constexpr int CONNECTOR_DVII = 2;
-static constexpr int CONNECTOR_DVID = 3;
-static constexpr int CONNECTOR_DVIA = 4;
-static constexpr int CONNECTOR_Composite = 5;
-static constexpr int CONNECTOR_SVIDEO = 6;
-static constexpr int CONNECTOR_LVDS = 7;
-static constexpr int CONNECTOR_Component = 8;
-static constexpr int CONNECTOR_9PinDIN = 9;
-static constexpr int CONNECTOR_DisplayPort = 10;
-static constexpr int CONNECTOR_HDMIA = 11;
-static constexpr int CONNECTOR_HDMIB = 12;
-static constexpr int CONNECTOR_TV = 13;
-static constexpr int CONNECTOR_eDP = 14;
-static constexpr int CONNECTOR_VIRTUAL = 15;
-static constexpr int CONNECTOR_DSI = 16;
-static constexpr int CONNECTOR_DPI = 17;
-static constexpr int CONNECTOR_WRITEBACK = 18;
-static constexpr int CONNECTOR_SPI = 19;
-static constexpr int CONNECTOR_USB = 20;
-
-static const int object_connector_convert[] = {CONNECTOR_Unknown, CONNECTOR_DVII, CONNECTOR_DVII, CONNECTOR_DVID,
-    CONNECTOR_DVID, CONNECTOR_VGA, CONNECTOR_Composite, CONNECTOR_SVIDEO, CONNECTOR_Unknown, CONNECTOR_Unknown,
-    CONNECTOR_9PinDIN, CONNECTOR_Unknown, CONNECTOR_HDMIA, CONNECTOR_HDMIB, CONNECTOR_LVDS, CONNECTOR_9PinDIN,
-    CONNECTOR_Unknown, CONNECTOR_Unknown, CONNECTOR_Unknown, CONNECTOR_DisplayPort, CONNECTOR_eDP, CONNECTOR_Unknown};
-
 bool Support::wrapObjectInfoTableInit(void *that, void *initdata) {
     auto ret = FunctionCast(wrapObjectInfoTableInit, callback->orgObjectInfoTableInit)(that, initdata);
     struct ATOMObjHeader *objHdr = getMember<ATOMObjHeader *>(that, 0x28);    // ?
