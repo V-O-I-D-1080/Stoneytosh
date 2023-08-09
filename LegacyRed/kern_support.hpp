@@ -222,6 +222,8 @@ class Support {
     mach_vm_address_t orgCreateAtomBiosParser {0};
     mach_vm_address_t orgATIControllerStart {0};
     mach_vm_address_t orgAtiGpuWranglerStart {0};
+    mach_vm_address_t orgGetImage {0};
+    mach_vm_address_t orgObjectInfoTableInit {0};
 
     static bool wrapNotifyLinkChange(void *atiDeviceControl, kAGDCRegisterLinkControlEvent_t event, void *eventData,
         uint32_t eventFlags);
@@ -244,11 +246,15 @@ class Support {
     static bool wrapATIControllerStart(IOService *ctrl, IOService *provider);
     static bool wrapAtiGpuWranglerStart(IOService *ctrl, IOService *provider);
     static void wrapDoGPUPanic();
+    static void *wrapGetImage(void *that, uint32_t offset, uint32_t length);
+    static bool wrapObjectInfoTableInit(void *that, void *initdata);
 
     ThreadLocal<IOService *, 8> currentPropProvider;
 
     bool dviSingleLink {false};
     int count {0};
+    uint32_t currentObjectInfoOffset;
+    bool objectInfoFound {false};
 };
 
 #endif /* kern_support_hpp */

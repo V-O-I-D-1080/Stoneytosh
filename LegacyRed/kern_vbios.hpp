@@ -161,6 +161,13 @@ struct ATOMDispObjPath_V2 {
     uint8_t reserved;
 };
 
+struct ATOMDispObjPathTable {
+    uint8_t numOfDispPath;
+    uint8_t version;
+    uint8_t padding[2];
+    ATOMDispObjPath dispPath[];
+} PACKED;
+
 struct ATOMObj {
     uint16_t objectID;
     uint16_t srcDstTableOffset;

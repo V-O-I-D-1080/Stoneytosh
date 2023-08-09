@@ -55,6 +55,9 @@ bool Support::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_
             {"__ZN13ATIController5startEP9IOService", wrapATIControllerStart, orgATIControllerStart},
             {"__ZN14AtiGpuWrangler5startEP9IOService", wrapAtiGpuWranglerStart, orgAtiGpuWranglerStart},
             {"__ZN13ATIController10doGPUPanicEPKcz", wrapDoGPUPanic},
+            {"__ZN14AtiVBiosHelper8getImageEjj", wrapGetImage, orgGetImage},
+            {"__ZN30AtiObjectInfoTableInterface_V14initERN21AtiDataTableBaseClass17DataTableInitInfoE",
+                wrapObjectInfoTableInit, orgObjectInfoTableInit},
         };
         PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "support",
             "Failed to route symbols");
@@ -266,7 +269,7 @@ void Support::autocorrectConnectors(uint8_t *baseAddr, AtomDisplayObjectPath *di
 IOReturn Support::wrapGetConnectorsInfo(void *that, Connector *connectors, uint8_t *sz) {
     auto props = callback->currentPropProvider.get();
     callback->updateConnectorsInfo(nullptr, nullptr, *props, connectors, sz);
-	void *objtableinterface = getMember<void *>(that, 0x118);
+    void *objtableinterface = getMember<void *>(that, 0x118);
     IOReturn code = FunctionCast(wrapGetConnectorsInfo, callback->orgGetConnectorsInfo)(that, connectors, sz);
 
     if (code == kIOReturnSuccess && sz && props && *props) {
@@ -329,10 +332,6 @@ IOReturn Support::wrapGetGpioPinInfo(void *that, uint32_t pin, void *pininfo) {
 }
 
 uint32_t Support::wrapGetNumberOfConnectors(void *that) {
-	uint32_t objInfoRev = getMember<uint32_t>(that, 0x20);
-	struct ATOMObjTable *conInfoTbl = getMember<ATOMObjTable *>(that, 0x38);
-	DBGLOG("support", "Object Info Table revision == %x", objInfoRev);
-	DBGLOG("support", "connectorInfoTable values: objects: %x, objectId: %x, objectTableRev: %x", conInfoTbl->numberOfObjects, conInfoTbl->objects->objectID);
     auto ret = FunctionCast(wrapGetNumberOfConnectors, callback->orgGetNumberOfConnectors)(that);
     DBGLOG("support", "getNumberOfConnectors returned: %x", ret);
     return ret;
@@ -349,4 +348,82 @@ void *Support::wrapCreateAtomBiosParser(void *that, void *param1, unsigned char 
 void Support::wrapDoGPUPanic() {
     DBGLOG("support", "doGPUPanic << ()");
     while (true) { IOSleep(3600000); }
+}
+
+void *Support::wrapGetImage(void *that, uint32_t offset, uint32_t length) {
+    DBGLOG_COND(length == 0x12, "support", "Object Info Table is v1.3");
+    if ((length == 0x12 || length == 0x10) && (callback->objectInfoFound == false)) {
+        DBGLOG("support", "Current Object Info Table Offset = 0x%x", offset);
+        callback->currentObjectInfoOffset = offset;
+        callback->objectInfoFound = true;
+    }
+    DBGLOG("support", "getImage: offset: %x, length %x", offset, length);
+    auto ret = FunctionCast(wrapGetImage, callback->orgGetImage)(that, offset, length);
+    DBGLOG("support", "getImage: returned %x", ret);
+    return ret;
+}
+
+static constexpr int CONNECTOR_Unknown = 0;
+static constexpr int CONNECTOR_VGA = 1;
+static constexpr int CONNECTOR_DVII = 2;
+static constexpr int CONNECTOR_DVID = 3;
+static constexpr int CONNECTOR_DVIA = 4;
+static constexpr int CONNECTOR_Composite = 5;
+static constexpr int CONNECTOR_SVIDEO = 6;
+static constexpr int CONNECTOR_LVDS = 7;
+static constexpr int CONNECTOR_Component = 8;
+static constexpr int CONNECTOR_9PinDIN = 9;
+static constexpr int CONNECTOR_DisplayPort = 10;
+static constexpr int CONNECTOR_HDMIA = 11;
+static constexpr int CONNECTOR_HDMIB = 12;
+static constexpr int CONNECTOR_TV = 13;
+static constexpr int CONNECTOR_eDP = 14;
+static constexpr int CONNECTOR_VIRTUAL = 15;
+static constexpr int CONNECTOR_DSI = 16;
+static constexpr int CONNECTOR_DPI = 17;
+static constexpr int CONNECTOR_WRITEBACK = 18;
+static constexpr int CONNECTOR_SPI = 19;
+static constexpr int CONNECTOR_USB = 20;
+
+static const int object_connector_convert[] = {CONNECTOR_Unknown, CONNECTOR_DVII, CONNECTOR_DVII, CONNECTOR_DVID,
+    CONNECTOR_DVID, CONNECTOR_VGA, CONNECTOR_Composite, CONNECTOR_SVIDEO, CONNECTOR_Unknown, CONNECTOR_Unknown,
+    CONNECTOR_9PinDIN, CONNECTOR_Unknown, CONNECTOR_HDMIA, CONNECTOR_HDMIB, CONNECTOR_LVDS, CONNECTOR_9PinDIN,
+    CONNECTOR_Unknown, CONNECTOR_Unknown, CONNECTOR_Unknown, CONNECTOR_DisplayPort, CONNECTOR_eDP, CONNECTOR_Unknown};
+
+bool Support::wrapObjectInfoTableInit(void *that, void *initdata) {
+    auto ret = FunctionCast(wrapObjectInfoTableInit, callback->orgObjectInfoTableInit)(that, initdata);
+    struct ATOMObjHeader *objHdr = getMember<ATOMObjHeader *>(that, 0x28);    // ?
+    DBGLOG("support", "objectInfoTable values: conObjTblOff: %x, encObjTblOff: %x, dispPathTblOff: %x",
+        objHdr->connectorObjectTableOffset, objHdr->encoderObjectTableOffset, objHdr->displayPathTableOffset);
+    struct ATOMObjTable *conInfoTbl = getMember<ATOMObjTable *>(that, 0x38);
+    void *vbiosparser = getMember<void *>(that, 0x10);
+    ATOMDispObjPathTable *dispPathTable = static_cast<ATOMDispObjPathTable *>(FunctionCast(wrapGetImage,
+        callback->orgGetImage)(vbiosparser, callback->currentObjectInfoOffset + objHdr->displayPathTableOffset, 0xE));
+    DBGLOG("support", "dispObjPathTable: numDispPaths = 0x%x, version: 0x%x", dispPathTable->numOfDispPath,
+        dispPathTable->version);
+    auto n = dispPathTable->numOfDispPath;
+    DBGLOG("lred", "Fixing VBIOS connectors");
+    for (size_t i = 0, j = 0; i < n; i++) {
+        // Skip invalid device tags
+        if (dispPathTable->dispPath[i].deviceTag) {
+            uint8_t conObjType = (conInfoTbl->objects[i].objectID & OBJECT_TYPE_MASK) >> OBJECT_TYPE_SHIFT;
+            DBGLOG("support", "connectorInfoTable: connector: %x, objects: %x, objectId: %x, objectTypeFromId: %x", i,
+                conInfoTbl->numberOfObjects, conInfoTbl->objects[i].objectID,
+                (conInfoTbl->objects[i].objectID & OBJECT_TYPE_MASK) >> OBJECT_TYPE_SHIFT);
+            if (conObjType != GRAPH_OBJECT_TYPE_CONNECTOR) {
+                SYSLOG("lred", "Connector %x is not GRAPH_OBJECT_TYPE_CONNECTOR!, objectType: %x", i, conObjType);
+                conInfoTbl->numberOfObjects--;
+                dispPathTable->numOfDispPath--;
+            } else {
+                conInfoTbl->objects[j++] = conInfoTbl->objects[i];
+                dispPathTable->dispPath[j] = dispPathTable->dispPath[i];
+            }
+        } else {
+            dispPathTable->numOfDispPath--;
+            conInfoTbl->numberOfObjects--;
+        }
+    }
+    DBGLOG("lred", "Results: numOfDispPath: 0x%x, numberOfObjects: 0x%x", dispPathTable->numOfDispPath,
+        conInfoTbl->numberOfObjects);
+    return ret;
 }
