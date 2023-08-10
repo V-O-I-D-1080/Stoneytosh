@@ -28,7 +28,6 @@ bool Support::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_
     if (kextRadeonSupport.loadIndex == index) {
         LRed::callback->setRMMIOIfNecessary();
         auto vbiosdbg = checkKernelArgument("-lredvbiosdbg");
-        auto condbg = checkKernelArgument("-lredcondbg");
         auto adcpatch = checkKernelArgument("-lredadcpatch");
         auto gpiodbg = checkKernelArgument("-lredgpiodbg");
         auto isCarrizo = (LRed::callback->chipType >= ChipType::Carrizo);
@@ -117,9 +116,7 @@ bool Support::wrapAtiGpuWranglerStart(IOService *ctrl, IOService *provider) {
         IOSleep(3600000);    // keep AMD9000Controller in a limbo state, lasts for around an hour
         return false;        // we don't want AMD9000Controller overriding AMD9500Controller.
     }
-    DBGLOG("support", "starting wrangler " PRIKADDR, CASTKADDR(current_thread()));
     bool r = FunctionCast(wrapAtiGpuWranglerStart, callback->orgAtiGpuWranglerStart)(ctrl, provider);
-    DBGLOG("support", "starting wrangler done %d " PRIKADDR, r, CASTKADDR(current_thread()));
     return r;
 }
 
@@ -128,21 +125,8 @@ bool Support::wrapATIControllerStart(IOService *ctrl, IOService *provider) {
         IOSleep(3600000);    // keep AMD9000Controller in a limbo state, lasts for around an hour
         return false;        // we don't want AMD9000Controller overriding AMD9500Controller.
     }
-    DBGLOG("support", "starting controller " PRIKADDR, CASTKADDR(current_thread()));
-    callback->currentPropProvider.set(provider);
     bool r = FunctionCast(wrapATIControllerStart, callback->orgATIControllerStart)(ctrl, provider);
-    DBGLOG("support", "starting controller done %d " PRIKADDR, r, CASTKADDR(current_thread()));
-    callback->currentPropProvider.erase();
     return r;
-}
-
-void Support::applyPropertyFixes(IOService *service, uint32_t connectorNum) {
-    if (service) {
-        if (!service->getProperty("CFG,CFG_FB_LIMIT")) {
-            DBGLOG("support", "setting fb limit to %u", connectorNum);
-            service->setProperty("CFG_FB_LIMIT", connectorNum, 32);
-        }
-    }
 }
 
 IOReturn Support::wrapGetGpioPinInfo(void *that, uint32_t pin, void *pininfo) {
@@ -192,7 +176,6 @@ bool Support::wrapObjectInfoTableInit(void *that, void *initdata) {
     DBGLOG("support", "dispObjPathTable: numDispPaths = 0x%x, version: 0x%x", dispPathTable->numOfDispPath,
         dispPathTable->version);
     auto n = dispPathTable->numOfDispPath;
-    auto props = callback->currentPropProvider.get();
     DBGLOG("support", "Fixing VBIOS connectors");
     for (size_t i = 0, j = 0; i < n; i++) {
         // Skip invalid device tags
@@ -218,6 +201,5 @@ bool Support::wrapObjectInfoTableInit(void *that, void *initdata) {
     }
     DBGLOG("support", "Results: numOfDispPath: 0x%x, numberOfObjects: 0x%x", dispPathTable->numOfDispPath,
         conInfoTbl->numberOfObjects);
-    callback->applyPropertyFixes(*props, conInfoTbl->numberOfObjects);
     return ret;
 }

@@ -86,7 +86,6 @@ class Support {
     private:
     mach_vm_address_t orgPopulateDeviceMemory {0};
     mach_vm_address_t orgNotifyLinkChange {0};
-    mach_vm_address_t orgGetConnectorsInfo {0};
     mach_vm_address_t orgGetGpioPinInfo {0};
     mach_vm_address_t orgCreateAtomBiosParser {0};
     mach_vm_address_t orgATIControllerStart {0};
@@ -100,14 +99,11 @@ class Support {
     static IOReturn wrapPopulateDeviceMemory(void *that, uint32_t reg);
     static IOReturn wrapGetGpioPinInfo(void *that, uint32_t pin, void *pininfo);
     static void *wrapCreateAtomBiosParser(void *that, void *param1, unsigned char *param2, uint32_t dceVersion);
-    void applyPropertyFixes(IOService *service, uint32_t connectorNum = 0);
     static bool wrapATIControllerStart(IOService *ctrl, IOService *provider);
     static bool wrapAtiGpuWranglerStart(IOService *ctrl, IOService *provider);
     static void wrapDoGPUPanic();
     static void *wrapGetImage(void *that, uint32_t offset, uint32_t length);
     static bool wrapObjectInfoTableInit(void *that, void *initdata);
-
-    ThreadLocal<IOService *, 8> currentPropProvider;
 
     int count {0};
     uint32_t currentObjectInfoOffset;
