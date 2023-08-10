@@ -185,6 +185,8 @@ bool Support::wrapObjectInfoTableInit(void *that, void *initdata) {
                 conInfoTbl->numberOfObjects, conInfoTbl->objects[i].objectID,
                 (conInfoTbl->objects[i].objectID & OBJECT_TYPE_MASK) >> OBJECT_TYPE_SHIFT);
             if (conObjType != GRAPH_OBJECT_TYPE_CONNECTOR) {
+                // Trims out any non-connector objects, proven to work on 2 machines, one with all connectors properly
+                // defined, one with 2/3 being valid connectors
                 SYSLOG("support",
                     "Connector %x's objectType is not GRAPH_OBJECT_TYPE_CONNECTOR!, detected objectType: %x", i,
                     conObjType);

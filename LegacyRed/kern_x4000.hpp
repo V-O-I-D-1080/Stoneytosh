@@ -28,6 +28,7 @@ class X4000 {
     mach_vm_address_t orgGetHWChannel {0};
     mach_vm_address_t orgInitLinkToPeer {0};
     mach_vm_address_t orgSetupAndInitializeHWCapabilities {0};
+    mach_vm_address_t orgGetAccelCtl {0};
 
     void *callbackAccelerator = nullptr;
 
@@ -40,6 +41,7 @@ class X4000 {
     static uint64_t wrapCreateHWInterface(void *that, IOPCIDevice *dev);
     static void wrapSetupAndInitializeHWCapabilities(void *that);
     static char *forceX4000HWLibs(void);
+    static void *wrapGetAccelCtl(void *that);
 };
 
 #endif /* kern_x4000_hpp */
