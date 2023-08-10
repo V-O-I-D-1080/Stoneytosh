@@ -22,7 +22,6 @@ Support *Support::callback = nullptr;
 void Support::init() {
     callback = this;
     lilu.onKextLoadForce(&kextRadeonSupport);
-    dviSingleLink = checkKernelArgument("-lreddvi");
 }
 
 bool Support::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t address, size_t size) {
@@ -40,18 +39,10 @@ bool Support::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_
             {"__ZN16AtiDeviceControl16notifyLinkChangeE31kAGDCRegisterLinkControlEvent_tmj", wrapNotifyLinkChange,
                 orgNotifyLinkChange},
             {"__ZN13ATIController8TestVRAME13PCI_REG_INDEXb", doNotTestVram},
-            {"__ZN30AtiObjectInfoTableInterface_V120getAtomConnectorInfoEjRNS_17AtomConnectorInfoE",
-                wrapGetAtomConnectorInfo, orgGetAtomConnectorInfo, condbg},
-            {"__ZN30AtiObjectInfoTableInterface_V121getNumberOfConnectorsEv", wrapGetNumberOfConnectors,
-                orgGetNumberOfConnectors},
             {"__ZN24AtiAtomFirmwareInterface16createAtomParserEP18BiosParserServicesPh11DCE_Version",
                 wrapCreateAtomBiosParser, orgCreateAtomBiosParser, vbiosdbg},
             {"__ZN25AtiGpioPinLutInterface_V114getGpioPinInfoEjRNS_11GpioPinInfoE", wrapGetGpioPinInfo,
                 orgGetGpioPinInfo, gpiodbg},
-            {"__ZN14AtiBiosParser116getConnectorInfoEP13ConnectorInfoRh", wrapGetConnectorsInfo, orgGetConnectorsInfo},
-            {"__ZN14AtiBiosParser126translateAtomConnectorInfoERN30AtiObjectInfoTableInterface_"
-             "V117AtomConnectorInfoER13ConnectorInfo",
-                wrapTranslateAtomConnectorInfo, orgTranslateAtomConnectorInfo},
             {"__ZN13ATIController5startEP9IOService", wrapATIControllerStart, orgATIControllerStart},
             {"__ZN14AtiGpuWrangler5startEP9IOService", wrapAtiGpuWranglerStart, orgAtiGpuWranglerStart},
             {"__ZN13ATIController10doGPUPanicEPKcz", wrapDoGPUPanic},
@@ -147,179 +138,11 @@ bool Support::wrapATIControllerStart(IOService *ctrl, IOService *provider) {
 
 void Support::applyPropertyFixes(IOService *service, uint32_t connectorNum) {
     if (service) {
-        // Starting with 10.13.2 this is important to fix sleep issues due to enforced 6 screens
         if (!service->getProperty("CFG,CFG_FB_LIMIT")) {
             DBGLOG("support", "setting fb limit to %u", connectorNum);
             service->setProperty("CFG_FB_LIMIT", connectorNum, 32);
         }
-
-        // In the past we set CFG_USE_AGDC to false, which caused visual glitches and broken multimonitor support.
-        // A better workaround is to disable AGDP just like we do globally.
     }
-}
-
-void Support::autocorrectConnector(uint8_t connector, uint8_t sense, uint8_t txmit, uint8_t enc, Connector *connectors,
-    uint8_t sz) {
-    if (callback->dviSingleLink) {
-        if (connector != CONNECTOR_OBJECT_ID_DUAL_LINK_DVI_I && connector != CONNECTOR_OBJECT_ID_DUAL_LINK_DVI_D &&
-            connector != CONNECTOR_OBJECT_ID_LVDS) {
-            DBGLOG("support", "autocorrectConnector found unsupported connector type %02X", connector);
-            return;
-        }
-
-        auto fixTransmit = [](auto &con, uint8_t idx, uint8_t sense, uint8_t txmit) {
-            if (con.sense == sense) {
-                if (con.transmitter != txmit && (con.transmitter & 0xCF) == con.transmitter) {
-                    DBGLOG("support", "autocorrectConnector replacing txmit %02X with %02X for %u connector sense %02X",
-                        con.transmitter, txmit, idx, sense);
-                    con.transmitter = txmit;
-                }
-                return true;
-            }
-            return false;
-        };
-
-        for (uint8_t j = 0; j < sz; j++) {
-            auto &con = (&connectors->modern)[j];
-            fixTransmit(con, j, sense, txmit);
-        }
-    } else {
-        DBGLOG("support", "autocorrectConnector use -lreddvi to enable dvi autocorrection");
-    }
-}
-
-void Support::updateConnectorsInfo(void *atomutils, t_getAtomObjectTableForType gettable, IOService *ctrl,
-    Connector *connectors, uint8_t *sz) {
-    if (atomutils) {
-        DBGLOG("support", "getConnectorsInfo found %u connectors", *sz);
-        print(connectors, *sz);
-    }
-
-    // Check if the user wants to override automatically detected connectors
-    auto cons = ctrl->getProperty("connectors");
-    if (cons) {
-        auto consData = OSDynamicCast(OSData, cons);
-        if (consData) {
-            auto consPtr = consData->getBytesNoCopy();
-            auto consSize = consData->getLength();
-
-            uint32_t consCount;
-            if (WIOKit::getOSDataValue(ctrl, "connector-count", consCount)) {
-                *sz = consCount;
-                DBGLOG("support", "getConnectorsInfo got size override to %u", *sz);
-            }
-
-            if (consPtr && consSize > 0 && *sz > 0 && valid(consSize, *sz)) {
-                copy(connectors, *sz, static_cast<const Connector *>(consPtr), consSize);
-                DBGLOG("support", "getConnectorsInfo installed %u connectors", *sz);
-                applyPropertyFixes(ctrl, *sz);
-            } else {
-                DBGLOG("support", "getConnectorsInfo conoverrides have invalid size %u for %u num", consSize, *sz);
-            }
-        } else {
-            DBGLOG("support", "getConnectorsInfo conoverrides have invalid type");
-        }
-    } else {
-        if (atomutils) {
-            DBGLOG("support", "getConnectorsInfo attempting to autofix connectors");
-            uint8_t sHeader = 0, displayPathNum = 0, connectorObjectNum = 0;
-            auto baseAddr =
-                static_cast<uint8_t *>(gettable(atomutils, AtomObjectTableType::Common, &sHeader)) - sizeof(uint32_t);
-            auto displayPaths = static_cast<AtomDisplayObjectPath *>(
-                gettable(atomutils, AtomObjectTableType::DisplayPath, &displayPathNum));
-            auto connectorObjects = static_cast<AtomConnectorObject *>(
-                gettable(atomutils, AtomObjectTableType::ConnectorObject, &connectorObjectNum));
-            if (displayPathNum == connectorObjectNum)
-                autocorrectConnectors(baseAddr, displayPaths, displayPathNum, connectorObjects, connectorObjectNum,
-                    connectors, *sz);
-            else
-                DBGLOG("support", "getConnectorsInfo found different displaypaths %u and connectors %u", displayPathNum,
-                    connectorObjectNum);
-        }
-
-        applyPropertyFixes(ctrl, *sz);
-    }
-
-    DBGLOG("support", "getConnectorsInfo resulting %u connectors follow", *sz);
-    print(connectors, *sz);
-}
-
-void Support::autocorrectConnectors(uint8_t *baseAddr, AtomDisplayObjectPath *displayPaths, uint8_t displayPathNum,
-    AtomConnectorObject *connectorObjects, uint8_t connectorObjectNum, Connector *connectors, uint8_t sz) {
-    for (uint8_t i = 0; i < displayPathNum; i++) {
-        if (!isEncoder(displayPaths[i].usGraphicObjIds)) {
-            DBGLOG("support", "autocorrectConnectors not encoder %X at %u", displayPaths[i].usGraphicObjIds, i);
-            continue;
-        }
-
-        uint8_t txmit = 0, enc = 0;
-        if (!getTxEnc(displayPaths[i].usGraphicObjIds, txmit, enc)) continue;
-
-        uint8_t sense = getSenseID(baseAddr + connectorObjects[i].usRecordOffset);
-        if (!sense) {
-            DBGLOG("support", "autocorrectConnectors failed to detect sense for %u connector", i);
-            continue;
-        }
-
-        DBGLOG("support", "autocorrectConnectors found txmit %02X enc %02X sense %02X for %u connector", txmit, enc,
-            sense, i);
-    }
-}
-
-IOReturn Support::wrapGetConnectorsInfo(void *that, Connector *connectors, uint8_t *sz) {
-    auto props = callback->currentPropProvider.get();
-    callback->updateConnectorsInfo(nullptr, nullptr, *props, connectors, sz);
-    void *objtableinterface = getMember<void *>(that, 0x118);
-    IOReturn code = FunctionCast(wrapGetConnectorsInfo, callback->orgGetConnectorsInfo)(that, connectors, sz);
-
-    if (code == kIOReturnSuccess && sz && props && *props) {
-        callback->updateConnectorsInfo(nullptr, nullptr, *props, connectors, sz);
-    } else {
-        DBGLOG("support", "getConnectorsInfo failed %X or undefined %d", code, props == nullptr);
-        callback->updateConnectorsInfo(nullptr, nullptr, *props, connectors, sz);
-        return kIOReturnSuccess;
-    }
-
-    return code;
-}
-
-IOReturn Support::wrapTranslateAtomConnectorInfo(void *that, AtomConnectorInfo *info, Connector *connector) {
-    IOReturn code =
-        FunctionCast(wrapTranslateAtomConnectorInfo, callback->orgTranslateAtomConnectorInfo)(that, info, connector);
-
-    if (code == kIOReturnSuccess && info && connector) {
-        print(connector, 1);
-
-        uint8_t sense = getSenseID(info->i2cRecord);
-        if (sense) {
-            DBGLOG("support", "translateAtomConnectorInfo got sense id %02X", sense);
-            uint8_t ucNumberOfSrc = info->hpdRecord[0];
-            for (uint8_t i = 0; i < ucNumberOfSrc; i++) {
-                auto usSrcObjectID =
-                    *reinterpret_cast<uint16_t *>(info->hpdRecord + sizeof(uint8_t) + i * sizeof(uint16_t));
-                DBGLOG("support", "translateAtomConnectorInfo checking %04X object id", usSrcObjectID);
-                if (((usSrcObjectID & OBJECT_TYPE_MASK) >> OBJECT_TYPE_SHIFT) == GRAPH_OBJECT_TYPE_ENCODER) {
-                    uint8_t txmit = 0, enc = 0;
-                    if (getTxEnc(usSrcObjectID, txmit, enc))
-                        callback->autocorrectConnector(getConnectorID(info->usConnObjectId),
-                            getSenseID(info->i2cRecord), txmit, enc, connector, 1);
-                    break;
-                }
-            }
-
-        } else {
-            DBGLOG("support", "translateAtomConnectorInfo failed to detect sense for translated connector");
-        }
-    }
-
-    return code;
-}
-
-IOReturn Support::wrapGetAtomConnectorInfo(void *that, uint32_t connector, AtomConnectorInfo *coninfo) {
-    DBGLOG("support", "getAtomConnectorInfo: connector %x", connector);
-    auto ret = FunctionCast(wrapGetAtomConnectorInfo, callback->orgGetAtomConnectorInfo)(that, connector, coninfo);
-    DBGLOG("support", "getAtomConnectorInfo: returned %x", ret);
-    return ret;
 }
 
 IOReturn Support::wrapGetGpioPinInfo(void *that, uint32_t pin, void *pininfo) {
@@ -328,12 +151,6 @@ IOReturn Support::wrapGetGpioPinInfo(void *that, uint32_t pin, void *pininfo) {
     (void)member;    // to also get clang-analyze to shut up
     auto ret = FunctionCast(wrapGetGpioPinInfo, callback->orgGetGpioPinInfo)(that, pin, pininfo);
     DBGLOG("support", "getGpioPinInfo: returned %x", ret);
-    return ret;
-}
-
-uint32_t Support::wrapGetNumberOfConnectors(void *that) {
-    auto ret = FunctionCast(wrapGetNumberOfConnectors, callback->orgGetNumberOfConnectors)(that);
-    DBGLOG("support", "getNumberOfConnectors returned: %x", ret);
     return ret;
 }
 
@@ -375,7 +192,8 @@ bool Support::wrapObjectInfoTableInit(void *that, void *initdata) {
     DBGLOG("support", "dispObjPathTable: numDispPaths = 0x%x, version: 0x%x", dispPathTable->numOfDispPath,
         dispPathTable->version);
     auto n = dispPathTable->numOfDispPath;
-    DBGLOG("lred", "Fixing VBIOS connectors");
+    auto props = callback->currentPropProvider.get();
+    DBGLOG("support", "Fixing VBIOS connectors");
     for (size_t i = 0, j = 0; i < n; i++) {
         // Skip invalid device tags
         if (dispPathTable->dispPath[i].deviceTag) {
@@ -384,7 +202,9 @@ bool Support::wrapObjectInfoTableInit(void *that, void *initdata) {
                 conInfoTbl->numberOfObjects, conInfoTbl->objects[i].objectID,
                 (conInfoTbl->objects[i].objectID & OBJECT_TYPE_MASK) >> OBJECT_TYPE_SHIFT);
             if (conObjType != GRAPH_OBJECT_TYPE_CONNECTOR) {
-                SYSLOG("lred", "Connector %x is not GRAPH_OBJECT_TYPE_CONNECTOR!, objectType: %x", i, conObjType);
+                SYSLOG("support",
+                    "Connector %x's objectType is not GRAPH_OBJECT_TYPE_CONNECTOR!, detected objectType: %x", i,
+                    conObjType);
                 conInfoTbl->numberOfObjects--;
                 dispPathTable->numOfDispPath--;
             } else {
@@ -396,7 +216,8 @@ bool Support::wrapObjectInfoTableInit(void *that, void *initdata) {
             conInfoTbl->numberOfObjects--;
         }
     }
-    DBGLOG("lred", "Results: numOfDispPath: 0x%x, numberOfObjects: 0x%x", dispPathTable->numOfDispPath,
+    DBGLOG("support", "Results: numOfDispPath: 0x%x, numberOfObjects: 0x%x", dispPathTable->numOfDispPath,
         conInfoTbl->numberOfObjects);
+    callback->applyPropertyFixes(*props, conInfoTbl->numberOfObjects);
     return ret;
 }
