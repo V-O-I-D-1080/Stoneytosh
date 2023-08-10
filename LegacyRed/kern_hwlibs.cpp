@@ -205,7 +205,6 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
         auto targetExtRev = ((LRed::callback->chipType == ChipType::Kalindi)) ?
                                 static_cast<uint32_t>(LRed::callback->enumeratedRevision) :
                                 static_cast<uint32_t>(LRed::callback->enumeratedRevision) + LRed::callback->revision;
-        bool found = false;
         uint32_t targetDeviceId;
         switch (LRed::callback->chipType) {
             case ChipType::Spectre:
@@ -216,13 +215,13 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
             case ChipType::Kalindi: {
                 targetDeviceId = 0x9830;
             }
-            case ChipType::Godavari {
+            case ChipType::Godavari: {
                 targetDeviceId = 0x9850;
             }
-            case ChipType::Carrizo {
+            case ChipType::Carrizo: {
                 targetDeviceId = 0x9874;
             }
-            case ChipType::Stoney {
+            case ChipType::Stoney: {
                 targetDeviceId = 0x98E4;
             }
             default: {
