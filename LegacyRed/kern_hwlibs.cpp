@@ -211,21 +211,28 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
                 [[fallthrough]];
             case ChipType::Spooky: {
                 targetDeviceId = 0x130A;
+                SYSLOG("hwlibs", "targetDeviceId == 0x%x", targetDeviceId);
             }
             case ChipType::Kalindi: {
                 targetDeviceId = 0x9830;
+                SYSLOG("hwlibs", "targetDeviceId == 0x%x", targetDeviceId);
             }
             case ChipType::Godavari: {
                 targetDeviceId = 0x9850;
+                SYSLOG("hwlibs", "targetDeviceId == 0x%x", targetDeviceId);
             }
             case ChipType::Carrizo: {
                 targetDeviceId = 0x9874;
+                SYSLOG("hwlibs", "targetDeviceId == 0x%x", targetDeviceId);
             }
             case ChipType::Stoney: {
                 targetDeviceId = 0x98E4;
+                SYSLOG("hwlibs", "targetDeviceId == 0x%x", targetDeviceId);
             }
             default: {
-                targetDeviceId = 0x0000;
+                targetDeviceId = 0x67FF;
+                SYSLOG("hwlibs", "No chipType found, defaulting to 0x%x", targetDeviceId);
+
             }
         }
         while (orgCapsTable->deviceId != 0xFFFFFFFF) {
