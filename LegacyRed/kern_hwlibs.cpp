@@ -201,37 +201,60 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
         PANIC_COND(MachInfo::setKernelWriting(true, KernelPatcher::kernelWriteLock) != KERN_SUCCESS, "hwlibs",
             "Failed to enable kernel writing");
 
-        auto found = false;
-        auto targetDeviceId = LRed::callback->deviceId;
+        bool found = false;
         auto targetExtRev = ((LRed::callback->chipType == ChipType::Kalindi)) ?
                                 static_cast<uint32_t>(LRed::callback->enumeratedRevision) :
                                 static_cast<uint32_t>(LRed::callback->enumeratedRevision) + LRed::callback->revision;
-
-        while (orgCapsInitTable->deviceId != 0xFFFFFFFF) {
-            if (orgCapsInitTable->familyId == LRed::callback->currentFamilyId &&
-                orgCapsInitTable->deviceId == targetDeviceId) {
-                orgCapsInitTable->deviceId = LRed::callback->deviceId;
-                orgCapsInitTable->revision = LRed::callback->revision;
-                orgCapsInitTable->extRevision = static_cast<uint64_t>(targetExtRev);
-                orgCapsInitTable->pciRevision = LRed::callback->pciRevision;
-                orgCapsInitTable->caps = ddiCaps[static_cast<uint32_t>(LRed::callback->chipType)];
-                orgCapsInitTable->goldenCaps = goldenCaps[static_cast<uint32_t>(LRed::callback->chipType)];
-                *orgCapsTable = {
-                    .familyId = LRed::callback->currentFamilyId,
-                    .deviceId = LRed::callback->deviceId,
-                    .revision = LRed::callback->revision,
-                    .extRevision = static_cast<uint32_t>(targetExtRev),
-                    .pciRevision = LRed::callback->pciRevision,
-                    .caps = orgCapsInitTable->caps,
-                };
+        bool found = false;
+        uint32_t targetDeviceId;
+        switch (LRed::callback->chipType) {
+            case ChipType::Spectre:
+                [[fallthrough]];
+            case ChipType::Spooky: {
+                targetDeviceId = 0x130A;
+            }
+            case ChipType::Kalindi: {
+                targetDeviceId = 0x9830;
+            }
+            case ChipType::Godavari {
+                targetDeviceId = 0x9850;
+            }
+            case ChipType::Carrizo {
+                targetDeviceId = 0x9874;
+            }
+            case ChipType::Stoney {
+                targetDeviceId = 0x98E4;
+            }
+            default: {
+                targetDeviceId = 0x0000;
+            }
+        }
+        while (orgCapsTable->deviceId != 0xFFFFFFFF) {
+            if (orgCapsTable->familyId == LRed::callback->currentFamilyId && orgCapsTable->deviceId == targetDeviceId) {
+                orgCapsTable->deviceId = LRed::callback->deviceId;
+                orgCapsTable->revision = LRed::callback->revision;
+                orgCapsTable->extRevision =
+                    static_cast<uint32_t>(targetExtRev);
+                orgCapsTable->pciRevision = LRed::callback->pciRevision;
+                orgCapsTable->caps = ddiCaps[static_cast<uint32_t>(LRed::callback->chipType)];
+                if (orgCapsInitTable) {
+                    *orgCapsInitTable = {
+                        .familyId = LRed::callback->currentFamilyId,
+                        .deviceId = LRed::callback->deviceId,
+                        .revision = LRed::callback->revision,
+                        .extRevision = static_cast<uint32_t>(targetExtRev),
+                        .pciRevision = LRed::callback->pciRevision,
+                        .caps = ddiCaps[static_cast<uint32_t>(LRed::callback->chipType)],
+                        .goldenCaps = goldenCaps[static_cast<uint32_t>(LRed::callback->chipType)],
+                    };
+                }
                 found = true;
-                SYSLOG("hwlibs", "found = %x", found);
                 break;
             }
-            orgCapsInitTable++;
-            PANIC_COND(!found, "hwlibs", "Failed to find caps init table entry");
-            // we do not have the Device Capability table on X4000
+            orgCapsTable++;
         }
+        PANIC_COND(!found, "hwlibs", "Failed to find caps init table entry");
+        // we do not have the Device Capability table on X4000
         MachInfo::setKernelWriting(false, KernelPatcher::kernelWriteLock);
         DBGLOG("hwlibs", "Applied DDI Caps patches");
 
