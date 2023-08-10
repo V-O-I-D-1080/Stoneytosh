@@ -181,13 +181,6 @@ struct ATOMObjTable {
     ATOMObj objects[];
 } PACKED;
 
-enum class AtomRecordType : uint8_t { Unknown = 0, I2C = 1, Max = 0xFF };
-
-struct AtomCommonRecordHeader {
-    AtomRecordType ucRecordType;
-    uint8_t ucRecordSize;
-};
-
 // Definitions taken from asic_reg/ObjectID.h
 
 enum {

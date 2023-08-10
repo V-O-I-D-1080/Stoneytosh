@@ -232,8 +232,7 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
             if (orgCapsTable->familyId == LRed::callback->currentFamilyId && orgCapsTable->deviceId == targetDeviceId) {
                 orgCapsTable->deviceId = LRed::callback->deviceId;
                 orgCapsTable->revision = LRed::callback->revision;
-                orgCapsTable->extRevision =
-                    static_cast<uint32_t>(targetExtRev);
+                orgCapsTable->extRevision = static_cast<uint32_t>(targetExtRev);
                 orgCapsTable->pciRevision = LRed::callback->pciRevision;
                 orgCapsTable->caps = ddiCaps[static_cast<uint32_t>(LRed::callback->chipType)];
                 if (orgCapsInitTable) {
@@ -252,9 +251,10 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
             }
             orgCapsTable++;
         }
-        PANIC_COND(!found, "hwlibs", "Failed to find caps init table entry");
+        PANIC_COND(!found, "hwlibs", "Failed to find caps table entry for target 0x%x", targetDeviceId);
         // we do not have the Device Capability table on X4000
         MachInfo::setKernelWriting(false, KernelPatcher::kernelWriteLock);
+        SYSLOG("hwlibs", "Managed to find caps entries for target 0x%x", targetDeviceId);
         DBGLOG("hwlibs", "Applied DDI Caps patches");
 
         return true;
