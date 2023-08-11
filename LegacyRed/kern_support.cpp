@@ -13,10 +13,6 @@ static const char *pathRadeonSupport = "/System/Library/Extensions/AMDSupport.ke
 static KernelPatcher::KextInfo kextRadeonSupport = {"com.apple.kext.AMDSupport", &pathRadeonSupport, 1, {}, {},
     KernelPatcher::KextInfo::Unloaded};
 
-static const char *powerGatingFlags[] {"CAIL_DisableDrmdmaPowerGating", "CAIL_DisableGfxCGPowerGating",
-    "CAIL_DisableUVDPowerGating", "CAIL_DisableVCEPowerGating", "CAIL_DisableDynamicGfxMGPowerGating",
-    "CAIL_DisableGmcPowerGating", "CAIL_DisableAcpPowerGating", "CAIL_DisableSAMUPowerGating"};
-
 Support *Support::callback = nullptr;
 
 void Support::init() {
@@ -30,6 +26,7 @@ bool Support::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_
         auto vbiosdbg = checkKernelArgument("-lredvbiosdbg");
         auto adcpatch = checkKernelArgument("-lredadcpatch");
         auto gpiodbg = checkKernelArgument("-lredgpiodbg");
+        auto agdcon = checkKernelArgument("-lredagdcon");
         auto isCarrizo = (LRed::callback->chipType >= ChipType::Carrizo);
 
         RouteRequestPlus requests[] = {
@@ -48,6 +45,7 @@ bool Support::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_
             {"__ZN14AtiVBiosHelper8getImageEjj", wrapGetImage, orgGetImage},
             {"__ZN30AtiObjectInfoTableInterface_V14initERN21AtiDataTableBaseClass17DataTableInitInfoE",
                 wrapObjectInfoTableInit, orgObjectInfoTableInit},
+            {"__ZN16AtiDeviceControl5startEP9IOService", wrapADCStart, orgADCStart, agdcon},
         };
         PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "support",
             "Failed to route symbols");
@@ -208,5 +206,13 @@ bool Support::wrapObjectInfoTableInit(void *that, void *initdata) {
     LRed::callback->iGPU->setProperty("CFG_FB_LIMIT", conInfoTbl->numberOfObjects, sizeof(conInfoTbl->numberOfObjects));
     // WEG sets this property to the number of connectors used in AtiBiosParserX::getConnectorInfo, so we use
     // numberOfObjects instead
+    return ret;
+}
+
+void *Support::wrapADCStart(void *that, IOService *provider) {
+    SYSLOG("support", "Enabling AGDC, be warned that this is untested");
+    bool agdcon = true;
+    LRed::callback->iGPU->setProperty("CFG_USE_AGDC", agdcon, sizeof(agdcon));
+    auto ret = FunctionCast(wrapADCStart, callback->orgADCStart)(that, provider);
     return ret;
 }

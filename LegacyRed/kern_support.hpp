@@ -92,6 +92,7 @@ class Support {
     mach_vm_address_t orgAtiGpuWranglerStart {0};
     mach_vm_address_t orgGetImage {0};
     mach_vm_address_t orgObjectInfoTableInit {0};
+    mach_vm_address_t orgADCStart {0};
 
     static bool wrapNotifyLinkChange(void *atiDeviceControl, kAGDCRegisterLinkControlEvent_t event, void *eventData,
         uint32_t eventFlags);
@@ -104,6 +105,7 @@ class Support {
     static void wrapDoGPUPanic();
     static void *wrapGetImage(void *that, uint32_t offset, uint32_t length);
     static bool wrapObjectInfoTableInit(void *that, void *initdata);
+    static void *wrapADCStart(void *that, IOService *provider);
 
     int count {0};
     uint32_t currentObjectInfoOffset;
