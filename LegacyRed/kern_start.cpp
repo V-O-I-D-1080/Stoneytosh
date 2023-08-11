@@ -75,7 +75,7 @@ bool PRODUCT_NAME::start(IOService *provider) {
         }
         OSSafeReleaseNULL(drivers);
     }
-    if (!getKernelVersion() <= KernelVersion::Monterey || checkKernelArgument("-lredoslimitoverride")) {
+    if (getKernelVersion() <= KernelVersion::Monterey || checkKernelArgument("-lredoslimitoverride")) {
         // if i catch anyone using this boot argument your issue will be thrown out
         if (ADDPR(startSuccess)) {
             auto *prop = OSDynamicCast(OSArray, this->getProperty("Framebuffers (Legacy)"));
