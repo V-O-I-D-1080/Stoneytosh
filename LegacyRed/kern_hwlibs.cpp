@@ -230,7 +230,7 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
                 SYSLOG("hwlibs", "targetDeviceId == 0x%x", targetDeviceId);
             }
             default: {
-                targetDeviceId = 0x67FF;
+                targetDeviceId = 0x67DF; // Ellesmere device ID
                 SYSLOG("hwlibs", "No chipType found, defaulting to 0x%x", targetDeviceId);
             }
         }
