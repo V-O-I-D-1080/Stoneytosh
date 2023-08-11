@@ -232,7 +232,6 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
             default: {
                 targetDeviceId = 0x67FF;
                 SYSLOG("hwlibs", "No chipType found, defaulting to 0x%x", targetDeviceId);
-
             }
         }
         while (orgCapsTable->deviceId != 0xFFFFFFFF) {

@@ -95,7 +95,7 @@
 				<key>CFG_TRANS_WSRV</key>
 				<true/>
 				<key>CFG_USE_AGDC</key>
-				<true/>
+				<false/>
 				<key>CFG_USE_CPSTATUS</key>
 				<true/>
 				<key>CFG_USE_DPT</key>
@@ -139,7 +139,7 @@
 				<integer>0</integer>
 			</dict>
 		</dict>
-		<key>AtiGpuWrangler (GCN 3)</key>
+		<key>AtiGpuWrangler (Stoney)</key>
 		<dict>
 			<key>CFBundleIdentifier</key>
 			<string>com.apple.kext.AMD9500Controller</string>
@@ -148,7 +148,7 @@
 			<key>IOMatchCategory</key>
 			<string>IOFramebuffer</string>
 			<key>IOPCIMatch</key>
-			<string>0x98E41002 0x98741002</string>
+			<string>0x98E41002</string>
 			<key>IOPCITunnelCompatible</key>
 			<true/>
 			<key>IOProbeScore</key>
@@ -156,7 +156,7 @@
 			<key>IOProviderClass</key>
 			<string>IOPCIDevice</string>
 		</dict>
-		<key>Controller (GCN 3)</key>
+		<key>Controller (Stoney)</key>
 		<dict>
 			<key>CFBundleIdentifier</key>
 			<string>com.apple.kext.AMD9500Controller</string>
@@ -167,7 +167,7 @@
 			<key>IOName</key>
 			<string>AMD9500Controller</string>
 			<key>IOPCIMatch</key>
-			<string>0x98E41002 0x98741002</string>
+			<string>0x98E41002</string>
 			<key>IOProbeScore</key>
 			<integer>65050</integer>
 			<key>IOPropertyMatch</key>
@@ -270,7 +270,7 @@
 				<integer>0</integer>
 			</dict>
 		</dict>
-		<key>AtiGpuWrangler (GCN 3, AMD9000Controller) </key>
+		<key>AtiGpuWrangler (Carrizo) </key>
 		<dict>
 			<key>CFBundleIdentifier</key>
 			<string>com.apple.kext.AMD9000Controller</string>
@@ -279,7 +279,7 @@
 			<key>IOMatchCategory</key>
 			<string>IOFramebuffer</string>
 			<key>IOPCIMatch</key>
-			<string>0x98E41002 0x98741002</string>
+			<string>0x98741002</string>
 			<key>IOPCITunnelCompatible</key>
 			<true/>
 			<key>IOProbeScore</key>
@@ -287,7 +287,7 @@
 			<key>IOProviderClass</key>
 			<string>IOPCIDevice</string>
 		</dict>
-		<key>Controller (GCN 3, AMD9000Controller)</key>
+		<key>Controller (Carrizo)</key>
 		<dict>
 			<key>CFBundleIdentifier</key>
 			<string>com.apple.kext.AMD9000Controller</string>
@@ -298,7 +298,7 @@
 			<key>IOName</key>
 			<string>AMD9000Controller</string>
 			<key>IOPCIMatch</key>
-			<string>0x98E41002 0x98741002</string>
+			<string>0x98741002</string>
 			<key>IOProbeScore</key>
 			<integer>65050</integer>
 			<key>IOPropertyMatch</key>
@@ -345,7 +345,7 @@
 				<key>CFG_UFL_STP</key>
 				<false/>
 				<key>CFG_USE_AGDC</key>
-				<true/>
+				<false/>
 				<key>CFG_USE_CPSTATUS</key>
 				<true/>
 				<key>CFG_USE_DPT</key>
