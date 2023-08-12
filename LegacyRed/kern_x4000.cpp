@@ -84,7 +84,6 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
                 this->orgCreateHWHandler},
             {"__ZN37AMDRadeonX4000_AMDGraphicsAccelerator17createHWInterfaceEP11IOPCIDevice", wrapCreateHWInterface,
                 this->orgCreateHWInterface},
-            {"__ZN27AMDRadeonX4000_AMDHWHandler11getAccelCtlEv", wrapGetAccelCtl, orgGetAccelCtl},
         };
         PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "x4000",
             "Failed to route symbols");
@@ -313,9 +312,3 @@ char *X4000::forceX4000HWLibs() {
     return "Load4000";
 }
 
-void *X4000::wrapGetAccelCtl(void *that) {
-    DBGLOG("x4000", "getAccelCtl called!");
-    auto ret = FunctionCast(wrapGetAccelCtl, callback->orgGetAccelCtl)(that);
-    DBGLOG("x4000", "getAccelCtl returned 0x%x", ret);
-    return ret;
-}
