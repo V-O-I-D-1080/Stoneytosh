@@ -22,13 +22,13 @@ class HWLibs {
     t_XPowerTuneConstructor orgTongaPowerTuneConstructor {nullptr};
     t_sendMsgToSmc orgCISendMsgToSmc {nullptr};
     t_sendMsgToSmc orgCzSendMsgToSmc {nullptr};
-    mach_vm_address_t orgAmdCailServicesConstructor {};
-    mach_vm_address_t orgCAILQueryEngineRunningState {};
-    mach_vm_address_t orgCailMonitorEngineInternalState {};
-    mach_vm_address_t orgCailMonitorPerformanceCounter {};
-    mach_vm_address_t orgSMUMInitialize {};
+    mach_vm_address_t orgAmdCailServicesConstructor {0};
+    mach_vm_address_t orgCAILQueryEngineRunningState {0};
+    mach_vm_address_t orgCailMonitorEngineInternalState {0};
+    mach_vm_address_t orgCailMonitorPerformanceCounter {0};
+    mach_vm_address_t orgSMUMInitialize {0};
     mach_vm_address_t orgSmuCzInitialize {0};
-    mach_vm_address_t orgMCILDebugPrint {};
+    mach_vm_address_t orgMCILDebugPrint {0};
 
     static void wrapAmdCailServicesConstructor(void *that, IOPCIDevice *provider);
     static uint64_t wrapCAILQueryEngineRunningState(void *param1, uint32_t *param2, uint64_t param3);

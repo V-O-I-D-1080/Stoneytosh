@@ -28,6 +28,7 @@ class X4000 {
     mach_vm_address_t orgGetHWChannel {0};
     mach_vm_address_t orgInitLinkToPeer {0};
     mach_vm_address_t orgSetupAndInitializeHWCapabilities {0};
+    mach_vm_address_t orgDumpASICHangState {0};
 
     void *callbackAccelerator = nullptr;
 
@@ -39,6 +40,7 @@ class X4000 {
     static uint64_t wrapCreateHWHandler(void *that);
     static uint64_t wrapCreateHWInterface(void *that, IOPCIDevice *dev);
     static void wrapSetupAndInitializeHWCapabilities(void *that);
+    static void wrapDumpASICHangState(bool param1);
     static char *forceX4000HWLibs(void);
 };
 

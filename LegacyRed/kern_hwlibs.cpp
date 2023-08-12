@@ -198,6 +198,13 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
         };
         PANIC_COND(!patcher.routeMultiple(index, requests, address, size), "hwlibs", "Failed to route symbols");
 
+        LookupPatchPlus const patches[] = {
+            {&kextRadeonX4000HWLibs, kPHMInitializeOriginal, kPHMInitializePatched, arrsize(kPHMInitializeOriginal), 1},
+        };
+        PANIC_COND(!LookupPatchPlus::applyAll(patcher, patches, address, size), "hwlibs",
+            "Failed to apply patches: %d", patcher.getError());
+        DBGLOG("hwlibs", "Applied patches.");
+
         PANIC_COND(MachInfo::setKernelWriting(true, KernelPatcher::kernelWriteLock) != KERN_SUCCESS, "hwlibs",
             "Failed to enable kernel writing");
 
