@@ -206,36 +206,49 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
                                 static_cast<uint32_t>(LRed::callback->enumeratedRevision) :
                                 static_cast<uint32_t>(LRed::callback->enumeratedRevision) + LRed::callback->revision;
         uint32_t targetDeviceId;
+        uint32_t targetFamilyId;
         switch (LRed::callback->chipType) {
             case ChipType::Spectre:
                 [[fallthrough]];
             case ChipType::Spooky: {
                 targetDeviceId = 0x130A;
+                targetFamilyId = AMDGPU_FAMILY_KV;
                 SYSLOG("hwlibs", "targetDeviceId == 0x%x", targetDeviceId);
             }
             case ChipType::Kalindi: {
                 targetDeviceId = 0x9830;
+                targetFamilyId = AMDGPU_FAMILY_KV;
                 SYSLOG("hwlibs", "targetDeviceId == 0x%x", targetDeviceId);
             }
             case ChipType::Godavari: {
                 targetDeviceId = 0x9850;
+                targetFamilyId = AMDGPU_FAMILY_KV;
                 SYSLOG("hwlibs", "targetDeviceId == 0x%x", targetDeviceId);
             }
             case ChipType::Carrizo: {
                 targetDeviceId = 0x9874;
+                targetFamilyId = AMDGPU_FAMILY_CZ;
                 SYSLOG("hwlibs", "targetDeviceId == 0x%x", targetDeviceId);
             }
             case ChipType::Stoney: {
                 targetDeviceId = 0x98E4;
+                targetFamilyId = AMDGPU_FAMILY_CZ;
                 SYSLOG("hwlibs", "targetDeviceId == 0x%x", targetDeviceId);
             }
             default: {
-                targetDeviceId = 0x67DF; // Ellesmere device ID
+                if (!LRed::callback->isGCN3) {
+                    targetDeviceId = 0x6649;
+                    targetFamilyId = 0x78;
+                } else {
+                    targetDeviceId = 0x67DF;    // Ellesmere device ID
+                    targetFamilyId = 0x82;
+                }
                 SYSLOG("hwlibs", "No chipType found, defaulting to 0x%x", targetDeviceId);
             }
         }
         while (orgCapsTable->deviceId != 0xFFFFFFFF) {
-            if (orgCapsTable->familyId == LRed::callback->currentFamilyId && orgCapsTable->deviceId == targetDeviceId) {
+            if (orgCapsTable->familyId == targetFamilyId && orgCapsTable->deviceId == targetDeviceId) {
+                orgCapsTable->familyId = LRed::callback->currentFamilyId;
                 orgCapsTable->deviceId = LRed::callback->deviceId;
                 orgCapsTable->revision = LRed::callback->revision;
                 orgCapsTable->extRevision = static_cast<uint32_t>(targetExtRev);
