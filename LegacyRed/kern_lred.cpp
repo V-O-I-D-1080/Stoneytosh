@@ -147,7 +147,7 @@ void LRed::setRMMIOIfNecessary() {
         this->rmmio = this->iGPU->mapDeviceMemoryWithRegister(kIOPCIConfigBaseAddress5);
         PANIC_COND(!this->rmmio || !this->rmmio->getLength(), "lred", "Failed to map RMMIO");
         this->rmmioPtr = reinterpret_cast<uint32_t *>(this->rmmio->getVirtualAddress());
-        this->fbOffset = static_cast<uint64_t>(this->readReg32(0x296B)) << 24;
+        this->fbOffset = static_cast<uint64_t>(this->readReg32(0x081A)) << 22;
         switch (this->deviceId) {
                 // Who thought it would be a good idea to use this many Device IDs and Revisions?
             case 0x1309:

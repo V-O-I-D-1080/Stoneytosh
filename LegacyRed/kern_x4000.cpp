@@ -85,6 +85,8 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
             {"__ZN37AMDRadeonX4000_AMDGraphicsAccelerator17createHWInterfaceEP11IOPCIDevice", wrapCreateHWInterface,
                 this->orgCreateHWInterface},
             {"__ZN26AMDRadeonX4000_AMDHardware17dumpASICHangStateEb.cold.1", wrapDumpASICHangState, this->orgDumpASICHangState},
+            {"__ZN26AMDRadeonX4000_AMDHWMemory17adjustVRAMAddressEy", wrapAdjustVRAMAddress,
+                this->orgAdjustVRAMAddress},
         };
         PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "x4000",
             "Failed to route symbols");
@@ -316,4 +318,9 @@ char *X4000::forceX4000HWLibs() {
 void X4000::wrapDumpASICHangState(bool param1) {
     DBGLOG("x4000", "dumpASICHangState << (param1: %d)", param1);
     IOSleep(36000000);
+}
+
+uint64_t X4000::wrapAdjustVRAMAddress(void *that, uint64_t addr) {
+    auto ret = FunctionCast(wrapAdjustVRAMAddress, callback->orgAdjustVRAMAddress)(that, addr);
+    return ret != addr ? (ret + LRed::callback->fbOffset) : ret;
 }
