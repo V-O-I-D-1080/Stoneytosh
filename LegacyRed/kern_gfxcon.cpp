@@ -7,35 +7,35 @@
 #include "kern_patches.hpp"
 #include <Headers/kern_api.hpp>
 
-static const char *pathRadeonGFX7Con =
+static const char *pathAMD8000Controller =
     "/System/Library/Extensions/AMD8000Controller.kext/Contents/MacOS/AMD8000Controller";
 
-static const char *pathRadeonGFX8Con =
+static const char *pathAMD9000Controller =
     "/System/Library/Extensions/AMD9000Controller.kext/Contents/MacOS/AMD9000Controller";
 
-static const char *pathRadeonPolarisCon =
+static const char *pathAMD9500Controller =
     "/System/Library/Extensions/AMD9500Controller.kext/Contents/MacOS/AMD9500Controller";
 
-static KernelPatcher::KextInfo kextRadeonGFX7Con = {"com.apple.kext.AMD8000Controller", &pathRadeonGFX7Con, 1, {}, {},
+static KernelPatcher::KextInfo kextAMD8KController = {"com.apple.kext.AMD8000Controller", &pathAMD8000Controller, 1, {}, {},
     KernelPatcher::KextInfo::Unloaded};
 
-static KernelPatcher::KextInfo kextRadeonGFX8Con = {"com.apple.kext.AMD9000Controller", &pathRadeonGFX8Con, 1, {}, {},
+static KernelPatcher::KextInfo kextAMD9KController = {"com.apple.kext.AMD9000Controller", &pathAMD9000Controller, 1, {}, {},
     KernelPatcher::KextInfo::Unloaded};
 
-static KernelPatcher::KextInfo kextRadeonPolarisCon = {"com.apple.kext.AMD9500Controller", &pathRadeonPolarisCon, 1, {},
+static KernelPatcher::KextInfo kextAMD95KController = {"com.apple.kext.AMD9500Controller", &pathAMD9500Controller, 1, {},
     {}, KernelPatcher::KextInfo::Unloaded};
 
 GFXCon *GFXCon::callback = nullptr;
 
 void GFXCon::init() {
     callback = this;
-    lilu.onKextLoadForce(&kextRadeonGFX7Con);
-    lilu.onKextLoadForce(&kextRadeonGFX8Con);
-    lilu.onKextLoadForce(&kextRadeonPolarisCon);
+    lilu.onKextLoadForce(&kextAMD8KController);
+    lilu.onKextLoadForce(&kextAMD9KController);
+    lilu.onKextLoadForce(&kextAMD95KController);
 }
 
 bool GFXCon::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t address, size_t size) {
-    if (kextRadeonGFX7Con.loadIndex == index) {
+    if (kextAMD8KController.loadIndex == index) {
         LRed::callback->setRMMIOIfNecessary();
         auto highsierra = getKernelVersion() == KernelVersion::HighSierra;
 
@@ -48,7 +48,7 @@ bool GFXCon::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
         PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "gfxcon",
             "Failed to route symbols");
         return true;
-    } else if (kextRadeonGFX8Con.loadIndex == index) {
+    } else if (kextAMD9KController.loadIndex == index) {
         LRed::callback->setRMMIOIfNecessary();
         auto highsierra = getKernelVersion() == KernelVersion::HighSierra;
 
@@ -62,7 +62,7 @@ bool GFXCon::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
         PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "gfxcon",
             "Failed to route symbols");
         return true;
-    } else if (kextRadeonPolarisCon.loadIndex == index) {
+    } else if (kextAMD95KController.loadIndex == index) {
         LRed::callback->setRMMIOIfNecessary();
         auto highsierra = getKernelVersion() == KernelVersion::HighSierra;
 
