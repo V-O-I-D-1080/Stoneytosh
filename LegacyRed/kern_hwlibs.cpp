@@ -213,27 +213,27 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
             case ChipType::Spooky: {
                 targetDeviceId = 0x130A;
                 targetFamilyId = AMDGPU_FAMILY_KV;
-                SYSLOG("hwlibs", "targetDeviceId == 0x%x", targetDeviceId);
+                SYSLOG("hwlibs", "targetDeviceId == 0x%x, targetFamilyId == %x", targetDeviceId, targetFamilyId);
             }
             case ChipType::Kalindi: {
                 targetDeviceId = 0x9830;
                 targetFamilyId = AMDGPU_FAMILY_KV;
-                SYSLOG("hwlibs", "targetDeviceId == 0x%x", targetDeviceId);
+                SYSLOG("hwlibs", "targetDeviceId == 0x%x, targetFamilyId == %x", targetDeviceId, targetFamilyId);
             }
             case ChipType::Godavari: {
                 targetDeviceId = 0x9850;
                 targetFamilyId = AMDGPU_FAMILY_KV;
-                SYSLOG("hwlibs", "targetDeviceId == 0x%x", targetDeviceId);
+                SYSLOG("hwlibs", "targetDeviceId == 0x%x, targetFamilyId == %x", targetDeviceId, targetFamilyId);
             }
             case ChipType::Carrizo: {
                 targetDeviceId = 0x9874;
                 targetFamilyId = AMDGPU_FAMILY_CZ;
-                SYSLOG("hwlibs", "targetDeviceId == 0x%x", targetDeviceId);
+                SYSLOG("hwlibs", "targetDeviceId == 0x%x, targetFamilyId == %x", targetDeviceId, targetFamilyId);
             }
             case ChipType::Stoney: {
                 targetDeviceId = 0x98E4;
                 targetFamilyId = AMDGPU_FAMILY_CZ;
-                SYSLOG("hwlibs", "targetDeviceId == 0x%x", targetDeviceId);
+                SYSLOG("hwlibs", "targetDeviceId == 0x%x, targetFamilyId == %x", targetDeviceId, targetFamilyId);
             }
             default: {
                 if (!LRed::callback->isGCN3) {
@@ -243,7 +243,7 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
                     targetDeviceId = 0x67DF;    // Ellesmere device ID
                     targetFamilyId = 0x82;
                 }
-                SYSLOG("hwlibs", "No chipType found, defaulting to 0x%x", targetDeviceId);
+                SYSLOG("hwlibs", "No chipType found, defaulting to 0x%x and 0x%x", targetDeviceId, targetFamilyId);
             }
         }
         while (orgCapsTable->deviceId != 0xFFFFFFFF) {

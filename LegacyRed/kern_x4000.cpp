@@ -294,9 +294,9 @@ uint64_t X4000::wrapCreateHWHandler(void *that) {
 }
 
 uint64_t X4000::wrapConfigureDevice(void *that, IOPCIDevice *dev) {
-    DBGLOG("x4000", "createHWInterface called!");
-    auto ret = FunctionCast(wrapCreateHWInterface, callback->orgCreateHWInterface)(that, dev);
-    DBGLOG("x4000", "createHWInterface returned 0x%x", ret);
+    DBGLOG("x4000", "configureDevice called!");
+    auto ret = FunctionCast(wrapConfigureDevice, callback->orgConfigureDevice)(that, dev);
+    DBGLOG("x4000", "configureDevice returned 0x%x", ret);
     return ret;
 }
 
