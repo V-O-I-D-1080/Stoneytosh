@@ -148,6 +148,7 @@ void LRed::setRMMIOIfNecessary() {
         PANIC_COND(!this->rmmio || !this->rmmio->getLength(), "lred", "Failed to map RMMIO");
         this->rmmioPtr = reinterpret_cast<uint32_t *>(this->rmmio->getVirtualAddress());
         this->fbOffset = static_cast<uint64_t>(this->readReg32(0x081A)) << 22;
+        SYSLOG("lred", "gathered framebuffer offset: 0x%x", this->fbOffset);
         switch (this->deviceId) {
                 // Who thought it would be a good idea to use this many Device IDs and Revisions?
             case 0x1309:

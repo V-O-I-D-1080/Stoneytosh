@@ -76,15 +76,8 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
             {"__ZN28AMDRadeonX4000_AMDVIHardware20initializeFamilyTypeEv", wrapInitializeFamilyType, useGcn3Logic},
             {"__ZN26AMDRadeonX4000_AMDHardware12getHWChannelE20_eAMD_HW_ENGINE_TYPE18_eAMD_HW_RING_TYPE",
                 wrapGetHWChannel, this->orgGetHWChannel, isStoney},
-            {"__ZN37AMDRadeonX4000_AMDGraphicsAccelerator15configureDeviceEP11IOPCIDevice", wrapConfigureDevice,
-                this->orgConfigureDevice},
-            {"__ZN37AMDRadeonX4000_AMDGraphicsAccelerator14initLinkToPeerEPKc", wrapInitLinkToPeer,
-                this->orgInitLinkToPeer},
-            {"__ZN37AMDRadeonX4000_AMDGraphicsAccelerator15createHWHandlerEv", wrapCreateHWHandler,
-                this->orgCreateHWHandler},
-            {"__ZN37AMDRadeonX4000_AMDGraphicsAccelerator17createHWInterfaceEP11IOPCIDevice", wrapCreateHWInterface,
-                this->orgCreateHWInterface},
-            {"__ZN26AMDRadeonX4000_AMDHardware17dumpASICHangStateEb.cold.1", wrapDumpASICHangState, this->orgDumpASICHangState},
+            {"__ZN26AMDRadeonX4000_AMDHardware17dumpASICHangStateEb.cold.1", wrapDumpASICHangState,
+                this->orgDumpASICHangState},
             {"__ZN26AMDRadeonX4000_AMDHWMemory17adjustVRAMAddressEy", wrapAdjustVRAMAddress,
                 this->orgAdjustVRAMAddress},
         };
@@ -281,34 +274,6 @@ void *X4000::wrapGetHWChannel(void *that, uint32_t engineType, uint32_t ringId) 
     return FunctionCast(wrapGetHWChannel, callback->orgGetHWChannel)(that, (engineType == 2) ? 1 : engineType, ringId);
 }
 
-uint64_t X4000::wrapCreateHWInterface(void *that, IOPCIDevice *dev) {
-    DBGLOG("x4000", "createHWInterface called!");
-    auto ret = FunctionCast(wrapCreateHWInterface, callback->orgCreateHWInterface)(that, dev);
-    DBGLOG("x4000", "createHWInterface returned 0x%x", ret);
-    return ret;
-}
-
-uint64_t X4000::wrapCreateHWHandler(void *that) {
-    DBGLOG("x4000", "createHWHandler called!");
-    auto ret = FunctionCast(wrapCreateHWHandler, callback->orgCreateHWHandler)(that);
-    DBGLOG("x4000", "createHWHandler returned 0x%x", ret);
-    return ret;
-}
-
-uint64_t X4000::wrapConfigureDevice(void *that, IOPCIDevice *dev) {
-    DBGLOG("x4000", "configureDevice called!");
-    auto ret = FunctionCast(wrapConfigureDevice, callback->orgConfigureDevice)(that, dev);
-    DBGLOG("x4000", "configureDevice returned 0x%x", ret);
-    return ret;
-}
-
-IOService *X4000::wrapInitLinkToPeer(void *that, const char *matchCategoryName) {
-    DBGLOG("x4000", "initLinkToPeer called!");
-    auto ret = FunctionCast(wrapInitLinkToPeer, callback->orgInitLinkToPeer)(that, matchCategoryName);
-    DBGLOG("x4000", "initLinkToPeer returned 0x%x", ret);
-    return ret;
-}
-
 char *X4000::forceX4000HWLibs() {
     DBGLOG("hwservices", "Forcing HWServices to load X4000HWLibs");
     // By default, X4000HWServices on CI loads X4050HWLibs, we override this here
@@ -322,5 +287,7 @@ void X4000::wrapDumpASICHangState(bool param1) {
 
 uint64_t X4000::wrapAdjustVRAMAddress(void *that, uint64_t addr) {
     auto ret = FunctionCast(wrapAdjustVRAMAddress, callback->orgAdjustVRAMAddress)(that, addr);
+    SYSLOG("x4000", "AdjustVRAMAddress: returned: 0x%x, our value: 0x%x", ret,
+        ret != addr ? (ret + LRed::callback->fbOffset) : ret);
     return ret != addr ? (ret + LRed::callback->fbOffset) : ret;
 }

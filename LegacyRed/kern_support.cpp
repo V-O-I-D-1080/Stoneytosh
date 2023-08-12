@@ -39,8 +39,6 @@ bool Support::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_
                 wrapCreateAtomBiosParser, orgCreateAtomBiosParser, vbiosdbg},
             {"__ZN25AtiGpioPinLutInterface_V114getGpioPinInfoEjRNS_11GpioPinInfoE", wrapGetGpioPinInfo,
                 orgGetGpioPinInfo, gpiodbg},
-            {"__ZN13ATIController5startEP9IOService", wrapATIControllerStart, orgATIControllerStart},
-            {"__ZN14AtiGpuWrangler5startEP9IOService", wrapAtiGpuWranglerStart, orgAtiGpuWranglerStart},
             {"__ZN13ATIController10doGPUPanicEPKcz", wrapDoGPUPanic},
             {"__ZN14AtiVBiosHelper8getImageEjj", wrapGetImage, orgGetImage},
             {"__ZN30AtiObjectInfoTableInterface_V14initERN21AtiDataTableBaseClass17DataTableInitInfoE",
@@ -106,27 +104,6 @@ bool Support::doNotTestVram([[maybe_unused]] IOService *ctrl, [[maybe_unused]] u
         LRed::callback->iGPU->setProperty("ATY,DeviceName", const_cast<char *>(model) + 11, len - 11);
     }
     return true;
-}
-
-bool Support::wrapAtiGpuWranglerStart(IOService *ctrl, IOService *provider) {
-    callback->count = callback->count++;
-    if (callback->count == 2) {
-        IOSleep(3600000);    // keep AMD9000Controller in a limbo state, lasts for around an hour
-        return false;        // we don't want AMD9000Controller overriding AMD9500Controller.
-        DBGLOG("support", "AtiGpuWrangler::start detected running twice! keeping 2nd wrangler in limbo");
-    }
-    bool r = FunctionCast(wrapAtiGpuWranglerStart, callback->orgAtiGpuWranglerStart)(ctrl, provider);
-    return r;
-}
-
-bool Support::wrapATIControllerStart(IOService *ctrl, IOService *provider) {
-    if (callback->count == 2) {
-        IOSleep(3600000);    // keep AMD9000Controller in a limbo state, lasts for around an hour
-        return false;        // we don't want AMD9000Controller overriding AMD9500Controller.
-        DBGLOG("support", "ATIController::start detected running twice! keeping 2nd controller in limbo");
-    }
-    bool r = FunctionCast(wrapATIControllerStart, callback->orgATIControllerStart)(ctrl, provider);
-    return r;
 }
 
 IOReturn Support::wrapGetGpioPinInfo(void *that, uint32_t pin, void *pininfo) {

@@ -38,131 +38,46 @@ bool GFXCon::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
     if (kextRadeonGFX7Con.loadIndex == index) {
         LRed::callback->setRMMIOIfNecessary();
         auto highsierra = getKernelVersion() == KernelVersion::HighSierra;
-        auto regDbg = checkKernelArgument("-lredregdbg");
 
         RouteRequestPlus requests[] = {
-            {"__ZN18CISharedController11getFamilyIdEv", wrapGetFamilyId, orgGetFamilyId, highsierra},
-            {"__ZN17CIRegisterService10hwReadReg8Ej", wrapHwReadReg8, this->orgHwReadReg8, regDbg},
-            {"__ZN17CIRegisterService11hwReadReg16Ej", wrapHwReadReg16, this->orgHwReadReg16, regDbg},
-            {"__ZN17CIRegisterService11hwReadReg32Ej", wrapHwReadReg32, this->orgHwReadReg32, regDbg},
+            {"__ZN18CISharedController11getFamilyIdEv", wrapGetFamilyId, this->orgGetFamilyId, highsierra},
+            {"__ZNK18CISharedController11getFamilyIdEv", wrapGetFamilyId, this->orgGetFamilyId, !highsierra},
             {"__ZN13ASIC_INFO__CI18populateDeviceInfoEv", wrapPopulateDeviceInfo, this->orgPopulateDeviceInfo,
                 !highsierra},
         };
         PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "gfxcon",
             "Failed to route symbols");
-        /*
-                LookupPatchPlus const patches[] = {
-                    //{&kextRadeonGFX7Con, kAsicInfoCIPopulateDeviceInfoOriginal, kAsicInfoCIPopulateDeviceInfoPatched,
-                        //arrsize(kAsicInfoCIPopulateDeviceInfoOriginal), 1},
-                    {&kextRadeonGFX7Con, kCISharedControllerGetFamilyIdOriginal, kCISharedControllerGetFamilyIdPatched,
-                        arrsize(kCISharedControllerGetFamilyIdOriginal), 1},
-                };
-                PANIC_COND(!LookupPatchPlus::applyAll(&patcher, patches, address, size), "gfxcon",
-                    "Failed to apply patches: %d", patcher.getError());
-                DBGLOG("gfxcon", "Applied patches.");
-        */
         return true;
     } else if (kextRadeonGFX8Con.loadIndex == index) {
         LRed::callback->setRMMIOIfNecessary();
         auto highsierra = getKernelVersion() == KernelVersion::HighSierra;
-        auto regDbg = checkKernelArgument("-lredregdbg");
 
         RouteRequestPlus requests[] = {
-            {"__ZN18VISharedController11getFamilyIdEv", wrapGetFamilyId, orgGetFamilyId, highsierra},
-            {"__ZN17VIRegisterService10hwReadReg8Ej", wrapHwReadReg8, this->orgHwReadReg8, regDbg},
-            {"__ZN17VIRegisterService11hwReadReg16Ej", wrapHwReadReg16, this->orgHwReadReg16, regDbg},
-            {"__ZN17VIRegisterService11hwReadReg32Ej", wrapHwReadReg32, this->orgHwReadReg32, regDbg},
+            {"__ZN18VISharedController11getFamilyIdEv", wrapGetFamilyId, this->orgGetFamilyId, highsierra},
+            {"__ZNK18VISharedController11getFamilyIdEv", wrapGetFamilyId, this->orgGetFamilyId, !highsierra},
             {"__ZN13ASIC_INFO__VI18populateDeviceInfoEv", wrapPopulateDeviceInfo, this->orgPopulateDeviceInfo,
                 !highsierra},
             {"__ZN17AMD9000Controller11getPllClockEhP11ClockParams", wrapGetPllClock, orgGetPllClock},
         };
         PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "gfxcon",
             "Failed to route symbols");
-        /*
-                LookupPatchPlus const patches[] = {
-                    //{&kextRadeonGFX8Con, kAsicInfoVIPopulateDeviceInfoOriginal, kAsicInfoVIPopulateDeviceInfoPatched,
-                        //arrsize(kAsicInfoVIPopulateDeviceInfoOriginal), 1},
-                    {&kextRadeonGFX8Con, kVIBaffinSharedControllerGetFamilyIdOriginal,
-                        kVIBaffinSharedControllerGetFamilyIdPatched,
-           arrsize(kVIBaffinSharedControllerGetFamilyIdOriginal), 1},
-                };
-                PANIC_COND(!LookupPatchPlus::applyAll(&patcher, patches, address, size), "gfxcon",
-                    "Failed to apply patches: %d", patcher.getError());
-                DBGLOG("gfxcon", "Applied patches.");
-        */
         return true;
     } else if (kextRadeonPolarisCon.loadIndex == index) {
         LRed::callback->setRMMIOIfNecessary();
         auto highsierra = getKernelVersion() == KernelVersion::HighSierra;
-        auto regDbg = checkKernelArgument("-lredregdbg");
 
         RouteRequestPlus requests[] = {
-            {"__ZNK22BaffinSharedController11getFamilyIdEv", wrapGetFamilyId, orgGetFamilyId, !highsierra},
-            {"__ZN21BaffinRegisterService10hwReadReg8Ej", wrapHwReadReg8, this->orgHwReadReg8, regDbg},
-            {"__ZN21BaffinRegisterService11hwReadReg16Ej", wrapHwReadReg16, this->orgHwReadReg16, regDbg},
-            {"__ZN21BaffinRegisterService11hwReadReg32Ej", wrapHwReadReg32, this->orgHwReadReg32, regDbg},
+            {"__ZNK22BaffinSharedController11getFamilyIdEv", wrapGetFamilyId, this->orgGetFamilyId, !highsierra},
             {"__ZN17ASIC_INFO__BAFFIN18populateDeviceInfoEv", wrapPopulateDeviceInfo, this->orgPopulateDeviceInfo,
                 !highsierra},
-            {"__ZN22BaffinSharedController6regr32Ej", wrapRegr32, orgRegr32, regDbg},
-            {"__ZN22BaffinSharedController6regr16Ej", wrapRegr16, orgRegr16, regDbg},
-            {"__ZN22BaffinSharedController5regr8Ej", wrapRegr8, orgRegr8, regDbg},
             {"__ZN17AMD9500Controller11getPllClockEhP11ClockParams", wrapGetPllClock, orgGetPllClock},
         };
         PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "gfxcon",
             "Failed to route symbols");
-        /*
-                LookupPatchPlus const patches[] = {
-                    //{&kextRadeonPolarisCon, kAsicInfoVIPopulateDeviceInfoOriginal,
-           kAsicInfoVIPopulateDeviceInfoPatched,
-                        //arrsize(kAsicInfoVIPopulateDeviceInfoOriginal), 1},
-                    {&kextRadeonPolarisCon, kVIBaffinSharedControllerGetFamilyIdOriginal,
-                        kVIBaffinSharedControllerGetFamilyIdPatched,
-           arrsize(kVIBaffinSharedControllerGetFamilyIdOriginal), 1},
-                };
-                PANIC_COND(!LookupPatchPlus::applyAll(&patcher, patches, address, size), "gfxcon",
-                    "Failed to apply patches: %d", patcher.getError());
-                DBGLOG("gfxcon", "Applied patches.");
-        */
         return true;
     }
 
     return false;
-}
-
-uint8_t GFXCon::wrapHwReadReg8(void *that, uint8_t reg) {
-    DBGLOG("gfxcon", "readReg8: reg: %x", reg);
-    // turned on by using -lredregdbg
-    return FunctionCast(wrapHwReadReg8, callback->orgHwReadReg8)(that, reg);
-}
-
-uint16_t GFXCon::wrapHwReadReg16(void *that, uint16_t reg) {
-    DBGLOG("gfxcon", "readReg16: reg: %x", reg);
-    // turned on by using -lredregdbg
-    return FunctionCast(wrapHwReadReg16, callback->orgHwReadReg16)(that, reg);
-}
-
-uint32_t GFXCon::wrapHwReadReg32(void *that, uint32_t reg) {
-    DBGLOG("gfxcon", "readReg32: reg: %x", reg);
-    // turned on by using -lredregdbg
-    return FunctionCast(wrapHwReadReg32, callback->orgHwReadReg32)(that, reg);
-}
-
-uint8_t GFXCon::wrapRegr8(void *that, uint8_t reg) {
-    DBGLOG("gfxcon", "Regr8: reg: %x", reg);
-    // turned on by using -lredregdbg
-    return FunctionCast(wrapRegr8, callback->orgRegr8)(that, reg);
-}
-
-uint16_t GFXCon::wrapRegr16(void *that, uint16_t reg) {
-    DBGLOG("gfxcon", "Regr16: reg: %x", reg);
-    // turned on by using -lredregdbg
-    return FunctionCast(wrapRegr16, callback->orgRegr16)(that, reg);
-}
-
-uint32_t GFXCon::wrapRegr32(void *that, uint32_t reg) {
-    DBGLOG("gfxcon", "Regr32: reg: %x", reg);
-    // turned on by using -lredregdbg
-    return FunctionCast(wrapRegr32, callback->orgRegr32)(that, reg);
 }
 
 uint16_t GFXCon::wrapGetFamilyId(void) {

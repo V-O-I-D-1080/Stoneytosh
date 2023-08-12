@@ -14,23 +14,11 @@ class GFXCon {
     bool processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t address, size_t size);
 
     private:
-    mach_vm_address_t orgHwReadReg8 {0};
-    mach_vm_address_t orgHwReadReg16 {0};
-    mach_vm_address_t orgHwReadReg32 {0};
-    mach_vm_address_t orgRegr8 {0};
-    mach_vm_address_t orgRegr16 {0};
-    mach_vm_address_t orgRegr32 {0};
     mach_vm_address_t orgPopulateDeviceInfo {0};
     mach_vm_address_t orgGetFamilyId {0};
     mach_vm_address_t orgGetPllClock {0};
 
     static IOReturn wrapPopulateDeviceInfo(void *that);
-    static uint8_t wrapHwReadReg8(void *that, uint8_t param1);
-    static uint16_t wrapHwReadReg16(void *that, uint16_t param1);
-    static uint32_t wrapHwReadReg32(void *that, uint32_t param1);
-    static uint8_t wrapRegr8(void *that, uint8_t param1);
-    static uint16_t wrapRegr16(void *that, uint16_t param1);
-    static uint32_t wrapRegr32(void *that, uint32_t param1);
     static uint16_t wrapGetFamilyId(void);
     static UInt32 wrapGetPllClock(void *that, uint8_t pll, void *clockparams);
 };
