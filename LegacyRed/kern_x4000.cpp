@@ -32,7 +32,6 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
         RouteRequestPlus requests[] = {
             {"__ZN36AMDRadeonX4000_AMDRadeonHWServicesCI16getMatchPropertyEv", forceX4000HWLibs, !useGcn3Logic},
             {"__ZN41AMDRadeonX4000_AMDRadeonHWServicesPolaris16getMatchPropertyEv", forceX4000HWLibs, isStoney},
-            {"__ZN26AMDRadeonX4000_AMDHardware17dumpASICHangStateEb.cold.1", wrapDumpASICHangState, this->orgDumpASICHangState},
         };
         PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "hwservices",
             "Failed to route symbols");
@@ -85,6 +84,7 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
                 this->orgCreateHWHandler},
             {"__ZN37AMDRadeonX4000_AMDGraphicsAccelerator17createHWInterfaceEP11IOPCIDevice", wrapCreateHWInterface,
                 this->orgCreateHWInterface},
+            {"__ZN26AMDRadeonX4000_AMDHardware17dumpASICHangStateEb.cold.1", wrapDumpASICHangState, this->orgDumpASICHangState},
         };
         PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "x4000",
             "Failed to route symbols");
