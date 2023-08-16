@@ -195,6 +195,10 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
             {"_MCILDebugPrint", wrapMCILDebugPrint, orgMCILDebugPrint},
             {"_SMUM_Initialize", wrapSMUMInitialize, orgSMUMInitialize},
             //{"_SmuCz_Initialize", wrapSmuCzInitialize, this->orgSmuCzInitialize},
+            {"_Cail_Bonaire_LoadUcode", wrapCailBonaireLoadUcode, this->orgCailBonaireLoadUcode},
+            {"_bonaire_load_ucode_via_port_register", wrapBonaireLoadUcodeViaPortRegister,
+                this->orgBonaireLoadUcodeViaPortRegister},
+            {"_bonaire_program_aspm", wrapBonaireProgramAspm, this->orgBonaireProgramAspm},
         };
         PANIC_COND(!patcher.routeMultiple(index, requests, address, size), "hwlibs", "Failed to route symbols");
 
@@ -346,3 +350,25 @@ AMDReturn X5000HWLibs::wrapSmuRavenInitialize(void *smum, uint32_t param2) {
     return ret;
 }
 */
+
+void HWLibs::wrapCailBonaireLoadUcode(uint64_t param1, uint64_t param2, uint64_t param3, uint64_t param4) {
+    DBGLOG("hwlibs", "_Cail_Bonaire_LoadUcode << (param1: 0x%llX param2: 0x%llX param3: 0x%llX param4: 0x%llX)", param1,
+        param2, param3, param4);
+    FunctionCast(wrapCailBonaireLoadUcode, callback->orgCailBonaireLoadUcode)(param1, param2, param3, param4);
+    DBGLOG("hwlibs", "_Cail_Bonaire_LoadUcode >> void");
+}
+
+void HWLibs::wrapBonaireLoadUcodeViaPortRegister(uint64_t param1, uint64_t param2, void *param3, uint32_t param4,
+    uint32_t param5) {
+    DBGLOG("hwlibs",
+        "_bonaire_load_ucode_via_port_register << (param1: 0x%llX param2: 0x%llX param3: %p param4: 0x%X param5: 0x%X)",
+        param1, param2, param3, param4, param5);
+    FunctionCast(wrapBonaireLoadUcodeViaPortRegister, callback->orgBonaireLoadUcodeViaPortRegister)(param1, param2,
+        param3, param4, param5);
+    DBGLOG("hwlibs", "_bonaire_load_ucode_via_port_register >> void");
+}
+
+uint64_t HWLibs::wrapBonaireProgramAspm(uint64_t param1) {
+    DBGLOG("hwlibs", "_bonaire_program_aspm << (param1: 0x%llX)", param1);
+    return 0;
+}

@@ -16,14 +16,14 @@ static const char *pathAMD9000Controller =
 static const char *pathAMD9500Controller =
     "/System/Library/Extensions/AMD9500Controller.kext/Contents/MacOS/AMD9500Controller";
 
-static KernelPatcher::KextInfo kextAMD8KController = {"com.apple.kext.AMD8000Controller", &pathAMD8000Controller, 1, {}, {},
-    KernelPatcher::KextInfo::Unloaded};
-
-static KernelPatcher::KextInfo kextAMD9KController = {"com.apple.kext.AMD9000Controller", &pathAMD9000Controller, 1, {}, {},
-    KernelPatcher::KextInfo::Unloaded};
-
-static KernelPatcher::KextInfo kextAMD95KController = {"com.apple.kext.AMD9500Controller", &pathAMD9500Controller, 1, {},
+static KernelPatcher::KextInfo kextAMD8KController = {"com.apple.kext.AMD8000Controller", &pathAMD8000Controller, 1, {},
     {}, KernelPatcher::KextInfo::Unloaded};
+
+static KernelPatcher::KextInfo kextAMD9KController = {"com.apple.kext.AMD9000Controller", &pathAMD9000Controller, 1, {},
+    {}, KernelPatcher::KextInfo::Unloaded};
+
+static KernelPatcher::KextInfo kextAMD95KController = {"com.apple.kext.AMD9500Controller", &pathAMD9500Controller, 1,
+    {}, {}, KernelPatcher::KextInfo::Unloaded};
 
 GFXCon *GFXCon::callback = nullptr;
 

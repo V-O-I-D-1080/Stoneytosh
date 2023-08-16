@@ -80,6 +80,8 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
                 this->orgDumpASICHangState},
             {"__ZN26AMDRadeonX4000_AMDHWMemory17adjustVRAMAddressEy", wrapAdjustVRAMAddress,
                 this->orgAdjustVRAMAddress},
+            {"__ZN29AMDRadeonX4000_AMDCIPM4Engine21initializeMicroEngineEv", wrapInitializeMicroEngine,
+                this->orgInitializeMicroEngine},
         };
         PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "x4000",
             "Failed to route symbols");
@@ -290,4 +292,71 @@ uint64_t X4000::wrapAdjustVRAMAddress(void *that, uint64_t addr) {
     SYSLOG("x4000", "AdjustVRAMAddress: returned: 0x%x, our value: 0x%x", ret,
         ret != addr ? (ret + LRed::callback->fbOffset) : ret);
     return ret != addr ? (ret + LRed::callback->fbOffset) : ret;
+}
+
+uint64_t X4000::wrapInitializeMicroEngine(void *that) {
+    DBGLOG("x4000", "initializeMicroEngine << (that: %p)", that);
+    LRed::callback->writeReg32(0x21B6, ((0x1000000 | 0x4000000) | 0x1000000));
+    IODelay(50);
+    char filename[64] = {0};
+    snprintf(filename, 64, "%s_pfp.bin", LRed::callback->getChipName());
+    auto &pfpFwDesc = getFWDescByName(filename);
+    auto *pfpFwHeader = reinterpret_cast<const GfxFwHeaderV1 *>(pfpFwDesc.data);
+    size_t pfpFwSize = (pfpFwHeader->ucodeSize / 4);
+    auto pfpFwData = (pfpFwDesc.data + pfpFwHeader->ucodeOff);
+    LRed::callback->writeReg32(0x3054, 0);
+    for (size_t i = 0; i < pfpFwSize; i++) { LRed::callback->writeReg32(0x3055, *pfpFwData++); }
+    LRed::callback->writeReg32(0x3054, pfpFwHeader->ucodeVer);
+    DBGLOG("x4000", "PFP FW: version: %x, feature version %x", pfpFwHeader->ucodeVer, pfpFwHeader->ucodeFeatureVer);
+
+    snprintf(filename, 64, "%s_ce.bin", LRed::callback->getChipName());
+    auto &ceFwDesc = getFWDescByName(filename);
+    auto *ceFwHeader = reinterpret_cast<const GfxFwHeaderV1 *>(ceFwDesc.data);
+    size_t ceFwSize = (ceFwHeader->ucodeSize / 4);
+    auto ceFwData = (ceFwDesc.data + ceFwHeader->ucodeOff);
+    LRed::callback->writeReg32(0x305A, 0);
+    for (size_t i = 0; i < ceFwSize; i++) { LRed::callback->writeReg32(0x305B, *ceFwData++); }
+    LRed::callback->writeReg32(0x305A, ceFwHeader->ucodeVer);
+    DBGLOG("x4000", "CE FW: version: %x, feature version %x", ceFwHeader->ucodeVer, ceFwHeader->ucodeFeatureVer);
+
+    snprintf(filename, 64, "%s_me.bin", LRed::callback->getChipName());
+    auto &meFwDesc = getFWDescByName(filename);
+    auto *meFwHeader = reinterpret_cast<const GfxFwHeaderV1 *>(meFwDesc.data);
+    size_t meFwSize = (meFwHeader->ucodeSize / 4);
+    auto meFwData = (meFwDesc.data + meFwHeader->ucodeOff);
+    LRed::callback->writeReg32(0x3057, 0);
+    for (size_t i = 0; i < meFwSize; i++) { LRed::callback->writeReg32(0x3058, *meFwData++); }
+    LRed::callback->writeReg32(0x3057, meFwHeader->ucodeVer);
+    DBGLOG("x4000", "ME FW: version: %x, feature version %x", meFwHeader->ucodeVer, meFwHeader->ucodeFeatureVer);
+
+    LRed::callback->writeReg32(0x21B6, 0);
+    IODelay(50);
+    DBGLOG("x4000", "Loaded PFP, CE and ME firmware.");
+    LRed::callback->writeReg32(0x208D, (0x40000000 | 0x10000000));
+    IODelay(50);
+    snprintf(filename, 64, "%s_mec.bin", LRed::callback->getChipName());
+    auto &mecFwDesc = getFWDescByName(filename);
+    auto *mecFwHeader = reinterpret_cast<const GfxFwHeaderV1 *>(mecFwDesc.data);
+    size_t mecFwSize = (mecFwHeader->ucodeSize / 4);
+    auto mecFwData = (mecFwDesc.data + mecFwHeader->ucodeOff);
+    LRed::callback->writeReg32(0x305C, 0);
+    for (size_t i = 0; i < mecFwSize; i++) { LRed::callback->writeReg32(0x305D, *mecFwData++); }
+    LRed::callback->writeReg32(0x305C, mecFwHeader->ucodeVer);
+    if (LRed::callback->chipType <= ChipType::Spooky || LRed::callback->chipType == ChipType::Carrizo) {
+        snprintf(filename, 64, "%s_mec2.bin", LRed::callback->getChipName());
+        auto &mec2FwDesc = getFWDescByName(filename);
+        auto *mec2FwHeader = reinterpret_cast<const GfxFwHeaderV1 *>(mec2FwDesc.data);
+        size_t mec2FwSize = (mec2FwHeader->ucodeSize / 4);
+        auto mec2FwData = (mec2FwDesc.data + mec2FwHeader->ucodeOff);
+        LRed::callback->writeReg32(0x305E, 0);
+        for (size_t i = 0; i < mec2FwSize; i++) { LRed::callback->writeReg32(0x305F, *mec2FwData++); }
+        LRed::callback->writeReg32(0x305E, mec2FwHeader->ucodeVer);
+        DBGLOG("x4000", "MEC2 FW: version: %x, feature version %x", mec2FwHeader->ucodeVer,
+            mec2FwHeader->ucodeFeatureVer);
+    }
+    LRed::callback->writeReg32(0x208D, 0);
+    IODelay(50);
+    auto ret = FunctionCast(wrapInitializeMicroEngine, callback->orgInitializeMicroEngine)(that);
+    DBGLOG("x4000", "initializeMicroEngine >> 0x%llX", ret);
+    return ret;
 }

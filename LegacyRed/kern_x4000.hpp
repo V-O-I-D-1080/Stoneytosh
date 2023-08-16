@@ -26,6 +26,7 @@ class X4000 {
     mach_vm_address_t orgSetupAndInitializeHWCapabilities {0};
     mach_vm_address_t orgDumpASICHangState {0};
     mach_vm_address_t orgAdjustVRAMAddress {0};
+    mach_vm_address_t orgInitializeMicroEngine {0};
 
     void *callbackAccelerator = nullptr;
 
@@ -36,6 +37,7 @@ class X4000 {
     static void wrapDumpASICHangState(bool param1);
     static char *forceX4000HWLibs(void);
     static uint64_t wrapAdjustVRAMAddress(void *that, uint64_t addr);
+    static uint64_t wrapInitializeMicroEngine(void *that);
 };
 
 #endif /* kern_x4000_hpp */
