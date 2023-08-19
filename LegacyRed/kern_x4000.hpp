@@ -17,6 +17,7 @@ enum FwEnum : uint32_t {
     ME,
     MEC,
     MEC2,
+    RLC,
 };
 
 class X4000 {
@@ -50,6 +51,8 @@ class X4000 {
     static uint64_t wrapInitializeMicroEngine(void *that);
     uint32_t getUcodeAddressOffset(uint32_t fwnum);
     uint32_t getUcodeDataOffset(uint32_t fwnum);
+    uint32_t loadCpFirmware();
+    uint32_t loadRlcFirmware();
 };
 
 #endif /* kern_x4000_hpp */

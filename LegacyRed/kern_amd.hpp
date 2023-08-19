@@ -104,6 +104,14 @@ struct RlcFwHeaderV2_1 : public CommonFirmwareHeader {
     uint32_t saveRestoreListSrmOff;
 } PACKED;
 
+struct RlcFwHeaderV1_0 : public CommonFirmwareHeader {
+    uint32_t ucodeFeatureVer;
+    uint32_t saveRestoreOff;
+    uint32_t clearStateDescOff;
+    uint32_t availScratchRamLocations;
+    uint32_t masterPktDescOff;
+};
+
 struct GcFwConstant {
     const char *firmwareVer;
     uint32_t featureVer, size;

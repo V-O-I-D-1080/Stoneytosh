@@ -309,6 +309,9 @@ uint32_t X4000::getUcodeAddressOffset(uint32_t fwnum) {
         case FwEnum::MEC2: {
             return (LRed::callback->isGCN3 ? 0xF81C : 0x305E);
         }
+        case FwEnum::RLC: {
+            return (LRed::callback->isGCN3 ? 0xF83C : 0x30E2);
+        }
     }
     return 0x0;
 }
@@ -336,12 +339,14 @@ uint32_t X4000::getUcodeDataOffset(uint32_t fwnum) {
         case FwEnum::MEC2: {
             return (LRed::callback->isGCN3 ? 0xF81D : 0x305F);
         }
+        case FwEnum::RLC: {
+            return (LRed::callback->isGCN3 ? 0xF83D : 0x30E3);
+        }
     }
     return 0x0;
 }
-// CNTL registers are the same accross GFX7 & GFX8
-uint64_t X4000::wrapInitializeMicroEngine(void *that) {
-    DBGLOG("x4000", "initializeMicroEngine << (that: %p)", that);
+
+uint32_t X4000::loadCpFirmware() {
     LRed::callback->writeReg32(0x21B6, ((0x1000000 | 0x4000000) | 0x1000000));
     IODelay(50);
     char filename[64] = {0};
@@ -415,6 +420,40 @@ uint64_t X4000::wrapInitializeMicroEngine(void *that) {
             mec2FwHeader->ucodeFeatureVer);
     }
     LRed::callback->writeReg32(0x208D, 0);
+    IODelay(50);
+    return 0;
+}
+
+uint32_t X4000::loadRlcFirmware() {
+    LRed::callback->writeReg32(0x30C0, 0);
+    char filename[64] = {0};
+    snprintf(filename, 64, "%s_rlc.bin", LRed::callback->getChipName());
+    auto &rlcFwDesc = getFWDescByName(filename);
+    auto *rlcFwHeader = reinterpret_cast<const RlcFwHeaderV1_0 *>(rlcFwDesc.data);
+    LRed::callback->writeReg32(LRed::callback->isGCN3 ? 0xEC03 : 0x30C3, 0);
+    LRed::callback->writeReg32(LRed::callback->isGCN3 ? 0xEC27 : 0x30E7, 0);
+    size_t rlcFwSize = (rlcFwHeader->ucodeVer);
+    auto rlcFwData = (rlcFwDesc.data + rlcFwHeader->ucodeOff);
+    LRed::callback->writeReg32(callback->getUcodeAddressOffset(FwEnum::RLC), 0);
+    for (size_t i = 0; i < rlcFwSize; i++) {
+        LRed::callback->writeReg32(callback->getUcodeDataOffset(FwEnum::RLC), *rlcFwData++);
+    }
+    LRed::callback->writeReg32(callback->getUcodeAddressOffset(FwEnum::RLC), rlcFwHeader->ucodeVer);
+    LRed::callback->writeReg32(0x30C0, 0x1);
+    IODelay(50);
+    return 0;
+}
+// CNTL registers are the same accross GFX7 & GFX8
+uint64_t X4000::wrapInitializeMicroEngine(void *that) {
+    DBGLOG("x4000", "initializeMicroEngine << (that: %p)", that);
+    uint32_t cpcntlr0 = LRed::callback->readReg32(0x306A);
+    cpcntlr0 &= ~(0x80000 | 0x100000);
+    LRed::callback->writeReg32(0x306A, cpcntlr0);
+    DBGLOG_COND(!callback->loadCpFirmware(), "x4000", "Loaded CP fw");
+    DBGLOG_COND(!callback->loadRlcFirmware(), "x4000", "Loaded RLC fw");
+    cpcntlr0 = LRed::callback->readReg32(0x306A);
+    cpcntlr0 |= (0x80000 | 0x100000);
+    LRed::callback->writeReg32(0x306A, cpcntlr0);
     IODelay(50);
     auto ret = FunctionCast(wrapInitializeMicroEngine, callback->orgInitializeMicroEngine)(that);
     DBGLOG("x4000", "initializeMicroEngine >> 0x%llX", ret);
