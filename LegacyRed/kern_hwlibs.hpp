@@ -18,7 +18,6 @@ class HWLibs {
     bool processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t address, size_t size);
 
     private:
-
     t_XPowerTuneConstructor orgHawaiiPowerTuneConstructor {nullptr};
     t_XPowerTuneConstructor orgTongaPowerTuneConstructor {nullptr};
     t_sendMsgToSmc orgCISendMsgToSmc {nullptr};

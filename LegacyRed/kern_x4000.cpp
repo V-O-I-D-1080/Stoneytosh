@@ -279,7 +279,8 @@ void *X4000::wrapGetHWChannel(void *that, uint32_t engineType, uint32_t ringId) 
 char *X4000::forceX4000HWLibs() {
     DBGLOG("hwservices", "Forcing HWServices to load X4000HWLibs");
     // By default, X4000HWServices on CI loads X4050HWLibs, we override this here
-    return "Load4000";
+    // Polaris is an interesting topic because it selects the name by using the Framebuffer name
+    return "Load4400";
 }
 
 void X4000::wrapDumpASICHangState(bool param1) {
