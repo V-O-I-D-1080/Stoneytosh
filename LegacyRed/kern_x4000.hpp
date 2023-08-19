@@ -9,6 +9,16 @@
 #include <Headers/kern_util.hpp>
 #include <IOKit/IOService.h>
 
+enum FwEnum : uint32_t {
+    SDMA0 = 1,
+    SDMA1,
+    PFP,
+    CE,
+    ME,
+    MEC,
+    MEC2,
+};
+
 class X4000 {
     public:
     static X4000 *callback;
@@ -38,6 +48,8 @@ class X4000 {
     static char *forceX4000HWLibs(void);
     static uint64_t wrapAdjustVRAMAddress(void *that, uint64_t addr);
     static uint64_t wrapInitializeMicroEngine(void *that);
+    uint32_t getUcodeAddressOffset(uint32_t fwnum);
+    uint32_t getUcodeDataOffset(uint32_t fwnum);
 };
 
 #endif /* kern_x4000_hpp */

@@ -152,18 +152,16 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
                 }
             }
             case ChipType::Stoney: {
-                auto needs2cuSettings = (LRed::callback->chipVariant == ChipVariant::s2CU);
-
                 SolveRequestPlus solveRequests[] = {
                     {"_STONEY_GoldenSettings_A0_2CU", goldenCaps[static_cast<uint32_t>(ChipType::Stoney)],
-                        needs2cuSettings},
+                        !LRed::callback->isStoney3CU},
                     {"_STONEY_GoldenSettings_A0_3CU", goldenCaps[static_cast<uint32_t>(ChipType::Stoney)],
-                        !needs2cuSettings},
+                        LRed::callback->isStoney3CU},
                     {"_CAIL_DDI_CAPS_STONEY_A0", ddiCaps[static_cast<uint32_t>(ChipType::Stoney)]},
                 };
                 PANIC_COND(!SolveRequestPlus::solveAll(patcher, index, solveRequests, address, size), "hwlibs",
                     "Failed to resolve symbols");
-                DBGLOG("hwlibs", "Set ASIC Caps to Stoney, needs2cuSettings: %x", needs2cuSettings);
+                DBGLOG("hwlibs", "Set ASIC Caps to Stoney");
                 break;
             }
             default: {

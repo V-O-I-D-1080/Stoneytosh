@@ -79,20 +79,23 @@ void LRed::processPatcher(KernelPatcher &patcher) {
 
         WIOKit::renameDevice(this->iGPU, "IGPU");
         WIOKit::awaitPublishing(this->iGPU);
-        char name[256] = {0};
+
+        static uint8_t builtin[] = {0x00};
+        this->iGPU->setProperty("built-in", builtin, arrsize(builtin));
+        this->deviceId = WIOKit::readPCIConfigValue(this->iGPU, WIOKit::kIOPCIConfigDeviceID);
+        this->pciRevision = WIOKit::readPCIConfigValue(LRed::callback->iGPU, WIOKit::kIOPCIConfigRevisionID);
+
+        this->iGPU->setMemoryEnable(true);
+
+        char name[128] = {0};
         for (size_t i = 0, ii = 0; i < devInfo->videoExternal.size(); i++) {
             auto *device = OSDynamicCast(IOPCIDevice, devInfo->videoExternal[i].video);
-            if (device) {
+            if (device && WIOKit::readPCIConfigValue(device, WIOKit::kIOPCIConfigDeviceID) != this->deviceId) {
                 snprintf(name, arrsize(name), "GFX%zu", ii++);
                 WIOKit::renameDevice(device, name);
                 WIOKit::awaitPublishing(device);
             }
         }
-
-        static uint8_t builtin[] = {0x01};
-        this->iGPU->setProperty("built-in", builtin, arrsize(builtin));
-        this->deviceId = WIOKit::readPCIConfigValue(this->iGPU, WIOKit::kIOPCIConfigDeviceID);
-        this->pciRevision = WIOKit::readPCIConfigValue(LRed::callback->iGPU, WIOKit::kIOPCIConfigRevisionID);
 
         if (UNLIKELY(this->iGPU->getProperty("ATY,bin_image"))) {
             DBGLOG("lred", "VBIOS manually overridden");
@@ -314,12 +317,10 @@ void LRed::setRMMIOIfNecessary() {
                 /** R4 and up iGPUs have 3 compute units while the others have 2 CUs, hence the chip variations */
                 if (this->revision <= 0x81 || (this->revision >= 0xC0 && this->revision < 0xD0) ||
                     (this->revision >= 0xD9 && this->revision < 0xDB) || this->revision >= 0xE9) {
-                    this->chipVariant = ChipVariant::s3CU;
-                    DBGLOG("lred", "Chip variant is Stoney 3CU");
+                    this->isStoney3CU = true;
+                    DBGLOG("lred", "Chip has been identified as a 3CU model");
                     break;
                 } else {
-                    this->chipVariant = ChipVariant::s2CU;
-                    DBGLOG("lred", "Chip variant is Stoney 2CU");
                     break;
                 }
             default:

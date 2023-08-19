@@ -37,8 +37,6 @@ enum struct ChipVariant : uint32_t {
     Temash,
     Bhavani,
     Mullins,
-    s2CU,    // s2CU && s3CU have different Golden Settings
-    s3CU,
     Bristol,    // Bristol is acctually just a Carrizo+, hence why it isn't in ChipType
     Unknown,
 };
@@ -239,6 +237,7 @@ class LRed {
     ChipType chipType = ChipType::Unknown;
     ChipVariant chipVariant = ChipVariant::Unknown;
     bool isGCN3 = false;
+    bool isStoney3CU = false;
     uint64_t fbOffset {0};
     IOMemoryMap *rmmio {nullptr};
     volatile uint32_t *rmmioPtr {nullptr};
