@@ -88,6 +88,7 @@ class Support {
     mach_vm_address_t orgNotifyLinkChange {0};
     mach_vm_address_t orgGetGpioPinInfo {0};
     mach_vm_address_t orgCreateAtomBiosParser {0};
+    mach_vm_address_t orgCreateObjectInfoTable {0};
     mach_vm_address_t orgGetImage {0};
     mach_vm_address_t orgObjectInfoTableInit {0};
     mach_vm_address_t orgADCStart {0};
@@ -101,6 +102,7 @@ class Support {
     static void wrapDoGPUPanic();
     static void *wrapGetImage(void *that, uint32_t offset, uint32_t length);
     static bool wrapObjectInfoTableInit(void *that, void *initdata);
+    static void *wrapCreateObjectInfoTable(void *helper, uint32_t offset);
     static void *wrapADCStart(void *that, IOService *provider);
 
     int count {0};

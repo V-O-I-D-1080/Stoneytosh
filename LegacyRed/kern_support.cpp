@@ -43,6 +43,7 @@ bool Support::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_
             {"__ZN14AtiVBiosHelper8getImageEjj", wrapGetImage, orgGetImage},
             {"__ZN30AtiObjectInfoTableInterface_V14initERN21AtiDataTableBaseClass17DataTableInitInfoE",
                 wrapObjectInfoTableInit, orgObjectInfoTableInit},
+            {"__ZN30AtiObjectInfoTableInterface_V121createObjectInfoTableEP14AtiVBiosHelperj", wrapCreateObjectInfoTable, orgCreateObjectInfoTable},
             {"__ZN16AtiDeviceControl5startEP9IOService", wrapADCStart, orgADCStart, agdcon},
         };
         PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "support",
@@ -129,15 +130,16 @@ void Support::wrapDoGPUPanic() {
 }
 
 void *Support::wrapGetImage(void *that, uint32_t offset, uint32_t length) {
-    DBGLOG_COND(length == 0x12, "support", "Object Info Table is v1.3");
-    if ((length == 0x12 || length == 0x10) && (callback->objectInfoFound == false)) {
-        DBGLOG("support", "Current Object Info Table Offset = 0x%x", offset);
-        callback->currentObjectInfoOffset = offset;
-        callback->objectInfoFound = true;
-    }
     DBGLOG("support", "getImage: offset: %x, length %x", offset, length);
     auto ret = FunctionCast(wrapGetImage, callback->orgGetImage)(that, offset, length);
     DBGLOG("support", "getImage: returned %x", ret);
+    return ret;
+}
+
+void *Support::wrapCreateObjectInfoTable(void *helper, uint32_t offset) {
+    DBGLOG("support", "wrapCreateObjectInfoTable: Object Info Table Offset: 0x%x", offset);
+    callback->currentObjectInfoOffset = offset;
+    auto ret = FunctionCast(wrapCreateObjectInfoTable, callback->orgCreateObjectInfoTable)(helper, offset);
     return ret;
 }
 
