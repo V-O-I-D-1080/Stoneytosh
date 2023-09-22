@@ -1,6 +1,6 @@
 #!/bin/sh
 
-target_file="${PROJECT_DIR}/LegacyRed/kern_fw.cpp"
+target_file="${PROJECT_DIR}/LegacyRed/Firmware.cpp"
 if [ -f "$target_file" ]; then
     rm -f "$target_file"
 fi
