@@ -1,8 +1,8 @@
 //  Copyright © 2022-2023 ChefKiss Inc. Licensed under the Thou Shalt Not Profit License version 1.5. See LICENSE for
 //  details.
 
-#include "kern_dyld_patches.hpp"
-#include "kern_lred.hpp"
+#include "DYLDPatches.hpp"
+#include "LRed.hpp"
 #include <Headers/kern_api.hpp>
 #include <Headers/kern_devinfo.hpp>
 #include <IOKit/IODeviceTreeSupport.h>
@@ -12,18 +12,18 @@ DYLDPatches *DYLDPatches::callback = nullptr;
 void DYLDPatches::init() { callback = this; }
 
 void DYLDPatches::processPatcher(KernelPatcher &patcher) {
-    if (!(lilu.getRunMode() & LiluAPI::RunningNormal) || !checkKernelArgument("-lreddyld")) { return; }
+    if (!(lilu.getRunMode() & LiluAPI::RunningNormal) || !checkKernelArgument("-lreddy;d")) { return; }
 
     auto *entry = IORegistryEntry::fromPath("/", gIODTPlane);
     if (entry) {
-        DBGLOG("dyld", "Setting hwgva-id to iMacPro1,1");
+        DBGLOG("DYLD", "Setting hwgva-id to iMacPro1,1");
         entry->setProperty("hwgva-id", const_cast<char *>(kHwGvaId), arrsize(kHwGvaId));
         entry->release();
     }
 
     KernelPatcher::RouteRequest request {"_cs_validate_page", csValidatePage, this->orgCsValidatePage};
 
-    PANIC_COND(!patcher.routeMultipleLong(KernelPatcher::KernelID, &request, 1), "dyld",
+    PANIC_COND(!patcher.routeMultipleLong(KernelPatcher::KernelID, &request, 1), "DYLD",
         "Failed to route kernel symbols");
 }
 
@@ -48,7 +48,7 @@ void DYLDPatches::csValidatePage(vnode *vp, memory_object_t pager, memory_object
 
     if (UNLIKELY(KernelPatcher::findAndReplace(const_cast<void *>(data), PAGE_SIZE, kVideoToolboxDRMModelOriginal,
             arrsize(kVideoToolboxDRMModelOriginal), BaseDeviceInfo::get().modelIdentifier, 20))) {
-        DBGLOG("dyld", "Applied 'VideoToolbox DRM model check' patch");
+        DBGLOG("DYLD", "Applied 'VideoToolbox DRM model check' patch");
     }
 
     const DYLDPatch patches[] = {

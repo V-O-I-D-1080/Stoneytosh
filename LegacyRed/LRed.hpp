@@ -3,9 +3,9 @@
 
 #ifndef kern_lred_hpp
 #define kern_lred_hpp
-#include "kern_amd.hpp"
-#include "kern_fw.hpp"
-#include "kern_vbios.hpp"
+#include "AMDCommon.hpp"
+#include "ATOMBIOS.hpp"
+#include "Firmware.hpp"
 #include <Headers/kern_iokit.hpp>
 #include <IOKit/acpi/IOACPIPlatformExpert.h>
 #include <IOKit/graphics/IOFramebuffer.h>
@@ -20,7 +20,7 @@ class EXPORT PRODUCT_NAME : public IOService {
 };
 
 // GFX core codenames
-enum struct ChipType : uint32_t {
+enum struct ChipType : UInt32 {
     Spectre = 0,    // Kaveri
     Spooky,         // Kaveri 2? downgraded from Spectre core
     Kalindi,        // Kabini/Bhavani
@@ -31,13 +31,13 @@ enum struct ChipType : uint32_t {
 };
 
 // Front-end consumer names, includes non-consumer names as-well
-enum struct ChipVariant : uint32_t {
+enum struct ChipVariant : UInt32 {
     Kaveri = 0,
     Kabini,
     Temash,
     Bhavani,
     Mullins,
-    Bristol,    // Bristol is acctually just a Carrizo+, hence why it isn't in ChipType
+    Bristol,    // Bristol is actually just a Carrizo+, hence why it isn't in ChipType
     Unknown,
 };
 
@@ -92,7 +92,7 @@ struct vc_info {
     unsigned long v_baseaddr;
     unsigned int v_type;
     char v_name[32];
-    uint64_t v_physaddr;
+    UInt64 v_physaddr;
     unsigned int v_rows;         /* characters */
     unsigned int v_columns;      /* characters */
     unsigned int v_rowscanbytes; /* Actualy number of bytes used for display per row*/
@@ -181,7 +181,7 @@ class LRed {
             return false;
         }
         auto *fb = reinterpret_cast<const uint8_t *>(bar0->getVirtualAddress());
-        uint32_t size = 256 * 1024;    // ???
+        UInt32 size = 256 * 1024;    // ???
         if (!checkAtomBios(fb, size)) {
             DBGLOG("lred", "VRAM VBIOS is not an ATOMBIOS");
             OSSafeReleaseNULL(bar0);
@@ -194,7 +194,7 @@ class LRed {
         return true;
     }
 
-    uint32_t readReg32(uint32_t reg) {
+    UInt32 readReg32(UInt32 reg) {
         if (reg * 4 < this->rmmio->getLength()) {
             return this->rmmioPtr[reg];
         } else {
@@ -203,7 +203,7 @@ class LRed {
         }
     }
 
-    void writeReg32(uint32_t reg, uint32_t val) {
+    void writeReg32(UInt32 reg, UInt32 val) {
         if (reg * 4 < this->rmmio->getLength()) {
             this->rmmioPtr[reg] = val;
         } else {
@@ -212,20 +212,20 @@ class LRed {
         }
     }
 
-    uint32_t smcReadReg32Cz(uint32_t reg) {
+    UInt32 smcReadReg32Cz(UInt32 reg) {
         writeReg32(mmMP0PUB_IND_INDEX, reg);
         return readReg32(mmMP0PUB_IND_DATA);
     }
 
     template<typename T>
-    T *getVBIOSDataTable(uint32_t index) {
+    T *getVBIOSDataTable(UInt32 index) {
         auto *vbios = static_cast<const uint8_t *>(this->vbiosData->getBytesNoCopy());
         auto base = *reinterpret_cast<const uint16_t *>(vbios + ATOM_ROM_TABLE_PTR);
         auto dataTable = *reinterpret_cast<const uint16_t *>(vbios + base + ATOM_ROM_DATA_PTR);
         auto *mdt = reinterpret_cast<const uint16_t *>(vbios + dataTable + 4);
 
         if (mdt[index]) {
-            uint32_t offset = index * 2 + 4;
+            UInt32 offset = index * 2 + 4;
             auto index = *reinterpret_cast<const uint16_t *>(vbios + dataTable + offset);
             return reinterpret_cast<T *>(const_cast<uint8_t *>(vbios) + index);
         }
@@ -238,15 +238,15 @@ class LRed {
     ChipVariant chipVariant = ChipVariant::Unknown;
     bool isGCN3 = false;
     bool isStoney3CU = false;
-    uint64_t fbOffset {0};
+    UInt64 fbOffset {0};
     IOMemoryMap *rmmio {nullptr};
-    volatile uint32_t *rmmioPtr {nullptr};
-    uint32_t deviceId {0};
-    uint16_t enumeratedRevision {0};
-    uint16_t revision {0};
-    uint32_t pciRevision {0};
-    uint32_t currentFamilyId {0};
-    uint32_t currentEmulatedRevisionId {0};
+    volatile UInt32 *rmmioPtr {nullptr};
+    UInt32 deviceId {0};
+    UInt16 enumeratedRevision {0};
+    UInt16 revision {0};
+    UInt32 pciRevision {0};
+    UInt32 currentFamilyId {0};
+    UInt32 currentEmulatedRevisionId {0};
     IOPCIDevice *iGPU {nullptr};
 
     OSMetaClass *metaClassMap[4][2] = {{nullptr}};
@@ -259,5 +259,19 @@ class LRed {
     static size_t wrapFunctionReturnZero();
     static bool wrapApplePanelSetDisplay(IOService *that, IODisplay *display);
 };
+
+/* ---- Patches ---- */
+
+// Change frame-buffer count >= 2 check to >= 1.
+static const UInt8 kAGDPFBCountCheckOriginal[] = {0x02, 0x00, 0x00, 0x83, 0xF8, 0x02};
+static const UInt8 kAGDPFBCountCheckPatched[] = {0x02, 0x00, 0x00, 0x83, 0xF8, 0x01};
+
+// Ditto
+static const UInt8 kAGDPFBCountCheckVenturaOriginal[] = {0x41, 0x83, 0xBE, 0x14, 0x02, 0x00, 0x00, 0x02};
+static const UInt8 kAGDPFBCountCheckVenturaPatched[] = {0x41, 0x83, 0xBE, 0x14, 0x02, 0x00, 0x00, 0x01};
+
+// Neutralise access to AGDP configuration by board identifier.
+static const UInt8 kAGDPBoardIDKeyOriginal[] = "board-id";
+static const UInt8 kAGDPBoardIDKeyPatched[] = "applehax";
 
 #endif /* kern_lred_hpp */

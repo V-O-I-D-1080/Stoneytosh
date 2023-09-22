@@ -1,10 +1,9 @@
 //  Copyright © 2022-2023 ChefKiss Inc. Licensed under the Thou Shalt Not Profit License version 1.5. See LICENSE for
 //  details.
 
-#include "kern_gfxcon.hpp"
-#include "kern_lred.hpp"
-#include "kern_patcherplus.hpp"
-#include "kern_patches.hpp"
+#include "GFXCon.hpp"
+#include "LRed.hpp"
+#include "PatcherPlus.hpp"
 #include <Headers/kern_api.hpp>
 
 static const char *pathAMD8000Controller =
@@ -37,42 +36,34 @@ void GFXCon::init() {
 bool GFXCon::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t address, size_t size) {
     if (kextAMD8KController.loadIndex == index) {
         LRed::callback->setRMMIOIfNecessary();
-        auto highsierra = getKernelVersion() == KernelVersion::HighSierra;
 
         RouteRequestPlus requests[] = {
-            {"__ZN18CISharedController11getFamilyIdEv", wrapGetFamilyId, this->orgGetFamilyId, highsierra},
-            {"__ZNK18CISharedController11getFamilyIdEv", wrapGetFamilyId, this->orgGetFamilyId, !highsierra},
-            {"__ZN13ASIC_INFO__CI18populateDeviceInfoEv", wrapPopulateDeviceInfo, this->orgPopulateDeviceInfo,
-                !highsierra},
+            {"__ZNK18CISharedController11getFamilyIdEv", wrapGetFamilyId, this->orgGetFamilyId},
+            {"__ZN13ASIC_INFO__CI18populateDeviceInfoEv", wrapPopulateDeviceInfo, this->orgPopulateDeviceInfo},
         };
-        PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "gfxcon",
+        PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "GFXCon",
             "Failed to route symbols");
         return true;
     } else if (kextAMD9KController.loadIndex == index) {
         LRed::callback->setRMMIOIfNecessary();
-        auto highsierra = getKernelVersion() == KernelVersion::HighSierra;
 
         RouteRequestPlus requests[] = {
-            {"__ZN18VISharedController11getFamilyIdEv", wrapGetFamilyId, this->orgGetFamilyId, highsierra},
-            {"__ZNK18VISharedController11getFamilyIdEv", wrapGetFamilyId, this->orgGetFamilyId, !highsierra},
-            {"__ZN13ASIC_INFO__VI18populateDeviceInfoEv", wrapPopulateDeviceInfo, this->orgPopulateDeviceInfo,
-                !highsierra},
+            {"__ZNK18VISharedController11getFamilyIdEv", wrapGetFamilyId, this->orgGetFamilyId},
+            {"__ZN13ASIC_INFO__VI18populateDeviceInfoEv", wrapPopulateDeviceInfo, this->orgPopulateDeviceInfo},
             {"__ZN17AMD9000Controller11getPllClockEhP11ClockParams", wrapGetPllClock, orgGetPllClock},
         };
-        PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "gfxcon",
+        PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "GFXCon",
             "Failed to route symbols");
         return true;
     } else if (kextAMD95KController.loadIndex == index) {
         LRed::callback->setRMMIOIfNecessary();
-        auto highsierra = getKernelVersion() == KernelVersion::HighSierra;
 
         RouteRequestPlus requests[] = {
-            {"__ZNK22BaffinSharedController11getFamilyIdEv", wrapGetFamilyId, this->orgGetFamilyId, !highsierra},
-            {"__ZN17ASIC_INFO__BAFFIN18populateDeviceInfoEv", wrapPopulateDeviceInfo, this->orgPopulateDeviceInfo,
-                !highsierra},
+            {"__ZNK22BaffinSharedController11getFamilyIdEv", wrapGetFamilyId, this->orgGetFamilyId},
+            {"__ZN17ASIC_INFO__BAFFIN18populateDeviceInfoEv", wrapPopulateDeviceInfo, this->orgPopulateDeviceInfo},
             {"__ZN17AMD9500Controller11getPllClockEhP11ClockParams", wrapGetPllClock, orgGetPllClock},
         };
-        PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "gfxcon",
+        PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "GFXCon",
             "Failed to route symbols");
         return true;
     }
@@ -82,24 +73,24 @@ bool GFXCon::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
 
 uint16_t GFXCon::wrapGetFamilyId(void) {
     auto id = FunctionCast(wrapGetFamilyId, callback->orgGetFamilyId)();
-    DBGLOG("gfxcon", "getFamilyId >> %d", id);
+    DBGLOG("GFXCon", "getFamilyId >> %d", id);
     (void)id;    // to get clang-analyze to shut up
-    DBGLOG("gfxcon", "getFamilyId << %d", LRed::callback->currentFamilyId);
+    DBGLOG("GFXCon", "getFamilyId << %d", LRed::callback->currentFamilyId);
     return LRed::callback->currentFamilyId;
 }
 
 IOReturn GFXCon::wrapPopulateDeviceInfo(void *that) {
-    DBGLOG("gfxcon", "populateDeviceInfo called!");
+    DBGLOG("GFXCon", "populateDeviceInfo called!");
     auto ret = FunctionCast(wrapPopulateDeviceInfo, callback->orgPopulateDeviceInfo)(that);
     getMember<uint32_t>(that, 0x40) = LRed::callback->currentFamilyId;
     getMember<uint32_t>(that, 0x4C) = LRed::callback->currentEmulatedRevisionId;
-    DBGLOG("gfxcon", "emulatedRevision == %x", LRed::callback->currentEmulatedRevisionId);
+    DBGLOG("GFXCon", "emulatedRevision == %x", LRed::callback->currentEmulatedRevisionId);
     return ret;
 }
 
 UInt32 GFXCon::wrapGetPllClock(void *that, uint8_t pll, void *clockparams) {
-    DBGLOG("gfxcon", "getPllClock: pll: %x", pll);
+    DBGLOG("GFXCon", "getPllClock: pll: %x", pll);
     auto ret = FunctionCast(wrapGetPllClock, callback->orgGetPllClock)(that, pll, clockparams);
-    DBGLOG("gfxcon", "getPllClock: returned %x", ret);
+    DBGLOG("GFXCon", "getPllClock: returned %x", ret);
     return ret;
 }

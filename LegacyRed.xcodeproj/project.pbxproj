@@ -7,29 +7,28 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		408F2020288ACBE6002EEC15 /* kern_fw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 408F201F288ACBE6002EEC15 /* kern_fw.cpp */; };
+		408F2020288ACBE6002EEC15 /* Firmware.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 408F201F288ACBE6002EEC15 /* Firmware.cpp */; };
 		CE405ED91E4A080700AA0B3D /* plugin_start.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CE405ED81E4A080700AA0B3D /* plugin_start.cpp */; };
 		CE8DA0832517C41A008C44E8 /* libkmod.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE8DA0822517C41A008C44E8 /* libkmod.a */; };
-		F011C00A2A7A4C7F007E8F8C /* kern_dyld_patches.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F011C0082A7A4C7F007E8F8C /* kern_dyld_patches.cpp */; };
-		F011C00B2A7A4C7F007E8F8C /* kern_dyld_patches.hpp in Headers */ = {isa = PBXBuildFile; fileRef = F011C0092A7A4C7F007E8F8C /* kern_dyld_patches.hpp */; };
-		F067C21329D82E58004BB52E /* kern_gfxcon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F067C20329D82E57004BB52E /* kern_gfxcon.cpp */; };
-		F067C21529D82E58004BB52E /* kern_x4000.hpp in Headers */ = {isa = PBXBuildFile; fileRef = F067C20529D82E57004BB52E /* kern_x4000.hpp */; };
-		F067C21629D82E58004BB52E /* kern_lred.hpp in Headers */ = {isa = PBXBuildFile; fileRef = F067C20629D82E57004BB52E /* kern_lred.hpp */; };
-		F067C21729D82E59004BB52E /* kern_vbios.hpp in Headers */ = {isa = PBXBuildFile; fileRef = F067C20729D82E57004BB52E /* kern_vbios.hpp */; };
-		F067C21829D82E59004BB52E /* kern_model.hpp in Headers */ = {isa = PBXBuildFile; fileRef = F067C20829D82E57004BB52E /* kern_model.hpp */; };
-		F067C21929D82E59004BB52E /* kern_hwlibs.hpp in Headers */ = {isa = PBXBuildFile; fileRef = F067C20929D82E57004BB52E /* kern_hwlibs.hpp */; };
-		F067C21A29D82E59004BB52E /* kern_gfxcon.hpp in Headers */ = {isa = PBXBuildFile; fileRef = F067C20A29D82E58004BB52E /* kern_gfxcon.hpp */; };
-		F067C21C29D82E59004BB52E /* kern_fw.hpp in Headers */ = {isa = PBXBuildFile; fileRef = F067C20C29D82E58004BB52E /* kern_fw.hpp */; };
-		F067C21D29D82E59004BB52E /* kern_start.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F067C20D29D82E58004BB52E /* kern_start.cpp */; };
-		F067C21E29D82E59004BB52E /* kern_hwlibs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F067C20E29D82E58004BB52E /* kern_hwlibs.cpp */; };
-		F067C21F29D82E59004BB52E /* kern_x4000.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F067C20F29D82E58004BB52E /* kern_x4000.cpp */; };
-		F067C22029D82E59004BB52E /* kern_amd.hpp in Headers */ = {isa = PBXBuildFile; fileRef = F067C21029D82E58004BB52E /* kern_amd.hpp */; };
-		F067C22129D82E59004BB52E /* kern_patches.hpp in Headers */ = {isa = PBXBuildFile; fileRef = F067C21129D82E58004BB52E /* kern_patches.hpp */; };
-		F067C22229D82E59004BB52E /* kern_lred.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F067C21229D82E58004BB52E /* kern_lred.cpp */; };
-		F0B49E9529D93A600067BE5B /* kern_support.hpp in Headers */ = {isa = PBXBuildFile; fileRef = F0B49E9329D93A600067BE5B /* kern_support.hpp */; };
-		F0B49E9629D93A600067BE5B /* kern_support.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F0B49E9429D93A600067BE5B /* kern_support.cpp */; };
-		F0D396B72A3EE76200424389 /* kern_patcherplus.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F0D396B52A3EE76200424389 /* kern_patcherplus.cpp */; };
-		F0D396B82A3EE76200424389 /* kern_patcherplus.hpp in Headers */ = {isa = PBXBuildFile; fileRef = F0D396B62A3EE76200424389 /* kern_patcherplus.hpp */; };
+		F011C00A2A7A4C7F007E8F8C /* DYLDPatches.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F011C0082A7A4C7F007E8F8C /* DYLDPatches.cpp */; };
+		F011C00B2A7A4C7F007E8F8C /* DYLDPatches.hpp in Headers */ = {isa = PBXBuildFile; fileRef = F011C0092A7A4C7F007E8F8C /* DYLDPatches.hpp */; };
+		F067C21329D82E58004BB52E /* GFXCon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F067C20329D82E57004BB52E /* GFXCon.cpp */; };
+		F067C21529D82E58004BB52E /* X4000.hpp in Headers */ = {isa = PBXBuildFile; fileRef = F067C20529D82E57004BB52E /* X4000.hpp */; };
+		F067C21629D82E58004BB52E /* LRed.hpp in Headers */ = {isa = PBXBuildFile; fileRef = F067C20629D82E57004BB52E /* LRed.hpp */; };
+		F067C21729D82E59004BB52E /* ATOMBIOS.hpp in Headers */ = {isa = PBXBuildFile; fileRef = F067C20729D82E57004BB52E /* ATOMBIOS.hpp */; };
+		F067C21829D82E59004BB52E /* Model.hpp in Headers */ = {isa = PBXBuildFile; fileRef = F067C20829D82E57004BB52E /* Model.hpp */; };
+		F067C21929D82E59004BB52E /* HWLibs.hpp in Headers */ = {isa = PBXBuildFile; fileRef = F067C20929D82E57004BB52E /* HWLibs.hpp */; };
+		F067C21A29D82E59004BB52E /* GFXCon.hpp in Headers */ = {isa = PBXBuildFile; fileRef = F067C20A29D82E58004BB52E /* GFXCon.hpp */; };
+		F067C21C29D82E59004BB52E /* Firmware.hpp in Headers */ = {isa = PBXBuildFile; fileRef = F067C20C29D82E58004BB52E /* Firmware.hpp */; };
+		F067C21D29D82E59004BB52E /* PluginStart.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F067C20D29D82E58004BB52E /* PluginStart.cpp */; };
+		F067C21E29D82E59004BB52E /* HWLibs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F067C20E29D82E58004BB52E /* HWLibs.cpp */; };
+		F067C21F29D82E59004BB52E /* X4000.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F067C20F29D82E58004BB52E /* X4000.cpp */; };
+		F067C22029D82E59004BB52E /* AMDCommon.hpp in Headers */ = {isa = PBXBuildFile; fileRef = F067C21029D82E58004BB52E /* AMDCommon.hpp */; };
+		F067C22229D82E59004BB52E /* LRed.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F067C21229D82E58004BB52E /* LRed.cpp */; };
+		F0B49E9529D93A600067BE5B /* Support.hpp in Headers */ = {isa = PBXBuildFile; fileRef = F0B49E9329D93A600067BE5B /* Support.hpp */; };
+		F0B49E9629D93A600067BE5B /* Support.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F0B49E9429D93A600067BE5B /* Support.cpp */; };
+		F0D396B72A3EE76200424389 /* PatcherPlus.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F0D396B52A3EE76200424389 /* PatcherPlus.cpp */; };
+		F0D396B82A3EE76200424389 /* PatcherPlus.hpp in Headers */ = {isa = PBXBuildFile; fileRef = F0D396B62A3EE76200424389 /* PatcherPlus.hpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -48,7 +47,7 @@
 /* Begin PBXFileReference section */
 		1C748C271C21952C0024EED2 /* LegacyRed.kext */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LegacyRed.kext; sourceTree = BUILT_PRODUCTS_DIR; };
 		1C748C2E1C21952C0024EED2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		408F201F288ACBE6002EEC15 /* kern_fw.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = kern_fw.cpp; sourceTree = "<group>"; };
+		408F201F288ACBE6002EEC15 /* Firmware.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Firmware.cpp; sourceTree = "<group>"; };
 		CE405EBA1E49DD7100AA0B3D /* kern_compression.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = kern_compression.hpp; sourceTree = "<group>"; };
 		CE405EBB1E49DD7100AA0B3D /* kern_disasm.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = kern_disasm.hpp; sourceTree = "<group>"; };
 		CE405EBC1E49DD7100AA0B3D /* kern_file.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = kern_file.hpp; sourceTree = "<group>"; };
@@ -63,30 +62,29 @@
 		CE405ED81E4A080700AA0B3D /* plugin_start.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = plugin_start.cpp; sourceTree = "<group>"; };
 		CE405EDA1E4A080F00AA0B3D /* plugin_start.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = plugin_start.hpp; sourceTree = "<group>"; };
 		CE8DA0822517C41A008C44E8 /* libkmod.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libkmod.a; path = ../Lilu/MacKernelSDK/Library/x86_64/libkmod.a; sourceTree = "<group>"; };
-		F011C0082A7A4C7F007E8F8C /* kern_dyld_patches.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = kern_dyld_patches.cpp; sourceTree = "<group>"; };
-		F011C0092A7A4C7F007E8F8C /* kern_dyld_patches.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = kern_dyld_patches.hpp; sourceTree = "<group>"; };
-		F067C20329D82E57004BB52E /* kern_gfxcon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = kern_gfxcon.cpp; sourceTree = "<group>"; };
-		F067C20529D82E57004BB52E /* kern_x4000.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = kern_x4000.hpp; sourceTree = "<group>"; };
-		F067C20629D82E57004BB52E /* kern_lred.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = kern_lred.hpp; sourceTree = "<group>"; };
-		F067C20729D82E57004BB52E /* kern_vbios.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = kern_vbios.hpp; sourceTree = "<group>"; };
-		F067C20829D82E57004BB52E /* kern_model.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = kern_model.hpp; sourceTree = "<group>"; };
-		F067C20929D82E57004BB52E /* kern_hwlibs.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = kern_hwlibs.hpp; sourceTree = "<group>"; };
-		F067C20A29D82E58004BB52E /* kern_gfxcon.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = kern_gfxcon.hpp; sourceTree = "<group>"; };
-		F067C20C29D82E58004BB52E /* kern_fw.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = kern_fw.hpp; sourceTree = "<group>"; };
-		F067C20D29D82E58004BB52E /* kern_start.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = kern_start.cpp; sourceTree = "<group>"; };
-		F067C20E29D82E58004BB52E /* kern_hwlibs.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = kern_hwlibs.cpp; sourceTree = "<group>"; };
-		F067C20F29D82E58004BB52E /* kern_x4000.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = kern_x4000.cpp; sourceTree = "<group>"; };
-		F067C21029D82E58004BB52E /* kern_amd.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = kern_amd.hpp; sourceTree = "<group>"; };
-		F067C21129D82E58004BB52E /* kern_patches.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = kern_patches.hpp; sourceTree = "<group>"; };
-		F067C21229D82E58004BB52E /* kern_lred.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = kern_lred.cpp; sourceTree = "<group>"; };
-		F0B49E9329D93A600067BE5B /* kern_support.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = kern_support.hpp; sourceTree = "<group>"; };
-		F0B49E9429D93A600067BE5B /* kern_support.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = kern_support.cpp; sourceTree = "<group>"; };
+		F011C0082A7A4C7F007E8F8C /* DYLDPatches.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DYLDPatches.cpp; sourceTree = "<group>"; };
+		F011C0092A7A4C7F007E8F8C /* DYLDPatches.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = DYLDPatches.hpp; sourceTree = "<group>"; };
+		F067C20329D82E57004BB52E /* GFXCon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GFXCon.cpp; sourceTree = "<group>"; };
+		F067C20529D82E57004BB52E /* X4000.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = X4000.hpp; sourceTree = "<group>"; };
+		F067C20629D82E57004BB52E /* LRed.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = LRed.hpp; sourceTree = "<group>"; };
+		F067C20729D82E57004BB52E /* ATOMBIOS.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ATOMBIOS.hpp; sourceTree = "<group>"; };
+		F067C20829D82E57004BB52E /* Model.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Model.hpp; sourceTree = "<group>"; };
+		F067C20929D82E57004BB52E /* HWLibs.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = HWLibs.hpp; sourceTree = "<group>"; };
+		F067C20A29D82E58004BB52E /* GFXCon.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = GFXCon.hpp; sourceTree = "<group>"; };
+		F067C20C29D82E58004BB52E /* Firmware.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Firmware.hpp; sourceTree = "<group>"; };
+		F067C20D29D82E58004BB52E /* PluginStart.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PluginStart.cpp; sourceTree = "<group>"; };
+		F067C20E29D82E58004BB52E /* HWLibs.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HWLibs.cpp; sourceTree = "<group>"; };
+		F067C20F29D82E58004BB52E /* X4000.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = X4000.cpp; sourceTree = "<group>"; };
+		F067C21029D82E58004BB52E /* AMDCommon.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = AMDCommon.hpp; sourceTree = "<group>"; };
+		F067C21229D82E58004BB52E /* LRed.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LRed.cpp; sourceTree = "<group>"; };
+		F0B49E9329D93A600067BE5B /* Support.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Support.hpp; sourceTree = "<group>"; };
+		F0B49E9429D93A600067BE5B /* Support.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Support.cpp; sourceTree = "<group>"; };
 		F0B49E9729D962670067BE5B /* kabini_uvd.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = kabini_uvd.bin; sourceTree = "<group>"; };
 		F0B49E9829D962670067BE5B /* kaveri_vce.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = kaveri_vce.bin; sourceTree = "<group>"; };
 		F0B49E9929D962670067BE5B /* kabini_vce.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = kabini_vce.bin; sourceTree = "<group>"; };
 		F0B49E9A29D962670067BE5B /* kaveri_uvd.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = kaveri_uvd.bin; sourceTree = "<group>"; };
-		F0D396B52A3EE76200424389 /* kern_patcherplus.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = kern_patcherplus.cpp; sourceTree = "<group>"; };
-		F0D396B62A3EE76200424389 /* kern_patcherplus.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = kern_patcherplus.hpp; sourceTree = "<group>"; };
+		F0D396B52A3EE76200424389 /* PatcherPlus.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PatcherPlus.cpp; sourceTree = "<group>"; };
+		F0D396B62A3EE76200424389 /* PatcherPlus.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = PatcherPlus.hpp; sourceTree = "<group>"; };
 		F0ED263A29B5BDF8001FE711 /* stoney_uvd.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = stoney_uvd.bin; sourceTree = "<group>"; };
 		F0ED263C29B5BDF8001FE711 /* carrizo_uvd.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = carrizo_uvd.bin; sourceTree = "<group>"; };
 		F0ED264229B5BDF8001FE711 /* stoney_vce.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = stoney_vce.bin; sourceTree = "<group>"; };
@@ -129,29 +127,28 @@
 		1C748C291C21952C0024EED2 /* LegacyRed */ = {
 			isa = PBXGroup;
 			children = (
+				F067C20729D82E57004BB52E /* ATOMBIOS.hpp */,
+				F067C21029D82E58004BB52E /* AMDCommon.hpp */,
+				F011C0082A7A4C7F007E8F8C /* DYLDPatches.cpp */,
+				F011C0092A7A4C7F007E8F8C /* DYLDPatches.hpp */,
 				408F201A288AC068002EEC15 /* Firmware */,
+				408F201F288ACBE6002EEC15 /* Firmware.cpp */,
+				F067C20C29D82E58004BB52E /* Firmware.hpp */,
+				F067C20329D82E57004BB52E /* GFXCon.cpp */,
+				F067C20A29D82E58004BB52E /* GFXCon.hpp */,
+				F067C20E29D82E58004BB52E /* HWLibs.cpp */,
+				F067C20929D82E57004BB52E /* HWLibs.hpp */,
 				1C748C2E1C21952C0024EED2 /* Info.plist */,
-				F067C21029D82E58004BB52E /* kern_amd.hpp */,
-				F011C0082A7A4C7F007E8F8C /* kern_dyld_patches.cpp */,
-				F011C0092A7A4C7F007E8F8C /* kern_dyld_patches.hpp */,
-				408F201F288ACBE6002EEC15 /* kern_fw.cpp */,
-				F067C20C29D82E58004BB52E /* kern_fw.hpp */,
-				F067C20329D82E57004BB52E /* kern_gfxcon.cpp */,
-				F067C20A29D82E58004BB52E /* kern_gfxcon.hpp */,
-				F067C20E29D82E58004BB52E /* kern_hwlibs.cpp */,
-				F067C20929D82E57004BB52E /* kern_hwlibs.hpp */,
-				F067C21229D82E58004BB52E /* kern_lred.cpp */,
-				F067C20629D82E57004BB52E /* kern_lred.hpp */,
-				F067C20829D82E57004BB52E /* kern_model.hpp */,
-				F067C21129D82E58004BB52E /* kern_patches.hpp */,
-				F0D396B52A3EE76200424389 /* kern_patcherplus.cpp */,
-				F0D396B62A3EE76200424389 /* kern_patcherplus.hpp */,
-				F067C20D29D82E58004BB52E /* kern_start.cpp */,
-				F0B49E9429D93A600067BE5B /* kern_support.cpp */,
-				F0B49E9329D93A600067BE5B /* kern_support.hpp */,
-				F067C20729D82E57004BB52E /* kern_vbios.hpp */,
-				F067C20F29D82E58004BB52E /* kern_x4000.cpp */,
-				F067C20529D82E57004BB52E /* kern_x4000.hpp */,
+				F067C21229D82E58004BB52E /* LRed.cpp */,
+				F067C20629D82E57004BB52E /* LRed.hpp */,
+				F067C20829D82E57004BB52E /* Model.hpp */,
+				F0D396B52A3EE76200424389 /* PatcherPlus.cpp */,
+				F0D396B62A3EE76200424389 /* PatcherPlus.hpp */,
+				F067C20D29D82E58004BB52E /* PluginStart.cpp */,
+				F0B49E9429D93A600067BE5B /* Support.cpp */,
+				F0B49E9329D93A600067BE5B /* Support.hpp */,
+				F067C20F29D82E58004BB52E /* X4000.cpp */,
+				F067C20529D82E57004BB52E /* X4000.hpp */,
 			);
 			path = LegacyRed;
 			sourceTree = "<group>";
@@ -226,18 +223,17 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F067C21A29D82E59004BB52E /* kern_gfxcon.hpp in Headers */,
-				F067C21629D82E58004BB52E /* kern_lred.hpp in Headers */,
-				F0B49E9529D93A600067BE5B /* kern_support.hpp in Headers */,
-				F067C21C29D82E59004BB52E /* kern_fw.hpp in Headers */,
-				F067C21829D82E59004BB52E /* kern_model.hpp in Headers */,
-				F067C22129D82E59004BB52E /* kern_patches.hpp in Headers */,
-				F067C21929D82E59004BB52E /* kern_hwlibs.hpp in Headers */,
-				F067C22029D82E59004BB52E /* kern_amd.hpp in Headers */,
-				F0D396B82A3EE76200424389 /* kern_patcherplus.hpp in Headers */,
-				F067C21729D82E59004BB52E /* kern_vbios.hpp in Headers */,
-				F011C00B2A7A4C7F007E8F8C /* kern_dyld_patches.hpp in Headers */,
-				F067C21529D82E58004BB52E /* kern_x4000.hpp in Headers */,
+				F067C21A29D82E59004BB52E /* GFXCon.hpp in Headers */,
+				F067C21629D82E58004BB52E /* LRed.hpp in Headers */,
+				F0B49E9529D93A600067BE5B /* Support.hpp in Headers */,
+				F067C21C29D82E59004BB52E /* Firmware.hpp in Headers */,
+				F067C21829D82E59004BB52E /* Model.hpp in Headers */,
+				F067C21929D82E59004BB52E /* HWLibs.hpp in Headers */,
+				F067C22029D82E59004BB52E /* AMDCommon.hpp in Headers */,
+				F0D396B82A3EE76200424389 /* PatcherPlus.hpp in Headers */,
+				F067C21729D82E59004BB52E /* ATOMBIOS.hpp in Headers */,
+				F011C00B2A7A4C7F007E8F8C /* DYLDPatches.hpp in Headers */,
+				F067C21529D82E58004BB52E /* X4000.hpp in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -310,7 +306,7 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(PROJECT_DIR)/LegacyRed/kern_fw.cpp",
+				"$(PROJECT_DIR)/LegacyRed/Firmware.cpp",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -337,16 +333,16 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F0B49E9629D93A600067BE5B /* kern_support.cpp in Sources */,
-				F067C22229D82E59004BB52E /* kern_lred.cpp in Sources */,
-				F067C21E29D82E59004BB52E /* kern_hwlibs.cpp in Sources */,
-				F067C21F29D82E59004BB52E /* kern_x4000.cpp in Sources */,
-				F067C21D29D82E59004BB52E /* kern_start.cpp in Sources */,
-				408F2020288ACBE6002EEC15 /* kern_fw.cpp in Sources */,
-				F0D396B72A3EE76200424389 /* kern_patcherplus.cpp in Sources */,
+				F0B49E9629D93A600067BE5B /* Support.cpp in Sources */,
+				F067C22229D82E59004BB52E /* LRed.cpp in Sources */,
+				F067C21E29D82E59004BB52E /* HWLibs.cpp in Sources */,
+				F067C21F29D82E59004BB52E /* X4000.cpp in Sources */,
+				F067C21D29D82E59004BB52E /* PluginStart.cpp in Sources */,
+				408F2020288ACBE6002EEC15 /* Firmware.cpp in Sources */,
+				F0D396B72A3EE76200424389 /* PatcherPlus.cpp in Sources */,
 				CE405ED91E4A080700AA0B3D /* plugin_start.cpp in Sources */,
-				F067C21329D82E58004BB52E /* kern_gfxcon.cpp in Sources */,
-				F011C00A2A7A4C7F007E8F8C /* kern_dyld_patches.cpp in Sources */,
+				F067C21329D82E58004BB52E /* GFXCon.cpp in Sources */,
+				F011C00A2A7A4C7F007E8F8C /* DYLDPatches.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

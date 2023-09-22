@@ -6,12 +6,12 @@
 #include <Headers/kern_util.hpp>
 
 struct Model {
-    uint16_t rev {0};
+    UInt16 rev {0};
     const char *name {nullptr};
 };
 
 struct DevicePair {
-    uint16_t dev;
+    UInt16 dev;
     const Model *models;
     size_t modelNum;
 };
@@ -257,7 +257,7 @@ static constexpr DevicePair devices[] = {
     {0x98E4, dev98E4, arrsize(dev98E4)},
 };
 
-inline const char *getBranding(uint16_t dev, uint16_t rev) {
+inline const char *getBranding(UInt16 dev, UInt16 rev) {
     for (auto &device : devices) {
         if (device.dev == dev) {
             for (size_t i = 0; i < device.modelNum; i++) {

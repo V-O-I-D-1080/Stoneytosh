@@ -3,8 +3,8 @@
 
 #ifndef kern_gfxcon_hpp
 #define kern_gfxcon_hpp
-#include "kern_amd.hpp"
-#include "kern_patcherplus.hpp"
+#include "AMDCommon.hpp"
+#include "PatcherPlus.hpp"
 #include <Headers/kern_util.hpp>
 
 class GFXCon {

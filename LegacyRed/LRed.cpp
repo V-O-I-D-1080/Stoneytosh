@@ -1,13 +1,12 @@
 //  Copyright © 2023 ChefKiss Inc. Licensed under the Thou Shalt Not Profit License version 1.0. See LICENSE for
 //  details.
 
-#include "kern_lred.hpp"
-#include "kern_gfxcon.hpp"
-#include "kern_hwlibs.hpp"
-#include "kern_model.hpp"
-#include "kern_patches.hpp"
-#include "kern_support.hpp"
-#include "kern_x4000.hpp"
+#include "LRed.hpp"
+#include "GFXCon.hpp"
+#include "HWLibs.hpp"
+#include "Model.hpp"
+#include "Support.hpp"
+#include "X4000.hpp"
 #include <Headers/kern_api.hpp>
 #include <Headers/kern_devinfo.hpp>
 #include <IOKit/IODeviceTreeSupport.h>
@@ -32,7 +31,7 @@ static HWLibs hwlibs;
 static X4000 x4000;
 
 void LRed::init() {
-    SYSLOG("lred", "Copyright © 2023 ChefKiss Inc. If you've paid for this, you've been scammed.");
+    SYSLOG("LRed", "Copyright © 2023 ChefKiss Inc. If you've paid for this, you've been scammed.");
     callback = this;
 
     lilu.onPatcherLoadForce(
@@ -68,13 +67,13 @@ void LRed::processPatcher(KernelPatcher &patcher) {
                     break;
                 }
             }
-            PANIC_COND(!this->iGPU, "lred", "No iGPU found");
+            PANIC_COND(!this->iGPU, "LRed", "No iGPU found");
         } else {
-            PANIC_COND(!devInfo->videoBuiltin, "lred", "videoBuiltin null");
+            PANIC_COND(!devInfo->videoBuiltin, "LRed", "videoBuiltin null");
             this->iGPU = OSDynamicCast(IOPCIDevice, devInfo->videoBuiltin);
-            PANIC_COND(!this->iGPU, "lred", "videoBuiltin is not IOPCIDevice");
+            PANIC_COND(!this->iGPU, "LRed", "videoBuiltin is not IOPCIDevice");
             PANIC_COND(WIOKit::readPCIConfigValue(this->iGPU, WIOKit::kIOPCIConfigVendorID) != WIOKit::VendorID::ATIAMD,
-                "lred", "videoBuiltin is not AMD");
+                "LRed", "videoBuiltin is not AMD");
         }
 
         WIOKit::renameDevice(this->iGPU, "IGPU");
@@ -98,17 +97,17 @@ void LRed::processPatcher(KernelPatcher &patcher) {
         }
 
         if (UNLIKELY(this->iGPU->getProperty("ATY,bin_image"))) {
-            DBGLOG("lred", "VBIOS manually overridden");
+            DBGLOG("LRed", "VBIOS manually overridden");
         } else {
             if (!this->getVBIOSFromVFCT(this->iGPU)) {
-                SYSLOG("lred", "Failed to get VBIOS from VFCT.");
-                PANIC_COND(!this->getVBIOSFromVRAM(this->iGPU), "lred", "Failed to get VBIOS from VRAM");
+                SYSLOG("LRed", "Failed to get VBIOS from VFCT.");
+                PANIC_COND(!this->getVBIOSFromVRAM(this->iGPU), "LRed", "Failed to get VBIOS from VRAM");
             }
         }
 
         DeviceInfo::deleter(devInfo);
     } else {
-        SYSLOG("lred", "Failed to create DeviceInfo");
+        SYSLOG("LRed", "Failed to create DeviceInfo");
     }
 
     KernelPatcher::RouteRequest requests[] = {
@@ -116,18 +115,7 @@ void LRed::processPatcher(KernelPatcher &patcher) {
     };
 
     size_t num = arrsize(requests);
-    if (lilu.getRunMode() & LiluAPI::RunningNormal) {
-        auto *entry = IORegistryEntry::fromPath("/", gIODTPlane);
-        if (entry) {
-            DBGLOG("lred", "Setting hwgva-id to iMacPro1,1");
-            entry->setProperty("hwgva-id", const_cast<char *>("Mac-7BA5B2D9E42DDD94"),
-                static_cast<uint32_t>(sizeof("Mac-7BA5B2D9E42DDD94")));
-            entry->release();
-        }
-    } else {
-        num -= 1;
-    }
-    PANIC_COND(!patcher.routeMultipleLong(KernelPatcher::KernelID, requests, num), "lred",
+    PANIC_COND(!patcher.routeMultipleLong(KernelPatcher::KernelID, requests, num), "LRed",
         "Failed to route kernel symbols");
 }
 
@@ -148,10 +136,10 @@ OSMetaClassBase *LRed::wrapSafeMetaCast(const OSMetaClassBase *anObject, const O
 void LRed::setRMMIOIfNecessary() {
     if (UNLIKELY(!this->rmmio || !this->rmmio->getLength())) {
         this->rmmio = this->iGPU->mapDeviceMemoryWithRegister(kIOPCIConfigBaseAddress5);
-        PANIC_COND(!this->rmmio || !this->rmmio->getLength(), "lred", "Failed to map RMMIO");
+        PANIC_COND(!this->rmmio || !this->rmmio->getLength(), "LRed", "Failed to map RMMIO");
         this->rmmioPtr = reinterpret_cast<uint32_t *>(this->rmmio->getVirtualAddress());
         this->fbOffset = static_cast<uint64_t>(this->readReg32(0x081A)) << 22;
-        SYSLOG("lred", "gathered framebuffer offset: 0x%x", this->fbOffset);
+        SYSLOG("LRed", "Gathered framebuffer offset: 0x%llX", this->fbOffset);
         switch (this->deviceId) {
                 // Who thought it would be a good idea to use this many Device IDs and Revisions?
             case 0x1309:
@@ -185,13 +173,13 @@ void LRed::setRMMIOIfNecessary() {
                 if (this->deviceId == 0x1312 || this->deviceId == 0x1316 || this->deviceId == 0x1317) {
                     this->chipType = ChipType::Spooky;
                     this->chipVariant = ChipVariant::Kaveri;
-                    DBGLOG("lred", "Chip type is Spooky, Chip variant is Kaveri");
+                    DBGLOG("LRed", "Chip type is Spooky, Chip variant is Kaveri");
                     this->enumeratedRevision = 0x41;
                     break;
                 }
                 this->chipType = ChipType::Spectre;
                 this->chipVariant = ChipVariant::Kaveri;
-                DBGLOG("lred", "Chip type is Spectre, Chip variant is Kaveri");
+                DBGLOG("LRed", "Chip type is Spectre, Chip variant is Kaveri");
                 this->enumeratedRevision = 0x1;
                 this->revision = (this->readReg32(0x1559) & 0xF000000) >> 0x1c;
                 break;
@@ -220,19 +208,19 @@ void LRed::setRMMIOIfNecessary() {
                 if (this->revision == 0x00) {
                     this->chipType = ChipType::Kalindi;
                     this->chipVariant = ChipVariant::Kabini;
-                    DBGLOG("lred", "Chip type is Kalindi, Chip variant is Kabini");
+                    DBGLOG("LRed", "Chip type is Kalindi, Chip variant is Kabini");
                     this->enumeratedRevision = 0x81;
                     break;
                 } else if (this->revision == 0x01) {
                     this->chipType = ChipType::Kalindi;
                     this->chipVariant = ChipVariant::Kabini;
-                    DBGLOG("lred", "Chip type is Kalindi, Chip variant is Kabini");
+                    DBGLOG("LRed", "Chip type is Kalindi, Chip variant is Kabini");
                     this->enumeratedRevision = 0x82;
                     break;
                 } else if (this->revision == 0x02) {
                     this->chipType = ChipType::Kalindi;
                     this->chipVariant = ChipVariant::Bhavani;
-                    DBGLOG("lred", "Chip type is Kabini, Chip variant is Bhavani; using A1 DDI Caps for HWLibs");
+                    DBGLOG("LRed", "Chip type is Kabini, Chip variant is Bhavani; using A1 DDI Caps for HWLibs");
                     this->enumeratedRevision = 0x85;
                     break;
                 }
@@ -243,7 +231,7 @@ void LRed::setRMMIOIfNecessary() {
                 this->chipVariant = ChipVariant::Mullins;
                 this->enumeratedRevision = 0xA1;
                 this->currentFamilyId = AMDGPU_FAMILY_KV;
-                DBGLOG("lred", "Chip type is Godavari, Chip variant is Mullins");
+                DBGLOG("LRed", "Chip type is Godavari, Chip variant is Mullins");
                 this->revision = (this->readReg32(0x1559) & 0xF000000) >> 0x1c;
                 break;
             case 0x9851:
@@ -251,7 +239,7 @@ void LRed::setRMMIOIfNecessary() {
                 this->chipVariant = ChipVariant::Mullins;
                 this->enumeratedRevision = 0xA1;
                 this->currentFamilyId = AMDGPU_FAMILY_KV;
-                DBGLOG("lred", "Chip type is Godavari, Chip variant is Mullins");
+                DBGLOG("LRed", "Chip type is Godavari, Chip variant is Mullins");
                 this->revision = (this->readReg32(0x1559) & 0xF000000) >> 0x1c;
                 break;
             case 0x9852:
@@ -259,7 +247,7 @@ void LRed::setRMMIOIfNecessary() {
                 this->chipVariant = ChipVariant::Mullins;
                 this->enumeratedRevision = 0xA1;
                 this->currentFamilyId = AMDGPU_FAMILY_KV;
-                DBGLOG("lred", "Chip type is Godavari, Chip variant is Mullins");
+                DBGLOG("LRed", "Chip type is Godavari, Chip variant is Mullins");
                 this->revision = (this->readReg32(0x1559) & 0xF000000) >> 0x1c;
                 break;
             case 0x9853:
@@ -267,7 +255,7 @@ void LRed::setRMMIOIfNecessary() {
                 this->chipVariant = ChipVariant::Mullins;
                 this->enumeratedRevision = 0xA1;
                 this->currentFamilyId = AMDGPU_FAMILY_KV;
-                DBGLOG("lred", "Chip type is Godavari, Chip variant is Mullins");
+                DBGLOG("LRed", "Chip type is Godavari, Chip variant is Mullins");
                 this->revision = (this->readReg32(0x1559) & 0xF000000) >> 0x1c;
                 break;
             case 0x9854:
@@ -275,7 +263,7 @@ void LRed::setRMMIOIfNecessary() {
                 this->chipVariant = ChipVariant::Mullins;
                 this->enumeratedRevision = 0xA1;
                 this->currentFamilyId = AMDGPU_FAMILY_KV;
-                DBGLOG("lred", "Chip type is Godavari, Chip variant is Mullins");
+                DBGLOG("LRed", "Chip type is Godavari, Chip variant is Mullins");
                 this->revision = (this->readReg32(0x1559) & 0xF000000) >> 0x1c;
                 break;
             case 0x9855:
@@ -283,7 +271,7 @@ void LRed::setRMMIOIfNecessary() {
                 this->chipVariant = ChipVariant::Mullins;
                 this->enumeratedRevision = 0xA1;
                 this->currentFamilyId = AMDGPU_FAMILY_KV;
-                DBGLOG("lred", "Chip type is Godavari, Chip variant is Mullins");
+                DBGLOG("LRed", "Chip type is Godavari, Chip variant is Mullins");
                 this->revision = (this->readReg32(0x1559) & 0xF000000) >> 0x1c;
                 break;
             case 0x9856:
@@ -291,12 +279,12 @@ void LRed::setRMMIOIfNecessary() {
                 this->chipVariant = ChipVariant::Mullins;
                 this->enumeratedRevision = 0xA1;
                 this->currentFamilyId = AMDGPU_FAMILY_KV;
-                DBGLOG("lred", "Chip type is Godavari, Chip variant is Mullins");
+                DBGLOG("LRed", "Chip type is Godavari, Chip variant is Mullins");
                 this->revision = (this->readReg32(0x1559) & 0xF000000) >> 0x1c;
                 break;
             case 0x9874:
                 this->chipType = ChipType::Carrizo;
-                DBGLOG("lred", "Chip type is Carrizo");
+                DBGLOG("LRed", "Chip type is Carrizo");
                 this->isGCN3 = true;
                 this->enumeratedRevision = 0x1;
                 this->revision = (smcReadReg32Cz(0xC0014044) & 0x00001E00) >> 9;
@@ -304,7 +292,7 @@ void LRed::setRMMIOIfNecessary() {
                 if ((this->revision >= 0xC8 && this->revision <= 0xCE) ||
                     (this->revision >= 0xE1 && this->revision <= 0xE6)) {
                     this->chipVariant = ChipVariant::Bristol;
-                    DBGLOG("lred", "Chip variant is Bristol");
+                    DBGLOG("LRed", "Chip variant is Bristol");
                 }
                 break;
             case 0x98E4:
@@ -313,20 +301,20 @@ void LRed::setRMMIOIfNecessary() {
                 this->enumeratedRevision = 0x61;
                 this->revision = (smcReadReg32Cz(0xC0014044) & 0x00001E00) >> 9;
                 this->currentFamilyId = AMDGPU_FAMILY_CZ;
-                DBGLOG("lred", "Chip type is Stoney");
+                DBGLOG("LRed", "Chip type is Stoney");
                 /** R4 and up iGPUs have 3 compute units while the others have 2 CUs, hence the chip variations */
                 if (this->revision <= 0x81 || (this->revision >= 0xC0 && this->revision < 0xD0) ||
                     (this->revision >= 0xD9 && this->revision < 0xDB) || this->revision >= 0xE9) {
                     this->isStoney3CU = true;
-                    DBGLOG("lred", "Chip has been identified as a 3CU model");
+                    DBGLOG("LRed", "Chip has been identified as a 3CU model");
                     break;
                 } else {
                     break;
                 }
             default:
-                PANIC("lred", "Unknown device ID: %x", deviceId);
+                PANIC("LRed", "Unknown device ID: %x", deviceId);
         }
-        DBGLOG_COND(this->isGCN3, "lred", "iGPU is GCN 3 derivative");
+        DBGLOG_COND(this->isGCN3, "LRed", "iGPU is GCN 3 derivative");
         this->currentEmulatedRevisionId =
             // why ChipType instead of ChipVariant? - For mullins we set it as 'Godavari', which is technically just
             // Kalindi+, by the looks of AMDGPU code
@@ -344,7 +332,7 @@ void LRed::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t a
             const uint8_t find[] = {"F%uT%04x"};
             const uint8_t replace[] = {"F%uTxxxx"};
             KernelPatcher::LookupPatch patch = {&kextBacklight, find, replace, sizeof(find), 1};
-            DBGLOG("lred", "applying backlight patch");
+            DBGLOG("LRed", "applying backlight patch");
             patcher.applyLookupPatch(&patch);
         }
     } else if (kextMCCSControl.loadIndex == index) {
@@ -354,13 +342,13 @@ void LRed::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t a
         };
         patcher.routeMultiple(index, request, address, size);
     } else if (support.processKext(patcher, index, address, size)) {
-        DBGLOG("lred", "Processed support");
+        DBGLOG("LRed", "Processed support");
     } else if (hwlibs.processKext(patcher, index, address, size)) {
-        DBGLOG("lred", "Processed hwlibs");
+        DBGLOG("LRed", "Processed hwlibs");
     } else if (gfxcon.processKext(patcher, index, address, size)) {
-        DBGLOG("lred", "Processed gfxcon");
+        DBGLOG("LRed", "Processed gfxcon");
     } else if (x4000.processKext(patcher, index, address, size)) {
-        DBGLOG("lred", "Processed x4000");
+        DBGLOG("LRed", "Processed x4000");
     }
 }
 
@@ -411,7 +399,7 @@ bool LRed::wrapApplePanelSetDisplay(IOService *that, IODisplay *display) {
                         panels->setObject(entry.deviceName, pd);
                         // No release required by current AppleBacklight implementation.
                     } else {
-                        SYSLOG("lred", "Panel start cannot allocate %s data", entry.deviceName);
+                        SYSLOG("LRed", "Panel start cannot allocate %s data", entry.deviceName);
                     }
                 }
                 that->setProperty("ApplePanels", panels);
@@ -419,12 +407,12 @@ bool LRed::wrapApplePanelSetDisplay(IOService *that, IODisplay *display) {
 
             if (rawPanels) { rawPanels->release(); }
         } else {
-            SYSLOG("lred", "Panel start has no panels");
+            SYSLOG("LRed", "Panel start has no panels");
         }
     }
 
     bool result = FunctionCast(wrapApplePanelSetDisplay, callback->orgApplePanelSetDisplay)(that, display);
-    DBGLOG("lred", "Panel display set returned %d", result);
+    DBGLOG("LRed", "Panel display set returned %d", result);
 
     return result;
 }

@@ -1,9 +1,8 @@
 //  Copyright © 2022-2023 ChefKiss Inc. Licensed under the Thou Shalt Not Profit License version 1.5. See LICENSE for
 //  details.
 
-#include "kern_x4000.hpp"
-#include "kern_lred.hpp"
-#include "kern_patches.hpp"
+#include "X4000.hpp"
+#include "LRed.hpp"
 #include <Headers/kern_api.hpp>
 
 static const char *pathRadeonX4000 = "/System/Library/Extensions/AMDRadeonX4000.kext/Contents/MacOS/AMDRadeonX4000";
@@ -30,10 +29,10 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
         bool useGcn3Logic = LRed::callback->isGCN3;
         auto isStoney = (LRed::callback->chipType == ChipType::Stoney);
         RouteRequestPlus requests[] = {
-            {"__ZN36AMDRadeonX4000_AMDRadeonHWServicesCI16getMatchPropertyEv", forceX4000HWLibs, !useGcn3Logic},
-            {"__ZN41AMDRadeonX4000_AMDRadeonHWServicesPolaris16getMatchPropertyEv", forceX4000HWLibs, isStoney},
+            {"__ZN36AMDRadeonX4000_AMDRadeonHWServicesCI16getMatchPropertyEv", forceX4000HWLibs},
+            {"__ZN41AMDRadeonX4000_AMDRadeonHWServicesPolaris16getMatchPropertyEv", forceX4000HWLibs},
         };
-        PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "hwservices",
+        PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "HWServices",
             "Failed to route symbols");
     } else if (kextRadeonX4000.loadIndex == index) {
         LRed::callback->setRMMIOIfNecessary();
@@ -42,52 +41,74 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
          * reason, but Stoney can decode HEVC and so can Carrizo
          */
         bool useGcn3Logic = LRed::callback->isGCN3;
-        auto isStoney = (LRed::callback->chipType == ChipType::Stoney);
+        auto stoney = (LRed::callback->chipType == ChipType::Stoney);
+        auto carrizo = (LRed::callback->chipType == ChipType::Carrizo);
 
-        uint32_t *orgChannelTypes = nullptr;
+        UInt32 *orgChannelTypes = nullptr;
         mach_vm_address_t startHWEngines = 0;
 
-        SolveRequestPlus solveRequests[] = {
-            {"__ZN31AMDRadeonX4000_AMDBaffinPM4EngineC1Ev", this->orgBaffinPM4EngineConstructor, isStoney},
-            {"__ZN30AMDRadeonX4000_AMDVIsDMAEngineC1Ev", this->orgGFX8SDMAEngineConstructor, isStoney},
-            {"__ZN32AMDRadeonX4000_AMDUVD6v3HWEngineC1Ev", this->orgPolarisUVDEngineConstructor, isStoney},
-            {"__ZN30AMDRadeonX4000_AMDVISAMUEngineC1Ev", this->orgGFX8SAMUEngineConstructor, isStoney},
-            {"__ZN32AMDRadeonX4000_AMDVCE3v4HWEngineC1Ev", this->orgPolarisVCEEngineConstructor, isStoney},
-            {"__ZN28AMDRadeonX4000_AMDCIHardware32setupAndInitializeHWCapabilitiesEv",
-                this->orgSetupAndInitializeHWCapabilities, !useGcn3Logic},
-            {"__ZN28AMDRadeonX4000_AMDVIHardware32setupAndInitializeHWCapabilitiesEv",
-                this->orgSetupAndInitializeHWCapabilities, useGcn3Logic},
-            {"__ZZN37AMDRadeonX4000_AMDGraphicsAccelerator19createAccelChannelsEbE12channelTypes", orgChannelTypes,
-                isStoney},
-            {"__ZN26AMDRadeonX4000_AMDHardware14startHWEnginesEv", startHWEngines},
-        };
-        PANIC_COND(!SolveRequestPlus::solveAll(patcher, index, solveRequests, address, size), "x4000",
-            "Failed to resolve symbols");
+        if (stoney) {
+            SolveRequestPlus solveRequests[] = {
+                {"__ZN31AMDRadeonX4000_AMDBaffinPM4EngineC1Ev", this->orgBaffinPM4EngineConstructor},
+                {"__ZN30AMDRadeonX4000_AMDVIsDMAEngineC1Ev", this->orgGFX8SDMAEngineConstructor},
+                {"__ZN32AMDRadeonX4000_AMDUVD6v3HWEngineC1Ev", this->orgPolarisUVDEngineConstructor},
+                {"__ZN30AMDRadeonX4000_AMDVISAMUEngineC1Ev", this->orgGFX8SAMUEngineConstructor},
+                {"__ZN32AMDRadeonX4000_AMDVCE3v4HWEngineC1Ev", this->orgPolarisVCEEngineConstructor},
+                {"__ZZN37AMDRadeonX4000_AMDGraphicsAccelerator19createAccelChannelsEbE12channelTypes", orgChannelTypes},
+                {"__ZN26AMDRadeonX4000_AMDHardware14startHWEnginesEv", startHWEngines},
+            };
+            PANIC_COND(!SolveRequestPlus::solveAll(patcher, index, solveRequests, address, size), "X4000",
+                "Failed to resolve symbols for Stoney");
+        } else if (carrizo) {
+            SolveRequestPlus request {"__ZN28AMDRadeonX4000_AMDVIHardware32setupAndInitializeHWCapabilitiesEv",
+                this->orgSetupAndInitializeHWCapabilities};
+            PANIC_COND(request.solve(patcher, index, address, size), "X4000", "Failed to solve HWCapabilities");
+        } else {
+            SolveRequestPlus request {"__ZN28AMDRadeonX4000_AMDCIHardware32setupAndInitializeHWCapabilitiesEv",
+                this->orgSetupAndInitializeHWCapabilities};
+            PANIC_COND(request.solve(patcher, index, address, size), "X4000", "Failed to solve HWCapabilities");
+        }
+
+        if (stoney) {
+            RouteRequestPlus requests[] = {
+                {"__ZN35AMDRadeonX4000_AMDEllesmereHardware32setupAndInitializeHWCapabilitiesEv",
+                    wrapSetupAndInitializeHWCapabilities},
+                {"__ZN28AMDRadeonX4000_AMDVIHardware20initializeFamilyTypeEv", wrapInitializeFamilyType},
+                {"__ZN26AMDRadeonX4000_AMDHardware12getHWChannelE20_eAMD_HW_ENGINE_TYPE18_eAMD_HW_RING_TYPE",
+                    wrapGetHWChannel, this->orgGetHWChannel},
+            };
+        } else if (carrizo) {
+            RouteRequestPlus requests[] = {
+                {"__ZN30AMDRadeonX4000_AMDFijiHardware32setupAndInitializeHWCapabilitiesEv",
+                    wrapSetupAndInitializeHWCapabilities},
+                {"__ZN28AMDRadeonX4000_AMDVIHardware20initializeFamilyTypeEv", wrapInitializeFamilyType},
+            };
+            PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "X4000",
+                "Failed to route symbols");
+        } else {
+            RouteRequestPlus requests[] = {
+                {"__ZN33AMDRadeonX4000_AMDBonaireHardware32setupAndInitializeHWCapabilitiesEv",
+                    wrapSetupAndInitializeHWCapabilities},
+                {"__ZN28AMDRadeonX4000_AMDCIHardware20initializeFamilyTypeEv", wrapInitializeFamilyType},
+                {"__ZN29AMDRadeonX4000_AMDCIPM4Engine21initializeMicroEngineEv", wrapInitializeMicroEngine,
+                    this->orgInitializeMicroEngine},
+            };
+            PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "X4000",
+                "Failed to route symbols");
+        }
 
         RouteRequestPlus requests[] = {
             {"__ZN37AMDRadeonX4000_AMDGraphicsAccelerator5startEP9IOService", wrapAccelStart, orgAccelStart},
-            {"__ZN33AMDRadeonX4000_AMDBonaireHardware32setupAndInitializeHWCapabilitiesEv",
-                wrapSetupAndInitializeHWCapabilities, !useGcn3Logic},
-            {"__ZN30AMDRadeonX4000_AMDFijiHardware32setupAndInitializeHWCapabilitiesEv",
-                wrapSetupAndInitializeHWCapabilities, (useGcn3Logic && !isStoney)},
-            {"__ZN35AMDRadeonX4000_AMDEllesmereHardware32setupAndInitializeHWCapabilitiesEv",
-                wrapSetupAndInitializeHWCapabilities, isStoney},
-            {"__ZN28AMDRadeonX4000_AMDCIHardware20initializeFamilyTypeEv", wrapInitializeFamilyType, !useGcn3Logic},
-            {"__ZN28AMDRadeonX4000_AMDVIHardware20initializeFamilyTypeEv", wrapInitializeFamilyType, useGcn3Logic},
-            {"__ZN26AMDRadeonX4000_AMDHardware12getHWChannelE20_eAMD_HW_ENGINE_TYPE18_eAMD_HW_RING_TYPE",
-                wrapGetHWChannel, this->orgGetHWChannel, isStoney},
             {"__ZN26AMDRadeonX4000_AMDHardware17dumpASICHangStateEb.cold.1", wrapDumpASICHangState,
                 this->orgDumpASICHangState},
             {"__ZN26AMDRadeonX4000_AMDHWMemory17adjustVRAMAddressEy", wrapAdjustVRAMAddress,
                 this->orgAdjustVRAMAddress},
-            {"__ZN29AMDRadeonX4000_AMDCIPM4Engine21initializeMicroEngineEv", wrapInitializeMicroEngine,
-                this->orgInitializeMicroEngine},
         };
-        PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "x4000",
+        PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "X4000",
             "Failed to route symbols");
 
-        if (isStoney) {
-            PANIC_COND(MachInfo::setKernelWriting(true, KernelPatcher::kernelWriteLock) != KERN_SUCCESS, "x4000",
+        if (stoney) {
+            PANIC_COND(MachInfo::setKernelWriting(true, KernelPatcher::kernelWriteLock) != KERN_SUCCESS, "X4000",
                 "Failed to enable kernel writing");
             /** TODO: Test this */
             orgChannelTypes[5] = 1;     // Fix createAccelChannels so that it only starts SDMA0
@@ -95,14 +116,14 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
             MachInfo::setKernelWriting(false, KernelPatcher::kernelWriteLock);
 
             LookupPatchPlus const allocHWEnginesPatch {&kextRadeonX4000, kAMDEllesmereHWallocHWEnginesOriginal,
-                kAMDEllesmereHWallocHWEnginesPatched, 1, isStoney};
-            PANIC_COND(!allocHWEnginesPatch.apply(patcher, address, size), "x4000",
+                kAMDEllesmereHWallocHWEnginesPatched, 1};
+            PANIC_COND(!allocHWEnginesPatch.apply(patcher, address, size), "X4000",
                 "Failed to apply AllocateHWEngines patch: %d", patcher.getError());
 
             LookupPatchPlus const patch {&kextRadeonX4000, kStartHWEnginesOriginal, kStartHWEnginesMask,
                 kStartHWEnginesPatched, kStartHWEnginesMask, 1};
-            PANIC_COND(!patch.apply(patcher, startHWEngines, PAGE_SIZE), "x4000", "Failed to patch startHWEngines");
-            DBGLOG("x4000", "Applied Singular SDMA lookup patch");
+            PANIC_COND(!patch.apply(patcher, startHWEngines, PAGE_SIZE), "X4000", "Failed to patch startHWEngines");
+            DBGLOG("X4000", "Applied Singular SDMA lookup patch");
         }
         return true;
     }
@@ -111,19 +132,18 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
 }
 
 bool X4000::wrapAccelStart(void *that, IOService *provider) {
-    DBGLOG("x4000", "accelStart: this = %p provider = %p", that, provider);
+    DBGLOG("X4000", "accelStart: this = %p provider = %p", that, provider);
     callback->callbackAccelerator = that;
     auto ret = FunctionCast(wrapAccelStart, callback->orgAccelStart)(that, provider);
-    DBGLOG("x4000", "accelStart returned %d", ret);
+    DBGLOG("X4000", "accelStart returned %d", ret);
     return ret;
 }
 
-// Likely to be unused, here for incase we need to use it for X4000::setupAndInitializeHWCapabilities
-enum HWCapability : uint64_t {
-    DisplayPipeCount = 0x04,    // uint32_t // unsure
-    SECount = 0x34,             // uint32_t
-    SHPerSE = 0x3C,             // uint32_t
-    CUPerSH = 0x70,             // uint32_t
+enum HWCapability : UInt64 {
+    DisplayPipeCount = 0x04,    // UInt32 // unsure
+    SECount = 0x34,             // UInt32
+    SHPerSE = 0x3C,             // UInt32
+    CUPerSH = 0x70,             // UInt32
 };
 
 template<typename T>
@@ -132,13 +152,13 @@ static inline void setHWCapability(void *that, HWCapability capability, T value)
 }
 
 void X4000::wrapSetupAndInitializeHWCapabilities(void *that) {
-    DBGLOG("x4000", "setupAndInitializeHWCapabilities: this = %p", that);
+    DBGLOG("X4000", "setupAndInitializeHWCapabilities: this = %p", that);
     switch (LRed::callback->chipType) {
         case ChipType::Spectre:
             [[fallthrough]];
         case ChipType::Spooky: {
-            setHWCapability<uint32_t>(that, HWCapability::SECount, 1);
-            setHWCapability<uint32_t>(that, HWCapability::SHPerSE, 1);
+            setHWCapability<UInt32>(that, HWCapability::SECount, 1);
+            setHWCapability<UInt32>(that, HWCapability::SHPerSE, 1);
             switch (LRed::callback->deviceId) {
                 case 0x1304:
                     [[fallthrough]];
@@ -153,7 +173,7 @@ void X4000::wrapSetupAndInitializeHWCapabilities(void *that) {
                 case 0x1311:
                     [[fallthrough]];
                 case 0x131C:
-                    setHWCapability<uint32_t>(that, HWCapability::CUPerSH, 8);
+                    setHWCapability<UInt32>(that, HWCapability::CUPerSH, 8);
                     break;
                 case 0x1309:
                     [[fallthrough]];
@@ -164,7 +184,7 @@ void X4000::wrapSetupAndInitializeHWCapabilities(void *that) {
                 case 0x1313:
                     [[fallthrough]];
                 case 0x131D:
-                    setHWCapability<uint32_t>(that, HWCapability::CUPerSH, 6);
+                    setHWCapability<UInt32>(that, HWCapability::CUPerSH, 6);
                     break;
                 case 0x1306:
                     [[fallthrough]];
@@ -177,10 +197,10 @@ void X4000::wrapSetupAndInitializeHWCapabilities(void *that) {
                 case 0x1315:
                     [[fallthrough]];
                 case 0x131B:
-                    setHWCapability<uint32_t>(that, HWCapability::CUPerSH, 4);
+                    setHWCapability<UInt32>(that, HWCapability::CUPerSH, 4);
                     break;
                 default:
-                    setHWCapability<uint32_t>(that, HWCapability::CUPerSH, 3);
+                    setHWCapability<UInt32>(that, HWCapability::CUPerSH, 3);
                     break;
             }
             break;
@@ -188,14 +208,14 @@ void X4000::wrapSetupAndInitializeHWCapabilities(void *that) {
         case ChipType::Kalindi:
             [[fallthrough]];
         case ChipType::Godavari: {
-            setHWCapability<uint32_t>(that, HWCapability::SECount, 1);
-            setHWCapability<uint32_t>(that, HWCapability::SHPerSE, 1);
-            setHWCapability<uint32_t>(that, HWCapability::CUPerSH, 2);
+            setHWCapability<UInt32>(that, HWCapability::SECount, 1);
+            setHWCapability<UInt32>(that, HWCapability::SHPerSE, 1);
+            setHWCapability<UInt32>(that, HWCapability::CUPerSH, 2);
             break;
         }
         case ChipType::Carrizo: {
-            setHWCapability<uint32_t>(that, HWCapability::SECount, 1);
-            setHWCapability<uint32_t>(that, HWCapability::SHPerSE, 1);
+            setHWCapability<UInt32>(that, HWCapability::SECount, 1);
+            setHWCapability<UInt32>(that, HWCapability::SHPerSE, 1);
             switch (LRed::callback->revision) {
                 case 0xC4:
                     [[fallthrough]];
@@ -208,7 +228,7 @@ void X4000::wrapSetupAndInitializeHWCapabilities(void *that) {
                 case 0xE1:
                     [[fallthrough]];
                 case 0xE3:
-                    setHWCapability<uint32_t>(that, HWCapability::CUPerSH, 8);
+                    setHWCapability<UInt32>(that, HWCapability::CUPerSH, 8);
                     break;
                 case 0xC5:
                     [[fallthrough]];
@@ -231,26 +251,26 @@ void X4000::wrapSetupAndInitializeHWCapabilities(void *that) {
                 case 0xCE:
                     [[fallthrough]];
                 case 0x88:
-                    setHWCapability<uint32_t>(that, HWCapability::CUPerSH, 6);
+                    setHWCapability<UInt32>(that, HWCapability::CUPerSH, 6);
                     break;
                 default:
-                    setHWCapability<uint32_t>(that, HWCapability::CUPerSH, 4);
+                    setHWCapability<UInt32>(that, HWCapability::CUPerSH, 4);
                     break;
             }
             break;
         }
         case ChipType::Stoney: {
-            setHWCapability<uint32_t>(that, HWCapability::SECount, 1);
-            setHWCapability<uint32_t>(that, HWCapability::SHPerSE, 1);
+            setHWCapability<UInt32>(that, HWCapability::SECount, 1);
+            setHWCapability<UInt32>(that, HWCapability::SHPerSE, 1);
             if (!LRed::callback->isStoney3CU) {
-                setHWCapability<uint32_t>(that, HWCapability::CUPerSH, 3);
+                setHWCapability<UInt32>(that, HWCapability::CUPerSH, 3);
             } else {
-                setHWCapability<uint32_t>(that, HWCapability::CUPerSH, 3);
+                setHWCapability<UInt32>(that, HWCapability::CUPerSH, 3);
             }
             break;
         }
         default: {
-            PANIC("x4000", "Unknown ChipType!");
+            PANIC("X4000", "Unknown ChipType!");
             break;
         }
     }
@@ -258,35 +278,36 @@ void X4000::wrapSetupAndInitializeHWCapabilities(void *that) {
 }
 
 void X4000::wrapInitializeFamilyType(void *that) {
-    DBGLOG("x4000", "initializeFamilyType << %x", LRed::callback->currentFamilyId);
-    getMember<uint32_t>(that, 0x308) = LRed::callback->currentFamilyId;
+    DBGLOG("X4000", "initializeFamilyType << %x", LRed::callback->currentFamilyId);
+    getMember<UInt32>(that, 0x308) = LRed::callback->currentFamilyId;
 }
 
-void *X4000::wrapGetHWChannel(void *that, uint32_t engineType, uint32_t ringId) {
+void *X4000::wrapGetHWChannel(void *that, UInt32 engineType, UInt32 ringId) {
     /** Redirect SDMA1 engine type to SDMA0 */
     return FunctionCast(wrapGetHWChannel, callback->orgGetHWChannel)(that, (engineType == 2) ? 1 : engineType, ringId);
 }
 
 char *X4000::forceX4000HWLibs() {
-    DBGLOG("hwservices", "Forcing HWServices to load X4000HWLibs");
-    // By default, X4000HWServices on CI loads X4050HWLibs, we override this here
-    // Polaris is an interesting topic because it selects the name by using the Framebuffer name
+    DBGLOG("HWServices", "Forcing HWServices to load X4000HWLibs");
+    // By default, X4000HWServices on CI loads X4050HWLibs, we override this here because X4050 has no KV logic.
+    // HWServicesFiji loads X4000HWLibs by default, so we don't need it there.
+    // Polaris is an interesting topic because it selects the name by using the Framebuffer name.
     return "Load4400";
 }
 
 void X4000::wrapDumpASICHangState(bool param1) {
-    DBGLOG("x4000", "dumpASICHangState << (param1: %d)", param1);
+    DBGLOG("X4000", "dumpASICHangState << (param1: %d)", param1);
     IOSleep(36000000);
 }
 
-uint64_t X4000::wrapAdjustVRAMAddress(void *that, uint64_t addr) {
+UInt64 X4000::wrapAdjustVRAMAddress(void *that, UInt64 addr) {
     auto ret = FunctionCast(wrapAdjustVRAMAddress, callback->orgAdjustVRAMAddress)(that, addr);
-    SYSLOG("x4000", "AdjustVRAMAddress: returned: 0x%x, our value: 0x%x", ret,
+    SYSLOG("X4000", "AdjustVRAMAddress: returned: 0x%x, our value: 0x%x", ret,
         ret != addr ? (ret + LRed::callback->fbOffset) : ret);
     return ret != addr ? (ret + LRed::callback->fbOffset) : ret;
 }
 
-uint32_t X4000::getUcodeAddressOffset(uint32_t fwnum) {
+UInt32 X4000::getUcodeAddressOffset(UInt32 fwnum) {
     switch (fwnum) {
         case FwEnum::SDMA0: {
             return 0x3400;
@@ -316,7 +337,7 @@ uint32_t X4000::getUcodeAddressOffset(uint32_t fwnum) {
     return 0x0;
 }
 
-uint32_t X4000::getUcodeDataOffset(uint32_t fwnum) {
+UInt32 X4000::getUcodeDataOffset(UInt32 fwnum) {
     switch (fwnum) {
         case FwEnum::SDMA0: {    // SDMA offsets are universal between OSS 2.0.0 and 0SS 3.0.0
             return 0x3401;
@@ -346,12 +367,12 @@ uint32_t X4000::getUcodeDataOffset(uint32_t fwnum) {
     return 0x0;
 }
 
-uint32_t X4000::loadCpFirmware() {
-    LRed::callback->writeReg32(0x21B6, ((0x1000000 | 0x4000000) | 0x1000000));
+UInt32 X4000::loadCpFirmware() {
+    LRed::callback->writeReg32(0x21B6, ((0x1000000 | 0X4000000) | 0x1000000));
     IODelay(50);
     char filename[64] = {0};
-    uint32_t ucodeAddrOff = {0};
-    uint32_t ucodeDataOff = {0};
+    UInt32 ucodeAddrOff = {0};
+    UInt32 ucodeDataOff = {0};
     snprintf(filename, 64, "%s_pfp.bin", LRed::callback->getChipName());
     auto &pfpFwDesc = getFWDescByName(filename);
     auto *pfpFwHeader = reinterpret_cast<const GfxFwHeaderV1 *>(pfpFwDesc.data);
@@ -362,7 +383,7 @@ uint32_t X4000::loadCpFirmware() {
     LRed::callback->writeReg32(ucodeAddrOff, 0);
     for (size_t i = 0; i < pfpFwSize; i++) { LRed::callback->writeReg32(ucodeDataOff, *pfpFwData++); }
     LRed::callback->writeReg32(ucodeAddrOff, pfpFwHeader->ucodeVer);
-    DBGLOG("x4000", "PFP FW: version: %x, feature version %x", pfpFwHeader->ucodeVer, pfpFwHeader->ucodeFeatureVer);
+    DBGLOG("X4000", "PFP FW: version: %x, feature version %x", pfpFwHeader->ucodeVer, pfpFwHeader->ucodeFeatureVer);
 
     snprintf(filename, 64, "%s_ce.bin", LRed::callback->getChipName());
     auto &ceFwDesc = getFWDescByName(filename);
@@ -374,7 +395,7 @@ uint32_t X4000::loadCpFirmware() {
     LRed::callback->writeReg32(ucodeAddrOff, 0);
     for (size_t i = 0; i < ceFwSize; i++) { LRed::callback->writeReg32(ucodeDataOff, *ceFwData++); }
     LRed::callback->writeReg32(ucodeAddrOff, ceFwHeader->ucodeVer);
-    DBGLOG("x4000", "CE FW: version: %x, feature version %x", ceFwHeader->ucodeVer, ceFwHeader->ucodeFeatureVer);
+    DBGLOG("X4000", "CE FW: version: %x, feature version %x", ceFwHeader->ucodeVer, ceFwHeader->ucodeFeatureVer);
 
     snprintf(filename, 64, "%s_me.bin", LRed::callback->getChipName());
     auto &meFwDesc = getFWDescByName(filename);
@@ -386,12 +407,12 @@ uint32_t X4000::loadCpFirmware() {
     LRed::callback->writeReg32(ucodeAddrOff, 0);
     for (size_t i = 0; i < meFwSize; i++) { LRed::callback->writeReg32(ucodeDataOff, *meFwData++); }
     LRed::callback->writeReg32(ucodeAddrOff, meFwHeader->ucodeVer);
-    DBGLOG("x4000", "ME FW: version: %x, feature version %x", meFwHeader->ucodeVer, meFwHeader->ucodeFeatureVer);
+    DBGLOG("X4000", "ME FW: version: %x, feature version %x", meFwHeader->ucodeVer, meFwHeader->ucodeFeatureVer);
 
     LRed::callback->writeReg32(0x21B6, 0);
     IODelay(50);
-    DBGLOG("x4000", "Loaded PFP, CE and ME firmware.");
-    LRed::callback->writeReg32(0x208D, (0x40000000 | 0x10000000));
+    DBGLOG("X4000", "Loaded PFP, CE and ME firmware.");
+    LRed::callback->writeReg32(0x208D, (0X40000000 | 0x10000000));
     IODelay(50);
     snprintf(filename, 64, "%s_mec.bin", LRed::callback->getChipName());
     auto &mecFwDesc = getFWDescByName(filename);
@@ -403,7 +424,7 @@ uint32_t X4000::loadCpFirmware() {
     LRed::callback->writeReg32(ucodeAddrOff, 0);
     for (size_t i = 0; i < mecFwSize; i++) { LRed::callback->writeReg32(ucodeDataOff, *mecFwData++); }
     LRed::callback->writeReg32(ucodeAddrOff, mecFwHeader->ucodeVer);
-    DBGLOG("x4000", "MEC FW: version: %x, feature version %x", mecFwHeader->ucodeVer, mecFwHeader->ucodeFeatureVer);
+    DBGLOG("X4000", "MEC FW: version: %x, feature version %x", mecFwHeader->ucodeVer, mecFwHeader->ucodeFeatureVer);
 
     if (LRed::callback->chipType <= ChipType::Spooky || LRed::callback->chipType == ChipType::Carrizo) {
         snprintf(filename, 64, "%s_mec2.bin", LRed::callback->getChipName());
@@ -416,7 +437,7 @@ uint32_t X4000::loadCpFirmware() {
         LRed::callback->writeReg32(ucodeAddrOff, 0);
         for (size_t i = 0; i < mec2FwSize; i++) { LRed::callback->writeReg32(ucodeDataOff, *mec2FwData++); }
         LRed::callback->writeReg32(ucodeAddrOff, mec2FwHeader->ucodeVer);
-        DBGLOG("x4000", "MEC2 FW: version: %x, feature version %x", mec2FwHeader->ucodeVer,
+        DBGLOG("X4000", "MEC2 FW: version: %x, feature version %x", mec2FwHeader->ucodeVer,
             mec2FwHeader->ucodeFeatureVer);
     }
     LRed::callback->writeReg32(0x208D, 0);
@@ -424,7 +445,7 @@ uint32_t X4000::loadCpFirmware() {
     return 0;
 }
 
-uint32_t X4000::loadRlcFirmware() {
+UInt32 X4000::loadRlcFirmware() {
     LRed::callback->writeReg32(0x30C0, 0);
     char filename[64] = {0};
     snprintf(filename, 64, "%s_rlc.bin", LRed::callback->getChipName());
@@ -444,18 +465,18 @@ uint32_t X4000::loadRlcFirmware() {
     return 0;
 }
 // CNTL registers are the same accross GFX7 & GFX8
-uint64_t X4000::wrapInitializeMicroEngine(void *that) {
-    DBGLOG("x4000", "initializeMicroEngine << (that: %p)", that);
-    uint32_t cpcntlr0 = LRed::callback->readReg32(0x306A);
+UInt64 X4000::wrapInitializeMicroEngine(void *that) {
+    DBGLOG("X4000", "initializeMicroEngine << (that: %p)", that);
+    UInt32 cpcntlr0 = LRed::callback->readReg32(0x306A);
     cpcntlr0 &= ~(0x80000 | 0x100000);
     LRed::callback->writeReg32(0x306A, cpcntlr0);
-    DBGLOG_COND(!callback->loadCpFirmware(), "x4000", "Loaded CP fw");
-    DBGLOG_COND(!callback->loadRlcFirmware(), "x4000", "Loaded RLC fw");
+    DBGLOG_COND(!callback->loadCpFirmware(), "X4000", "Loaded CP fw");
+    DBGLOG_COND(!callback->loadRlcFirmware(), "X4000", "Loaded RLC fw");
     cpcntlr0 = LRed::callback->readReg32(0x306A);
     cpcntlr0 |= (0x80000 | 0x100000);
     LRed::callback->writeReg32(0x306A, cpcntlr0);
     IODelay(50);
     auto ret = FunctionCast(wrapInitializeMicroEngine, callback->orgInitializeMicroEngine)(that);
-    DBGLOG("x4000", "initializeMicroEngine >> 0x%llX", ret);
+    DBGLOG("X4000", "initializeMicroEngine >> 0x%llX", ret);
     return ret;
 }
