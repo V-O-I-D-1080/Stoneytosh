@@ -26,8 +26,6 @@ void X4000::init() {
 
 bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t address, size_t size) {
     if (kextRadeonX4000HWServices.loadIndex == index) {
-        bool useGcn3Logic = LRed::callback->isGCN3;
-        auto isStoney = (LRed::callback->chipType == ChipType::Stoney);
         RouteRequestPlus requests[] = {
             {"__ZN36AMDRadeonX4000_AMDRadeonHWServicesCI16getMatchPropertyEv", forceX4000HWLibs},
             {"__ZN41AMDRadeonX4000_AMDRadeonHWServicesPolaris16getMatchPropertyEv", forceX4000HWLibs},
@@ -40,7 +38,6 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
          *  Carizzo uses UVD 6.0 and VCE 3.1, Stoney uses UVD 6.2 and VCE 3.4, both can only encode to H264 for whatever
          * reason, but Stoney can decode HEVC and so can Carrizo
          */
-        bool useGcn3Logic = LRed::callback->isGCN3;
         auto stoney = (LRed::callback->chipType == ChipType::Stoney);
         auto carrizo = (LRed::callback->chipType == ChipType::Carrizo);
 

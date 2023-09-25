@@ -118,7 +118,7 @@ class LRed {
     private:
     static const char *getChipName() {
         PANIC_COND(callback->chipType == ChipType::Unknown, "lred", "Unknown chip type");
-        static const char *chipNames[] = {"kaveri", "kabini", "mullins", "carrizo", "stoney"};
+        static const char *chipNames[] = {"kaveri", "kaveri", "kabini", "mullins", "carrizo", "stoney"};
         return chipNames[static_cast<int>(callback->chipType)];
     }
 
