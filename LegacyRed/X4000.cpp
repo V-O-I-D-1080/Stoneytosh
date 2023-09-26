@@ -59,11 +59,11 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
         } else if (carrizo) {
             SolveRequestPlus request {"__ZN28AMDRadeonX4000_AMDVIHardware32setupAndInitializeHWCapabilitiesEv",
                 this->orgSetupAndInitializeHWCapabilities};
-            PANIC_COND(request.solve(patcher, index, address, size), "X4000", "Failed to solve HWCapabilities");
+            PANIC_COND(!request.solve(patcher, index, address, size), "X4000", "Failed to solve HWCapabilities");
         } else {
             SolveRequestPlus request {"__ZN28AMDRadeonX4000_AMDCIHardware32setupAndInitializeHWCapabilitiesEv",
                 this->orgSetupAndInitializeHWCapabilities};
-            PANIC_COND(request.solve(patcher, index, address, size), "X4000", "Failed to solve HWCapabilities");
+            PANIC_COND(!request.solve(patcher, index, address, size), "X4000", "Failed to solve HWCapabilities");
         }
 
         if (stoney) {
@@ -74,6 +74,8 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
                 {"__ZN26AMDRadeonX4000_AMDHardware12getHWChannelE20_eAMD_HW_ENGINE_TYPE18_eAMD_HW_RING_TYPE",
                     wrapGetHWChannel, this->orgGetHWChannel},
             };
+            PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "X4000",
+                "Failed to route symbols");
         } else if (carrizo) {
             RouteRequestPlus requests[] = {
                 {"__ZN30AMDRadeonX4000_AMDFijiHardware32setupAndInitializeHWCapabilitiesEv",
