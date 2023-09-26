@@ -6,9 +6,9 @@
 #include <Headers/kern_api.hpp>
 
 static const char *pathRadeonX4000HWLibs = "/System/Library/Extensions/AMDRadeonX4000HWServices.kext/Contents/PlugIns/"
-                                           "AMDRadeonX4400HWLibs.kext/Contents/MacOS/AMDRadeonX4400HWLibs";
+                                           "AMDRadeonX4000HWLibs.kext/Contents/MacOS/AMDRadeonX4000HWLibs";
 
-static KernelPatcher::KextInfo kextRadeonX4000HWLibs {"com.apple.kext.AMDRadeonX4400HWLibs", &pathRadeonX4000HWLibs, 1,
+static KernelPatcher::KextInfo kextRadeonX4000HWLibs {"com.apple.kext.AMDRadeonX4000HWLibs", &pathRadeonX4000HWLibs, 1,
     {}, {}, KernelPatcher::KextInfo::Unloaded};
 
 HWLibs *HWLibs::callback = nullptr;

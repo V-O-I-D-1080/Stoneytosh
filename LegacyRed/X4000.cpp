@@ -291,7 +291,7 @@ char *X4000::forceX4000HWLibs() {
     // By default, X4000HWServices on CI loads X4050HWLibs, we override this here because X4050 has no KV logic.
     // HWServicesFiji loads X4000HWLibs by default, so we don't need it there.
     // Polaris is an interesting topic because it selects the name by using the Framebuffer name.
-    return "Load4400";
+    return "Load4000";
 }
 
 void X4000::wrapDumpASICHangState(bool param1) {
