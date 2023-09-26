@@ -141,7 +141,7 @@ void LRed::setRMMIOIfNecessary() {
         this->fbOffset = static_cast<uint64_t>(this->readReg32(0x081A)) << 22;
         SYSLOG("LRed", "Gathered framebuffer offset: 0x%llX", this->fbOffset);
         switch (this->deviceId) {
-                // Who thought it would be a good idea to use this many Device IDs and Revisions?
+                //! Who thought it would be a good idea to use this many Device IDs and Revisions?
             case 0x1309:
                 [[fallthrough]];
             case 0x130A:
@@ -302,7 +302,7 @@ void LRed::setRMMIOIfNecessary() {
                 this->revision = (smcReadReg32Cz(0xC0014044) & 0x00001E00) >> 9;
                 this->currentFamilyId = AMDGPU_FAMILY_CZ;
                 DBGLOG("LRed", "Chip type is Stoney");
-                /** R4 and up iGPUs have 3 compute units while the others have 2 CUs, hence the chip variations */
+                //! R4 and up iGPUs have 3 compute units while the others have 2 CUs, hence the chip variations
                 if (this->revision <= 0x81 || (this->revision >= 0xC0 && this->revision < 0xD0) ||
                     (this->revision >= 0xD9 && this->revision < 0xDB) || this->revision >= 0xE9) {
                     this->isStoney3CU = true;
@@ -316,8 +316,8 @@ void LRed::setRMMIOIfNecessary() {
         }
         DBGLOG_COND(this->isGCN3, "LRed", "iGPU is GCN 3 derivative");
         this->currentEmulatedRevisionId =
-            // why ChipType instead of ChipVariant? - For mullins we set it as 'Godavari', which is technically just
-            // Kalindi+, by the looks of AMDGPU code
+            //! why ChipType instead of ChipVariant? - For mullins we set it as 'Godavari', which is technically just
+            //! Kalindi+, by the looks of AMDGPU code
             ((LRed::callback->chipType == ChipType::Kalindi)) ?
                 static_cast<uint32_t>(LRed::callback->enumeratedRevision) :
                 static_cast<uint32_t>(LRed::callback->enumeratedRevision) + LRed::callback->revision;    // rough guess

@@ -1,5 +1,5 @@
-//  Copyright © 2022-2023 ChefKiss Inc. Licensed under the Thou Shalt Not Profit License version 1.5. See LICENSE for
-//  details.
+//!  Copyright © 2022-2023 ChefKiss Inc. Licensed under the Thou Shalt Not Profit License version 1.5. See LICENSE for
+//!  details.
 
 #ifndef Support_hpp
 #define Support_hpp
@@ -105,7 +105,6 @@ class Support {
     static void *wrapCreateObjectInfoTable(void *helper, UInt32 offset);
     static void *wrapADCStart(void *that, IOService *provider);
 
-    int count {0};
     UInt32 currentObjectInfoOffset;
     bool objectInfoFound {false};
 };

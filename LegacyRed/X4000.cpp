@@ -1,5 +1,5 @@
-//  Copyright © 2022-2023 ChefKiss Inc. Licensed under the Thou Shalt Not Profit License version 1.5. See LICENSE for
-//  details.
+//!  Copyright © 2022-2023 ChefKiss Inc. Licensed under the Thou Shalt Not Profit License version 1.5. See LICENSE for
+//!  details.
 
 #include "X4000.hpp"
 #include "LRed.hpp"
@@ -110,8 +110,8 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
             PANIC_COND(MachInfo::setKernelWriting(true, KernelPatcher::kernelWriteLock) != KERN_SUCCESS, "X4000",
                 "Failed to enable kernel writing");
             /** TODO: Test this */
-            orgChannelTypes[5] = 1;     // Fix createAccelChannels so that it only starts SDMA0
-            orgChannelTypes[11] = 0;    // Fix getPagingChannel so that it gets SDMA0
+            orgChannelTypes[5] = 1;     //! Fix createAccelChannels so that it only starts SDMA0
+            orgChannelTypes[11] = 0;    //! Fix getPagingChannel so that it gets SDMA0
             MachInfo::setKernelWriting(false, KernelPatcher::kernelWriteLock);
 
             LookupPatchPlus const allocHWEnginesPatch {&kextRadeonX4000, kAMDEllesmereHWallocHWEnginesOriginal,
@@ -139,10 +139,10 @@ bool X4000::wrapAccelStart(void *that, IOService *provider) {
 }
 
 enum HWCapability : UInt64 {
-    DisplayPipeCount = 0x04,    // UInt32 // unsure
-    SECount = 0x34,             // UInt32
-    SHPerSE = 0x3C,             // UInt32
-    CUPerSH = 0x70,             // UInt32
+    DisplayPipeCount = 0x04,    //! UInt32, unsure
+    SECount = 0x34,             //! UInt32
+    SHPerSE = 0x3C,             //! UInt32
+    CUPerSH = 0x70,             //! UInt32
 };
 
 template<typename T>
@@ -264,7 +264,7 @@ void X4000::wrapSetupAndInitializeHWCapabilities(void *that) {
             if (!LRed::callback->isStoney3CU) {
                 setHWCapability<UInt32>(that, HWCapability::CUPerSH, 3);
             } else {
-                setHWCapability<UInt32>(that, HWCapability::CUPerSH, 3);
+                setHWCapability<UInt32>(that, HWCapability::CUPerSH, 2);
             }
             break;
         }
@@ -286,195 +286,29 @@ void *X4000::wrapGetHWChannel(void *that, UInt32 engineType, UInt32 ringId) {
     return FunctionCast(wrapGetHWChannel, callback->orgGetHWChannel)(that, (engineType == 2) ? 1 : engineType, ringId);
 }
 
-char *X4000::forceX4000HWLibs() {
+const char *X4000::forceX4000HWLibs() {
     DBGLOG("HWServices", "Forcing HWServices to load X4000HWLibs");
-    // By default, X4000HWServices on CI loads X4050HWLibs, we override this here because X4050 has no KV logic.
-    // HWServicesFiji loads X4000HWLibs by default, so we don't need it there.
-    // Polaris is an interesting topic because it selects the name by using the Framebuffer name.
+    //! By default, X4000HWServices on CI loads X4050HWLibs, we override this here because X4050 has no KV logic.
+    //! HWServicesFiji loads X4000HWLibs by default, so we don't need it there.
+    //! Polaris is an interesting topic because it selects the name by using the Framebuffer name.
     return "Load4000";
 }
 
 void X4000::wrapDumpASICHangState(bool param1) {
     DBGLOG("X4000", "dumpASICHangState << (param1: %d)", param1);
-    IOSleep(36000000);
+    while (true) { IOSleep(36000000); }
 }
 
 UInt64 X4000::wrapAdjustVRAMAddress(void *that, UInt64 addr) {
     auto ret = FunctionCast(wrapAdjustVRAMAddress, callback->orgAdjustVRAMAddress)(that, addr);
-    SYSLOG("X4000", "AdjustVRAMAddress: returned: 0x%x, our value: 0x%x", ret,
+    SYSLOG("X4000", "AdjustVRAMAddress: returned: 0x%llx, our value: 0x%x", ret,
         ret != addr ? (ret + LRed::callback->fbOffset) : ret);
     return ret != addr ? (ret + LRed::callback->fbOffset) : ret;
 }
 
-UInt32 X4000::getUcodeAddressOffset(UInt32 fwnum) {
-    switch (fwnum) {
-        case FwEnum::SDMA0: {
-            return 0x3400;
-        }
-        case FwEnum::SDMA1: {
-            return 0x3600;
-        }
-        case FwEnum::PFP: {
-            return (LRed::callback->isGCN3 ? 0xF814 : 0x3054);
-        }
-        case FwEnum::CE: {
-            return (LRed::callback->isGCN3 ? 0xF818 : 0x305A);
-        }
-        case FwEnum::ME: {
-            return (LRed::callback->isGCN3 ? 0xF816 : 0x3057);
-        }
-        case FwEnum::MEC: {
-            return (LRed::callback->isGCN3 ? 0xF81A : 0x305C);
-        }
-        case FwEnum::MEC2: {
-            return (LRed::callback->isGCN3 ? 0xF81C : 0x305E);
-        }
-        case FwEnum::RLC: {
-            return (LRed::callback->isGCN3 ? 0xF83C : 0x30E2);
-        }
-    }
-    return 0x0;
-}
-
-UInt32 X4000::getUcodeDataOffset(UInt32 fwnum) {
-    switch (fwnum) {
-        case FwEnum::SDMA0: {    // SDMA offsets are universal between OSS 2.0.0 and 0SS 3.0.0
-            return 0x3401;
-        }
-        case FwEnum::SDMA1: {
-            return 0x3601;
-        }
-        case FwEnum::PFP: {
-            return (LRed::callback->isGCN3 ? 0xF815 : 0x3055);
-        }
-        case FwEnum::CE: {
-            return (LRed::callback->isGCN3 ? 0xF819 : 0x305B);
-        }
-        case FwEnum::ME: {
-            return (LRed::callback->isGCN3 ? 0xF817 : 0x3058);
-        }
-        case FwEnum::MEC: {
-            return (LRed::callback->isGCN3 ? 0xF81B : 0x305D);
-        }
-        case FwEnum::MEC2: {
-            return (LRed::callback->isGCN3 ? 0xF81D : 0x305F);
-        }
-        case FwEnum::RLC: {
-            return (LRed::callback->isGCN3 ? 0xF83D : 0x30E3);
-        }
-    }
-    return 0x0;
-}
-
-UInt32 X4000::loadCpFirmware() {
-    LRed::callback->writeReg32(0x21B6, ((0x1000000 | 0X4000000) | 0x1000000));
-    IODelay(50);
-    char filename[64] = {0};
-    UInt32 ucodeAddrOff = {0};
-    UInt32 ucodeDataOff = {0};
-    snprintf(filename, 64, "%s_pfp.bin", LRed::callback->getChipName());
-    auto &pfpFwDesc = getFWDescByName(filename);
-    auto *pfpFwHeader = reinterpret_cast<const GfxFwHeaderV1 *>(pfpFwDesc.data);
-    size_t pfpFwSize = (pfpFwHeader->ucodeSize / 4);
-    auto pfpFwData = (pfpFwDesc.data + pfpFwHeader->ucodeOff);
-    ucodeAddrOff = callback->getUcodeAddressOffset(FwEnum::PFP);
-    ucodeDataOff = callback->getUcodeDataOffset(FwEnum::PFP);
-    LRed::callback->writeReg32(ucodeAddrOff, 0);
-    for (size_t i = 0; i < pfpFwSize; i++) { LRed::callback->writeReg32(ucodeDataOff, *pfpFwData++); }
-    LRed::callback->writeReg32(ucodeAddrOff, pfpFwHeader->ucodeVer);
-    DBGLOG("X4000", "PFP FW: version: %x, feature version %x", pfpFwHeader->ucodeVer, pfpFwHeader->ucodeFeatureVer);
-
-    snprintf(filename, 64, "%s_ce.bin", LRed::callback->getChipName());
-    auto &ceFwDesc = getFWDescByName(filename);
-    auto *ceFwHeader = reinterpret_cast<const GfxFwHeaderV1 *>(ceFwDesc.data);
-    size_t ceFwSize = (ceFwHeader->ucodeSize / 4);
-    auto ceFwData = (ceFwDesc.data + ceFwHeader->ucodeOff);
-    ucodeAddrOff = callback->getUcodeAddressOffset(FwEnum::CE);
-    ucodeDataOff = callback->getUcodeDataOffset(FwEnum::CE);
-    LRed::callback->writeReg32(ucodeAddrOff, 0);
-    for (size_t i = 0; i < ceFwSize; i++) { LRed::callback->writeReg32(ucodeDataOff, *ceFwData++); }
-    LRed::callback->writeReg32(ucodeAddrOff, ceFwHeader->ucodeVer);
-    DBGLOG("X4000", "CE FW: version: %x, feature version %x", ceFwHeader->ucodeVer, ceFwHeader->ucodeFeatureVer);
-
-    snprintf(filename, 64, "%s_me.bin", LRed::callback->getChipName());
-    auto &meFwDesc = getFWDescByName(filename);
-    auto *meFwHeader = reinterpret_cast<const GfxFwHeaderV1 *>(meFwDesc.data);
-    size_t meFwSize = (meFwHeader->ucodeSize / 4);
-    auto meFwData = (meFwDesc.data + meFwHeader->ucodeOff);
-    ucodeAddrOff = callback->getUcodeAddressOffset(FwEnum::ME);
-    ucodeDataOff = callback->getUcodeDataOffset(FwEnum::ME);
-    LRed::callback->writeReg32(ucodeAddrOff, 0);
-    for (size_t i = 0; i < meFwSize; i++) { LRed::callback->writeReg32(ucodeDataOff, *meFwData++); }
-    LRed::callback->writeReg32(ucodeAddrOff, meFwHeader->ucodeVer);
-    DBGLOG("X4000", "ME FW: version: %x, feature version %x", meFwHeader->ucodeVer, meFwHeader->ucodeFeatureVer);
-
-    LRed::callback->writeReg32(0x21B6, 0);
-    IODelay(50);
-    DBGLOG("X4000", "Loaded PFP, CE and ME firmware.");
-    LRed::callback->writeReg32(0x208D, (0X40000000 | 0x10000000));
-    IODelay(50);
-    snprintf(filename, 64, "%s_mec.bin", LRed::callback->getChipName());
-    auto &mecFwDesc = getFWDescByName(filename);
-    auto *mecFwHeader = reinterpret_cast<const GfxFwHeaderV1 *>(mecFwDesc.data);
-    size_t mecFwSize = (mecFwHeader->ucodeSize / 4);
-    auto mecFwData = (mecFwDesc.data + mecFwHeader->ucodeOff);
-    ucodeAddrOff = callback->getUcodeAddressOffset(FwEnum::MEC);
-    ucodeDataOff = callback->getUcodeDataOffset(FwEnum::MEC);
-    LRed::callback->writeReg32(ucodeAddrOff, 0);
-    for (size_t i = 0; i < mecFwSize; i++) { LRed::callback->writeReg32(ucodeDataOff, *mecFwData++); }
-    LRed::callback->writeReg32(ucodeAddrOff, mecFwHeader->ucodeVer);
-    DBGLOG("X4000", "MEC FW: version: %x, feature version %x", mecFwHeader->ucodeVer, mecFwHeader->ucodeFeatureVer);
-
-    if (LRed::callback->chipType <= ChipType::Spooky || LRed::callback->chipType == ChipType::Carrizo) {
-        snprintf(filename, 64, "%s_mec2.bin", LRed::callback->getChipName());
-        ucodeAddrOff = callback->getUcodeAddressOffset(FwEnum::MEC2);
-        ucodeDataOff = callback->getUcodeDataOffset(FwEnum::MEC2);
-        auto &mec2FwDesc = getFWDescByName(filename);
-        auto *mec2FwHeader = reinterpret_cast<const GfxFwHeaderV1 *>(mec2FwDesc.data);
-        size_t mec2FwSize = (mec2FwHeader->ucodeSize / 4);
-        auto mec2FwData = (mec2FwDesc.data + mec2FwHeader->ucodeOff);
-        LRed::callback->writeReg32(ucodeAddrOff, 0);
-        for (size_t i = 0; i < mec2FwSize; i++) { LRed::callback->writeReg32(ucodeDataOff, *mec2FwData++); }
-        LRed::callback->writeReg32(ucodeAddrOff, mec2FwHeader->ucodeVer);
-        DBGLOG("X4000", "MEC2 FW: version: %x, feature version %x", mec2FwHeader->ucodeVer,
-            mec2FwHeader->ucodeFeatureVer);
-    }
-    LRed::callback->writeReg32(0x208D, 0);
-    IODelay(50);
-    return 0;
-}
-
-UInt32 X4000::loadRlcFirmware() {
-    LRed::callback->writeReg32(0x30C0, 0);
-    char filename[64] = {0};
-    snprintf(filename, 64, "%s_rlc.bin", LRed::callback->getChipName());
-    auto &rlcFwDesc = getFWDescByName(filename);
-    auto *rlcFwHeader = reinterpret_cast<const RlcFwHeaderV1_0 *>(rlcFwDesc.data);
-    LRed::callback->writeReg32(LRed::callback->isGCN3 ? 0xEC03 : 0x30C3, 0);
-    LRed::callback->writeReg32(LRed::callback->isGCN3 ? 0xEC27 : 0x30E7, 0);
-    size_t rlcFwSize = (rlcFwHeader->ucodeVer);
-    auto rlcFwData = (rlcFwDesc.data + rlcFwHeader->ucodeOff);
-    LRed::callback->writeReg32(callback->getUcodeAddressOffset(FwEnum::RLC), 0);
-    for (size_t i = 0; i < rlcFwSize; i++) {
-        LRed::callback->writeReg32(callback->getUcodeDataOffset(FwEnum::RLC), *rlcFwData++);
-    }
-    LRed::callback->writeReg32(callback->getUcodeAddressOffset(FwEnum::RLC), rlcFwHeader->ucodeVer);
-    LRed::callback->writeReg32(0x30C0, 0x1);
-    IODelay(50);
-    return 0;
-}
-// CNTL registers are the same accross GFX7 & GFX8
+//! CNTL registers are the same accross GFX7 & GFX8
 UInt64 X4000::wrapInitializeMicroEngine(void *that) {
     DBGLOG("X4000", "initializeMicroEngine << (that: %p)", that);
-    UInt32 cpcntlr0 = LRed::callback->readReg32(0x306A);
-    cpcntlr0 &= ~(0x80000 | 0x100000);
-    LRed::callback->writeReg32(0x306A, cpcntlr0);
-    DBGLOG_COND(!callback->loadCpFirmware(), "X4000", "Loaded CP fw");
-    DBGLOG_COND(!callback->loadRlcFirmware(), "X4000", "Loaded RLC fw");
-    cpcntlr0 = LRed::callback->readReg32(0x306A);
-    cpcntlr0 |= (0x80000 | 0x100000);
-    LRed::callback->writeReg32(0x306A, cpcntlr0);
-    IODelay(50);
     auto ret = FunctionCast(wrapInitializeMicroEngine, callback->orgInitializeMicroEngine)(that);
     DBGLOG("X4000", "initializeMicroEngine >> 0x%llX", ret);
     return ret;

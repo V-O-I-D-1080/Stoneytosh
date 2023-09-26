@@ -1,5 +1,5 @@
-//  Copyright © 2022-2023 ChefKiss Inc. Licensed under the Thou Shalt Not Profit License version 1.0. See LICENSE for
-//  details.
+//!  Copyright © 2022-2023 ChefKiss Inc. Licensed under the Thou Shalt Not Profit License version 1.5. See LICENSE for
+//!  details.
 
 #ifndef ATOMBIOS_hpp
 #define ATOMBIOS_hpp
@@ -105,8 +105,8 @@ struct DispObjInfoTableV1_4 : public ATOMCommonTableHeader {
 } PACKED;
 
 struct ATOMConnectorDeviceTag {
-    UInt32 ulACPIDeviceEnum;    // Reserved for now
-    UInt16 usDeviceID;          // This Id is same as "ATOM_DEVICE_XXX_SUPPORT"
+    UInt32 ulACPIDeviceEnum;    //! Reserved for now
+    UInt16 usDeviceID;          //! This Id is same as "ATOM_DEVICE_XXX_SUPPORT"
     UInt16 usPadding;
 } PACKED;
 
@@ -181,7 +181,7 @@ struct ATOMObjTable {
     ATOMObj objects[];
 } PACKED;
 
-// Definitions taken from asic_reg/ObjectID.h
+//! Definitions taken from asic_reg/ObjectID.h
 
 enum {
     GRAPH_OBJECT_TYPE_NONE = 0x0,

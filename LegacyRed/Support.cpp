@@ -1,5 +1,5 @@
-//  Copyright © 2022-2023 ChefKiss Inc. Licensed under the Thou Shalt Not Profit License version 1.5. See LICENSE for
-//  details.
+//!  Copyright © 2022-2023 ChefKiss Inc. Licensed under the Thou Shalt Not Profit License version 1.5. See LICENSE for
+//!  details.
 
 #include "Support.hpp"
 #include "ATOMBIOS.hpp"
@@ -99,9 +99,9 @@ bool Support::doNotTestVram([[maybe_unused]] IOService *ctrl, [[maybe_unused]] U
     [[maybe_unused]] bool retryOnFail) {
     DBGLOG("Support", "TestVRAM called! Returning true");
     auto *model = getBranding(LRed::callback->deviceId, LRed::callback->pciRevision);
-    // Why do we set it here?
-    // Our controller kexts override it, and since TestVRAM is later on after the controllers have started up, it's
-    // desirable to do it here rather than later
+    //! Why do we set it here?
+    //! Our controller kexts override it, and since TestVRAM is later on after the controllers have started up, it's
+    //! desirable to do it here rather than later
     if (model) {
         auto len = static_cast<UInt32>(strlen(model) + 1);
         LRed::callback->iGPU->setProperty("model", const_cast<char *>(model), len);
@@ -161,15 +161,15 @@ bool Support::wrapObjectInfoTableInit(void *that, void *initdata) {
     auto n = dispPathTable->numOfDispPath;
     DBGLOG("Support", "Fixing VBIOS connectors");
     for (size_t i = 0, j = 0; i < n; i++) {
-        // Skip invalid device tags
+        //! Skip invalid device tags
         if (dispPathTable->dispPath[i].deviceTag) {
             UInt8 conObjType = (conInfoTbl->objects[i].objectID & OBJECT_TYPE_MASK) >> OBJECT_TYPE_SHIFT;
             DBGLOG("Support", "connectorInfoTable: connector: %zx, objects: %x, objectId: %x, objectTypeFromId: %x", i,
                 conInfoTbl->numberOfObjects, conInfoTbl->objects[i].objectID,
                 (conInfoTbl->objects[i].objectID & OBJECT_TYPE_MASK) >> OBJECT_TYPE_SHIFT);
             if (conObjType != GRAPH_OBJECT_TYPE_CONNECTOR) {
-                // Trims out any non-connector objects, proven to work on 2 machines, one with all connectors properly
-                // defined, one with 2/3 being valid connectors
+                //! Trims out any non-connector objects, proven to work on 2 machines, one with all connectors properly
+                //! defined, one with 2/3 being valid connectors
                 SYSLOG("Support",
                     "Connector %zx's objectType is not GRAPH_OBJECT_TYPE_CONNECTOR!, detected objectType: %x, if this "
                     "is a mistake please file a bug report!",

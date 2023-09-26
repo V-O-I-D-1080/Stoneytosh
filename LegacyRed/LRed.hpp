@@ -1,5 +1,5 @@
-//  Copyright © 2022-2023 ChefKiss Inc. Licensed under the Thou Shalt Not Profit License version 1.5. See LICENSE for
-//  details.
+//!  Copyright © 2022-2023 ChefKiss Inc. Licensed under the Thou Shalt Not Profit License version 1.5. See LICENSE for
+//!  details.
 
 #ifndef kern_lred_hpp
 #define kern_lred_hpp
@@ -19,29 +19,31 @@ class EXPORT PRODUCT_NAME : public IOService {
     bool start(IOService *provider) override;
 };
 
-// GFX core codenames
+//! GFX core codenames
 enum struct ChipType : UInt32 {
-    Spectre = 0,    // Kaveri
-    Spooky,         // Kaveri 2? downgraded from Spectre core
-    Kalindi,        // Kabini/Bhavani
-    Godavari,       // Mullins
+    Spectre = 0,    //! Kaveri
+    Spooky,         //! Kaveri 2? downgraded from Spectre core
+    Kalindi,        //! Kabini/Bhavani
+    Godavari,       //! Mullins
     Carrizo,
     Stoney,
     Unknown,
 };
 
-// Front-end consumer names, includes non-consumer names as-well
+//! Front-end consumer names, includes non-consumer names as-well
 enum struct ChipVariant : UInt32 {
     Kaveri = 0,
     Kabini,
     Temash,
     Bhavani,
     Mullins,
-    Bristol,    // Bristol is actually just a Carrizo+, hence why it isn't in ChipType
+    Carrizo,
+    Bristol,    //! Bristol is actually just a Carrizo+, hence why it isn't in ChipType
+    Stoney,
     Unknown,
 };
 
-// Hack
+//! Hack
 class AppleACPIPlatformExpert : IOACPIPlatformExpert {
     friend class LRed;
 };
@@ -80,27 +82,6 @@ static bool checkAtomBios(const uint8_t *bios, size_t size) {
     return false;
 }
 
-/**
- *  Console info structure, taken from osfmk/console/video_console.h
- *  Last updated from XNU 4570.1.46.
- */
-struct vc_info {
-    unsigned int v_height; /* pixels */
-    unsigned int v_width;  /* pixels */
-    unsigned int v_depth;
-    unsigned int v_rowbytes;
-    unsigned long v_baseaddr;
-    unsigned int v_type;
-    char v_name[32];
-    UInt64 v_physaddr;
-    unsigned int v_rows;         /* characters */
-    unsigned int v_columns;      /* characters */
-    unsigned int v_rowscanbytes; /* Actualy number of bytes used for display per row*/
-    unsigned int v_scale;
-    unsigned int v_rotate;
-    unsigned int v_reserved[3];
-};
-
 class LRed {
     friend class GFXCon;
     friend class HWLibs;
@@ -117,9 +98,22 @@ class LRed {
 
     private:
     static const char *getChipName() {
-        PANIC_COND(callback->chipType == ChipType::Unknown, "lred", "Unknown chip type");
-        static const char *chipNames[] = {"kaveri", "kaveri", "kabini", "mullins", "carrizo", "stoney"};
+        PANIC_COND(callback->chipType == ChipType::Unknown, "LRed", "Unknown chip type");
+        static const char *chipNames[] = {"spectre", "spectre", "kalindi", "godavari", "carrizo", "stoney"};
         return chipNames[static_cast<int>(callback->chipType)];
+    }
+
+    static const char *getVCEPrefix() {
+        PANIC_COND(callback->chipType == ChipType::Unknown, "LRed", "Unknown chip type");
+        static const char *vcePrefix[] = {"ativce02", "ativce02", "ativce02", "ativce02", "amde31a", "amde34a"};
+        return vcePrefix[static_cast<int>(callback->chipType)];
+    }
+
+    static const char *getUVDPrefix() {
+        PANIC_COND(callback->chipType == ChipType::Unknown, "LRed", "Unknown chip type");
+        static const char *uvdPrefix[] = {"ativvaxy_cik", "ativvaxy_cik", "ativvaxy_cik", "ativvaxy_cik", "ativvaxy_cz",
+            "ativvaxy_stn"};
+        return uvdPrefix[static_cast<int>(callback->chipType)];
     }
 
     bool getVBIOSFromVFCT(IOPCIDevice *obj) {
@@ -181,7 +175,7 @@ class LRed {
             return false;
         }
         auto *fb = reinterpret_cast<const uint8_t *>(bar0->getVirtualAddress());
-        UInt32 size = 256 * 1024;    // ???
+        UInt32 size = 256 * 1024;    //! ???
         if (!checkAtomBios(fb, size)) {
             DBGLOG("lred", "VRAM VBIOS is not an ATOMBIOS");
             OSSafeReleaseNULL(bar0);
@@ -262,15 +256,15 @@ class LRed {
 
 /* ---- Patches ---- */
 
-// Change frame-buffer count >= 2 check to >= 1.
+//! Change frame-buffer count >= 2 check to >= 1.
 static const UInt8 kAGDPFBCountCheckOriginal[] = {0x02, 0x00, 0x00, 0x83, 0xF8, 0x02};
 static const UInt8 kAGDPFBCountCheckPatched[] = {0x02, 0x00, 0x00, 0x83, 0xF8, 0x01};
 
-// Ditto
+//! Ditto
 static const UInt8 kAGDPFBCountCheckVenturaOriginal[] = {0x41, 0x83, 0xBE, 0x14, 0x02, 0x00, 0x00, 0x02};
 static const UInt8 kAGDPFBCountCheckVenturaPatched[] = {0x41, 0x83, 0xBE, 0x14, 0x02, 0x00, 0x00, 0x01};
 
-// Neutralise access to AGDP configuration by board identifier.
+//! Neutralise access to AGDP configuration by board identifier.
 static const UInt8 kAGDPBoardIDKeyOriginal[] = "board-id";
 static const UInt8 kAGDPBoardIDKeyPatched[] = "applehax";
 

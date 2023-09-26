@@ -77,20 +77,54 @@
 		F067C20F29D82E58004BB52E /* X4000.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = X4000.cpp; sourceTree = "<group>"; };
 		F067C21029D82E58004BB52E /* AMDCommon.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = AMDCommon.hpp; sourceTree = "<group>"; };
 		F067C21229D82E58004BB52E /* LRed.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LRed.cpp; sourceTree = "<group>"; };
+		F0A0A58A2AC2B35500AF57AD /* spectre_sdma1_ucode.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = spectre_sdma1_ucode.bin; sourceTree = "<group>"; };
+		F0A0A58B2AC2B35500AF57AD /* stoney_ce_ucode.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = stoney_ce_ucode.bin; sourceTree = "<group>"; };
+		F0A0A58C2AC2B35500AF57AD /* stoney_me_ucode.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = stoney_me_ucode.bin; sourceTree = "<group>"; };
+		F0A0A58D2AC2B35600AF57AD /* ativvaxy_cz_nd.dat */ = {isa = PBXFileReference; lastKnownFileType = file; path = ativvaxy_cz_nd.dat; sourceTree = "<group>"; };
+		F0A0A58E2AC2B35600AF57AD /* carrizo_pfp_ucode.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = carrizo_pfp_ucode.bin; sourceTree = "<group>"; };
+		F0A0A58F2AC2B35600AF57AD /* kalindi_sdma0_ucode.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = kalindi_sdma0_ucode.bin; sourceTree = "<group>"; };
+		F0A0A5902AC2B35600AF57AD /* stoney_pfp_ucode.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = stoney_pfp_ucode.bin; sourceTree = "<group>"; };
+		F0A0A5912AC2B35600AF57AD /* stoney_mec1_ucode.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = stoney_mec1_ucode.bin; sourceTree = "<group>"; };
+		F0A0A5922AC2B35600AF57AD /* stoney_tmz_ucode.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = stoney_tmz_ucode.bin; sourceTree = "<group>"; };
+		F0A0A5932AC2B35700AF57AD /* amde34a.dat */ = {isa = PBXFileReference; lastKnownFileType = file; path = amde34a.dat; sourceTree = "<group>"; };
+		F0A0A5942AC2B35700AF57AD /* godavari_mec1_ucode.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = godavari_mec1_ucode.bin; sourceTree = "<group>"; };
+		F0A0A5952AC2B35700AF57AD /* ativvaxy_cik.dat */ = {isa = PBXFileReference; lastKnownFileType = file; path = ativvaxy_cik.dat; sourceTree = "<group>"; };
+		F0A0A5962AC2B35700AF57AD /* ativce02.dat */ = {isa = PBXFileReference; lastKnownFileType = file; path = ativce02.dat; sourceTree = "<group>"; };
+		F0A0A5972AC2B35700AF57AD /* spectre_sdma0_ucode.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = spectre_sdma0_ucode.bin; sourceTree = "<group>"; };
+		F0A0A5982AC2B35700AF57AD /* godavari_sdma0_ucode.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = godavari_sdma0_ucode.bin; sourceTree = "<group>"; };
+		F0A0A5992AC2B35800AF57AD /* carrizo_mec2_ucode.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = carrizo_mec2_ucode.bin; sourceTree = "<group>"; };
+		F0A0A59A2AC2B35800AF57AD /* spectre_mec2_ucode.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = spectre_mec2_ucode.bin; sourceTree = "<group>"; };
+		F0A0A59B2AC2B35800AF57AD /* stoney_sdma0_ucode.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = stoney_sdma0_ucode.bin; sourceTree = "<group>"; };
+		F0A0A59C2AC2B35800AF57AD /* ativvaxy_stn_nd.dat */ = {isa = PBXFileReference; lastKnownFileType = file; path = ativvaxy_stn_nd.dat; sourceTree = "<group>"; };
+		F0A0A59D2AC2B35800AF57AD /* godavari_sdma1_ucode.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = godavari_sdma1_ucode.bin; sourceTree = "<group>"; };
+		F0A0A59E2AC2B35900AF57AD /* amde31a.dat */ = {isa = PBXFileReference; lastKnownFileType = file; path = amde31a.dat; sourceTree = "<group>"; };
+		F0A0A59F2AC2B35900AF57AD /* kalindi_mec1_ucode.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = kalindi_mec1_ucode.bin; sourceTree = "<group>"; };
+		F0A0A5A02AC2B35900AF57AD /* carrizo_mec1_ucode.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = carrizo_mec1_ucode.bin; sourceTree = "<group>"; };
+		F0A0A5A12AC2B35900AF57AD /* godavari_ce_ucode.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = godavari_ce_ucode.bin; sourceTree = "<group>"; };
+		F0A0A5A22AC2B35900AF57AD /* godavari_rlc_ucode.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = godavari_rlc_ucode.bin; sourceTree = "<group>"; };
+		F0A0A5A32AC2B35900AF57AD /* carrizo_sdma0_ucode.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = carrizo_sdma0_ucode.bin; sourceTree = "<group>"; };
+		F0A0A5A42AC2B35A00AF57AD /* carrizo_rlc_ucode.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = carrizo_rlc_ucode.bin; sourceTree = "<group>"; };
+		F0A0A5A52AC2B35A00AF57AD /* spectre_me_ucode.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = spectre_me_ucode.bin; sourceTree = "<group>"; };
+		F0A0A5A62AC2B35A00AF57AD /* stoney_rlc_ucode.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = stoney_rlc_ucode.bin; sourceTree = "<group>"; };
+		F0A0A5A72AC2B35A00AF57AD /* kalindi_me_ucode.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = kalindi_me_ucode.bin; sourceTree = "<group>"; };
+		F0A0A5A82AC2B35A00AF57AD /* carrizo_sdma1_ucode.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = carrizo_sdma1_ucode.bin; sourceTree = "<group>"; };
+		F0A0A5A92AC2B35B00AF57AD /* spectre_rlc_ucode.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = spectre_rlc_ucode.bin; sourceTree = "<group>"; };
+		F0A0A5AA2AC2B35B00AF57AD /* kalindi_ce_ucode.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = kalindi_ce_ucode.bin; sourceTree = "<group>"; };
+		F0A0A5AB2AC2B35C00AF57AD /* spectre_ce_ucode.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = spectre_ce_ucode.bin; sourceTree = "<group>"; };
+		F0A0A5AC2AC2B35C00AF57AD /* spectre_pfp_ucode.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = spectre_pfp_ucode.bin; sourceTree = "<group>"; };
+		F0A0A5AD2AC2B35D00AF57AD /* kalindi_rlc_ucode.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = kalindi_rlc_ucode.bin; sourceTree = "<group>"; };
+		F0A0A5AE2AC2B35D00AF57AD /* kalindi_sdma1_ucode.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = kalindi_sdma1_ucode.bin; sourceTree = "<group>"; };
+		F0A0A5AF2AC2B35D00AF57AD /* spectre_mec1_ucode.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = spectre_mec1_ucode.bin; sourceTree = "<group>"; };
+		F0A0A5B02AC2B35D00AF57AD /* ativvaxy_cik_nd.dat */ = {isa = PBXFileReference; lastKnownFileType = file; path = ativvaxy_cik_nd.dat; sourceTree = "<group>"; };
+		F0A0A5B12AC2B35E00AF57AD /* carrizo_ce_ucode.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = carrizo_ce_ucode.bin; sourceTree = "<group>"; };
+		F0A0A5B22AC2B35E00AF57AD /* carrizo_me_ucode.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = carrizo_me_ucode.bin; sourceTree = "<group>"; };
+		F0A0A5B32AC2B35E00AF57AD /* godavari_me_ucode.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = godavari_me_ucode.bin; sourceTree = "<group>"; };
+		F0A0A5B42AC2B35E00AF57AD /* godavari_pfp_ucode.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = godavari_pfp_ucode.bin; sourceTree = "<group>"; };
+		F0A0A5B52AC2B35E00AF57AD /* kalindi_pfp_ucode.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = kalindi_pfp_ucode.bin; sourceTree = "<group>"; };
 		F0B49E9329D93A600067BE5B /* Support.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Support.hpp; sourceTree = "<group>"; };
 		F0B49E9429D93A600067BE5B /* Support.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Support.cpp; sourceTree = "<group>"; };
-		F0B49E9729D962670067BE5B /* kabini_uvd.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = kabini_uvd.bin; sourceTree = "<group>"; };
-		F0B49E9829D962670067BE5B /* kaveri_vce.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = kaveri_vce.bin; sourceTree = "<group>"; };
-		F0B49E9929D962670067BE5B /* kabini_vce.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = kabini_vce.bin; sourceTree = "<group>"; };
-		F0B49E9A29D962670067BE5B /* kaveri_uvd.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = kaveri_uvd.bin; sourceTree = "<group>"; };
 		F0D396B52A3EE76200424389 /* PatcherPlus.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PatcherPlus.cpp; sourceTree = "<group>"; };
 		F0D396B62A3EE76200424389 /* PatcherPlus.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = PatcherPlus.hpp; sourceTree = "<group>"; };
-		F0ED263A29B5BDF8001FE711 /* stoney_uvd.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = stoney_uvd.bin; sourceTree = "<group>"; };
-		F0ED263C29B5BDF8001FE711 /* carrizo_uvd.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = carrizo_uvd.bin; sourceTree = "<group>"; };
-		F0ED264229B5BDF8001FE711 /* stoney_vce.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = stoney_vce.bin; sourceTree = "<group>"; };
-		F0ED264429B5BDF8001FE711 /* mullins_uvd.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = mullins_uvd.bin; sourceTree = "<group>"; };
-		F0ED264529B5BDF8001FE711 /* mullins_vce.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = mullins_vce.bin; sourceTree = "<group>"; };
-		F0ED264D29B5BDF9001FE711 /* carrizo_vce.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = carrizo_vce.bin; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -156,16 +190,50 @@
 		408F201A288AC068002EEC15 /* Firmware */ = {
 			isa = PBXGroup;
 			children = (
-				F0ED263C29B5BDF8001FE711 /* carrizo_uvd.bin */,
-				F0ED264D29B5BDF9001FE711 /* carrizo_vce.bin */,
-				F0B49E9729D962670067BE5B /* kabini_uvd.bin */,
-				F0B49E9929D962670067BE5B /* kabini_vce.bin */,
-				F0B49E9A29D962670067BE5B /* kaveri_uvd.bin */,
-				F0B49E9829D962670067BE5B /* kaveri_vce.bin */,
-				F0ED264429B5BDF8001FE711 /* mullins_uvd.bin */,
-				F0ED264529B5BDF8001FE711 /* mullins_vce.bin */,
-				F0ED263A29B5BDF8001FE711 /* stoney_uvd.bin */,
-				F0ED264229B5BDF8001FE711 /* stoney_vce.bin */,
+				F0A0A59E2AC2B35900AF57AD /* amde31a.dat */,
+				F0A0A5932AC2B35700AF57AD /* amde34a.dat */,
+				F0A0A5962AC2B35700AF57AD /* ativce02.dat */,
+				F0A0A5B02AC2B35D00AF57AD /* ativvaxy_cik_nd.dat */,
+				F0A0A5952AC2B35700AF57AD /* ativvaxy_cik.dat */,
+				F0A0A58D2AC2B35600AF57AD /* ativvaxy_cz_nd.dat */,
+				F0A0A59C2AC2B35800AF57AD /* ativvaxy_stn_nd.dat */,
+				F0A0A5B12AC2B35E00AF57AD /* carrizo_ce_ucode.bin */,
+				F0A0A5B22AC2B35E00AF57AD /* carrizo_me_ucode.bin */,
+				F0A0A5A02AC2B35900AF57AD /* carrizo_mec1_ucode.bin */,
+				F0A0A5992AC2B35800AF57AD /* carrizo_mec2_ucode.bin */,
+				F0A0A58E2AC2B35600AF57AD /* carrizo_pfp_ucode.bin */,
+				F0A0A5A42AC2B35A00AF57AD /* carrizo_rlc_ucode.bin */,
+				F0A0A5A32AC2B35900AF57AD /* carrizo_sdma0_ucode.bin */,
+				F0A0A5A82AC2B35A00AF57AD /* carrizo_sdma1_ucode.bin */,
+				F0A0A5A12AC2B35900AF57AD /* godavari_ce_ucode.bin */,
+				F0A0A5B32AC2B35E00AF57AD /* godavari_me_ucode.bin */,
+				F0A0A5942AC2B35700AF57AD /* godavari_mec1_ucode.bin */,
+				F0A0A5B42AC2B35E00AF57AD /* godavari_pfp_ucode.bin */,
+				F0A0A5A22AC2B35900AF57AD /* godavari_rlc_ucode.bin */,
+				F0A0A5982AC2B35700AF57AD /* godavari_sdma0_ucode.bin */,
+				F0A0A59D2AC2B35800AF57AD /* godavari_sdma1_ucode.bin */,
+				F0A0A5AA2AC2B35B00AF57AD /* kalindi_ce_ucode.bin */,
+				F0A0A5A72AC2B35A00AF57AD /* kalindi_me_ucode.bin */,
+				F0A0A59F2AC2B35900AF57AD /* kalindi_mec1_ucode.bin */,
+				F0A0A5B52AC2B35E00AF57AD /* kalindi_pfp_ucode.bin */,
+				F0A0A5AD2AC2B35D00AF57AD /* kalindi_rlc_ucode.bin */,
+				F0A0A58F2AC2B35600AF57AD /* kalindi_sdma0_ucode.bin */,
+				F0A0A5AE2AC2B35D00AF57AD /* kalindi_sdma1_ucode.bin */,
+				F0A0A5AB2AC2B35C00AF57AD /* spectre_ce_ucode.bin */,
+				F0A0A5A52AC2B35A00AF57AD /* spectre_me_ucode.bin */,
+				F0A0A5AF2AC2B35D00AF57AD /* spectre_mec1_ucode.bin */,
+				F0A0A59A2AC2B35800AF57AD /* spectre_mec2_ucode.bin */,
+				F0A0A5AC2AC2B35C00AF57AD /* spectre_pfp_ucode.bin */,
+				F0A0A5A92AC2B35B00AF57AD /* spectre_rlc_ucode.bin */,
+				F0A0A5972AC2B35700AF57AD /* spectre_sdma0_ucode.bin */,
+				F0A0A58A2AC2B35500AF57AD /* spectre_sdma1_ucode.bin */,
+				F0A0A58B2AC2B35500AF57AD /* stoney_ce_ucode.bin */,
+				F0A0A58C2AC2B35500AF57AD /* stoney_me_ucode.bin */,
+				F0A0A5912AC2B35600AF57AD /* stoney_mec1_ucode.bin */,
+				F0A0A5902AC2B35600AF57AD /* stoney_pfp_ucode.bin */,
+				F0A0A5A62AC2B35A00AF57AD /* stoney_rlc_ucode.bin */,
+				F0A0A59B2AC2B35800AF57AD /* stoney_sdma0_ucode.bin */,
+				F0A0A5922AC2B35600AF57AD /* stoney_tmz_ucode.bin */,
 			);
 			path = Firmware;
 			sourceTree = "<group>";

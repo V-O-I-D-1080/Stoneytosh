@@ -27,6 +27,8 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
         const void *goldenCaps[static_cast<UInt32>(ChipType::Unknown)] = {nullptr};
         const UInt32 *ddiCaps[static_cast<UInt32>(ChipType::Unknown)] = {nullptr};
 
+        CAILUcodeInfo *ucodeInfo;
+
         auto gcn3 = (LRed::callback->chipType <= ChipType::Carrizo);
 
         // The pains of supporting more than two iGPU generations
@@ -50,6 +52,9 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
                         "Failed to resolve symbols");
                 }
                 DBGLOG("HWLibs", "Set ASIC caps to Spectre");
+                SolveRequestPlus solveRequest {"_Spectre_UcodeInfo", ucodeInfo};
+                PANIC_COND(!solveRequest.solve(patcher, index, address, size), "HWLibs",
+                    "Failed to rseolve Ucode info");
                 break;
             }
             case ChipType::Spooky: {
@@ -71,6 +76,9 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
                         "Failed to resolve symbols");
                 }
                 DBGLOG("HWLibs", "Set ASIC caps to Spectre");
+                SolveRequestPlus solveRequest {"_Spectre_UcodeInfo", ucodeInfo};
+                PANIC_COND(!solveRequest.solve(patcher, index, address, size), "HWLibs",
+                    "Failed to rseolve Ucode info");
                 break;
             }
             case ChipType::Kalindi: {
@@ -138,6 +146,9 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
                         break;
                     }
                 }
+                SolveRequestPlus solveRequest {"_Kalindi_UcodeInfo", ucodeInfo};
+                PANIC_COND(!solveRequest.solve(patcher, index, address, size), "HWLibs",
+                    "Failed to rseolve Ucode info");
                 break;
             }
             case ChipType::Godavari: {
@@ -152,6 +163,9 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
                 PANIC_COND(!SolveRequestPlus::solveAll(patcher, index, solveRequests, address, size), "HWLibs",
                     "Failed to resolve symbols");
                 DBGLOG("HWLibs", "Set ASIC Caps to Goadavari");
+                SolveRequestPlus solveRequest {"_Godavari_UcodeInfo", ucodeInfo};
+                PANIC_COND(!solveRequest.solve(patcher, index, address, size), "HWLibs",
+                    "Failed to rseolve Ucode info");
                 break;
             }
             case ChipType::Carrizo: {
@@ -165,7 +179,6 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
                     PANIC_COND(!SolveRequestPlus::solveAll(patcher, index, solveRequests, address, size), "HWLibs",
                         "Failed to resolve symbols");
                     DBGLOG("HWLibs", "Set ASIC Caps to Carrizo, variant A1");
-                    break;
                 } else {
                     SolveRequestPlus solveRequests[] = {
                         {"_CAIL_DDI_CAPS_CARRIZO_A0", ddiCaps[static_cast<UInt32>(ChipType::Carrizo)]},
@@ -174,8 +187,11 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
                     PANIC_COND(!SolveRequestPlus::solveAll(patcher, index, solveRequests, address, size), "HWLibs",
                         "Failed to resolve symbols");
                     DBGLOG("HWLibs", "Set ASIC Caps to Carrizo, variant A0");
-                    break;
                 }
+                SolveRequestPlus solveRequest {"_Carrizo_UcodeInfo", ucodeInfo};
+                PANIC_COND(!solveRequest.solve(patcher, index, address, size), "HWLibs",
+                    "Failed to rseolve Ucode info");
+                break;
             }
             case ChipType::Stoney: {
                 if (!LRed::callback->isStoney3CU) {
@@ -193,6 +209,9 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
                     PANIC_COND(!SolveRequestPlus::solveAll(patcher, index, solveRequests, address, size), "HWLibs",
                         "Failed to resolve symbols");
                 }
+                SolveRequestPlus solveRequest {"_Stoney_UcodeInfo", ucodeInfo};
+                PANIC_COND(!solveRequest.solve(patcher, index, address, size), "HWLibs",
+                    "Failed to rseolve Ucode info");
                 DBGLOG("HWLibs", "Set ASIC Caps to Stoney");
                 break;
             }
@@ -245,7 +264,7 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
         auto targetExtRev = ((LRed::callback->chipType == ChipType::Kalindi)) ?
                                 static_cast<UInt32>(LRed::callback->enumeratedRevision) :
                                 static_cast<UInt32>(LRed::callback->enumeratedRevision) + LRed::callback->revision;
-        UInt32 targetDeviceId ;
+        UInt32 targetDeviceId;
         UInt32 targetFamilyId;
         if (!LRed::callback->isGCN3) {
             targetDeviceId = 0x6649;
@@ -279,9 +298,75 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
             orgCapsTable++;
         }
         PANIC_COND(!found, "HWLibs", "Failed to find caps table entry for target 0x%x", targetDeviceId);
+
+        char filename[128] = {0};
+        auto *prefix = LRed::getChipName();
+        snprintf(filename, 128, "%s_rlc_ucode.bin", prefix);
+        DBGLOG("HWLibs", "RLC filename: %s", filename);
+        auto &rlcFwDesc = getFWDescByName(filename);
+        memcpy(ucodeInfo->rlcUcode, rlcFwDesc.data, rlcFwDesc.size);
+        memset(filename, 0, 128);
+
+        snprintf(filename, 128, "%s_sdma0_ucode.bin", prefix);
+        DBGLOG("HWLibs", "SDMA0 filename: %s", filename);
+        auto &sdmaFwDesc = getFWDescByName(filename);
+        memcpy(ucodeInfo->sdma0Ucode, sdmaFwDesc.data, sdmaFwDesc.size);
+        memset(filename, 0, 128);
+
+        if (LRed::callback->chipType != ChipType::Stoney) {
+            snprintf(filename, 128, "%s_sdma1_ucode.bin", prefix);
+            DBGLOG("HWLibs", "SDMA1 filename: %s", filename);
+            auto &sdma1FwDesc = getFWDescByName(filename);
+            memcpy(ucodeInfo->sdma1Ucode, sdma1FwDesc.data, sdma1FwDesc.size);
+            memset(filename, 0, 128);
+            //! Technically, in the files, Stoney has SDMA1 Ucode, named `SkipLoading_SDMA1`, same with its MEC2 ucode
+        }
+
+        snprintf(filename, 128, "%s_ce_ucode.bin", prefix);
+        DBGLOG("HWLibs", "CE filename: %s", filename);
+        auto &ceFwDesc = getFWDescByName(filename);
+        memcpy(ucodeInfo->ceUcode, ceFwDesc.data, ceFwDesc.size);
+        memset(filename, 0, 128);
+
+        snprintf(filename, 128, "%s_pfp_ucode.bin", prefix);
+        DBGLOG("HWLibs", "PFP filename: %s", filename);
+        auto &pfpFwDesc = getFWDescByName(filename);
+        memcpy(ucodeInfo->pfpUcode, pfpFwDesc.data, pfpFwDesc.size);
+        memset(filename, 0, 128);
+
+        snprintf(filename, 128, "%s_me_ucode.bin", prefix);
+        DBGLOG("HWLibs", "ME filename: %s", filename);
+        auto &meFwDesc = getFWDescByName(filename);
+        memcpy(ucodeInfo->meUcode, meFwDesc.data, meFwDesc.size);
+        memset(filename, 0, 128);
+
+        snprintf(filename, 128, "%s_mec1_ucode.bin", prefix);
+        DBGLOG("HWLibs", "MEC1 filename: %s", filename);
+        auto &mecFwDesc = getFWDescByName(filename);
+        memcpy(ucodeInfo->mec1Ucode, mecFwDesc.data, mecFwDesc.size);
+        memset(filename, 0, 128);
+
+        if (LRed::callback->chipType == ChipType::Carrizo || LRed::callback->chipType <= ChipType::Spooky) {
+            snprintf(filename, 128, "%s_mec2_ucode.bin", prefix);
+            DBGLOG("HWLibs", "MEC2 filename: %s", filename);
+            auto &mec2FwDesc = getFWDescByName(filename);
+            memcpy(ucodeInfo->mec2Ucode, mec2FwDesc.data, mec2FwDesc.size);
+            memset(filename, 0, 128);
+        }
+
+        if (LRed::callback->chipType == ChipType::Stoney) {
+            snprintf(filename, 128, "%s_tmz_ucode.bin", prefix);
+            DBGLOG("HWLibs", "TMZ filename: %s", filename);
+            auto &tmzFwDesc = getFWDescByName(filename);
+            memcpy(ucodeInfo->tmzUcode, tmzFwDesc.data, tmzFwDesc.size);
+            memset(filename, 0, 128);
+        }
+
+        DBGLOG("HWLibs", "Planted newer Ucode into UcodeInfo");
+
         // we do not have the Device Capability table on X4000
         MachInfo::setKernelWriting(false, KernelPatcher::kernelWriteLock);
-        SYSLOG("HWLibs", "Managed to find caps entries for target 0x%x", targetDeviceId);
+        DBGLOG("HWLibs", "Managed to find caps entries for target 0x%x", targetDeviceId);
         DBGLOG("HWLibs", "Applied DDI Caps patches");
 
         return true;
@@ -362,6 +447,35 @@ void HWLibs::wrapCailBonaireLoadUcode(void *param1, UInt64 ucodeId, void *param3
 
 void HWLibs::wrapVWriteMmRegisterUlong(void *param1, UInt64 val, UInt64 addr) {
     DBGLOG("HWLibs", "_vWriteMmRegisterUlong << (val: 0x%llX addr: 0x%llX)", val, addr);
+    switch (val) {
+        case 0x3400:
+        case 0x3401:
+            DBGLOG("HWLibs", "SDMA0 Ucode is being loaded!");
+            break;
+        case 0x3600:
+        case 0x3601:
+            DBGLOG("HWLibs", "SDMA1 Ucode is being loaded!");
+            break;
+        case 0x3054:
+        case 0x3055:
+        case 0xF814:
+        case 0xF815:
+            DBGLOG("HWLibs", "PFP Ucode is being loaded!");
+            break;
+        case 0x3057:
+        case 0x3058:
+        case 0xF816:
+        case 0xF817:
+            DBGLOG("HWLibs", "ME Ucode is being loaded!");
+            break;
+        case 0x305A:
+        case 0x305B:
+        case 0xF818:
+        case 0xF819:
+            DBGLOG("HWLibs", "CE Ucode is being loaded!");
+        default:
+            break;
+    }
     FunctionCast(wrapVWriteMmRegisterUlong, callback->orgVWriteMmRegisterUlong)(param1, val, addr);
     DBGLOG("HWLibs", "_vWriteMmRegisterUlong >> void");
 }

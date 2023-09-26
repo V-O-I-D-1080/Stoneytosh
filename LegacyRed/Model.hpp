@@ -1,5 +1,5 @@
-//  Copyright © 2022-2023 ChefKiss Inc. Licensed under the Thou Shalt Not Profit License version 1.5. See LICENSE for
-//  details.
+//!  Copyright © 2022-2023 ChefKiss Inc. Licensed under the Thou Shalt Not Profit License version 1.5. See LICENSE for
+//!  details.
 
 #ifndef kern_model_hpp
 #define kern_model_hpp
@@ -16,7 +16,7 @@ struct DevicePair {
     size_t modelNum;
 };
 
-// Kaveri/Spectre/Spooky
+//! Kaveri/Spectre/Spooky
 
 static constexpr Model dev1309[] = {
     {0x00, "AMD Radeon R7 Graphics"},
@@ -77,7 +77,7 @@ static constexpr Model dev131B[] = {
     {0x00, "AMD Radeon R4 Graphics"},
 };
 
-// Kabini/Kalindi
+//! Kabini/Kalindi
 
 static constexpr Model dev9830[] = {
     {0x00, "AMD Radeon HD 8400 / R3 Series"},
@@ -123,7 +123,7 @@ static constexpr Model dev983D[] = {
     {0x00, "AMD Radeon HD 8250"},
 };
 
-// Mullins/Godavari
+//! Mullins/Godavari
 
 static constexpr Model dev9850[] = {
     {0x00, "AMD Radeon R3 Graphics"},
@@ -182,7 +182,7 @@ static constexpr Model dev9856[] = {
     {0x13, "AMD Radeon R1E Graphics"},
 };
 
-// Carrizo
+//! Carrizo
 
 static constexpr Model dev9874[] = {
     {0x81, "AMD Radeon R6 Graphics"},
@@ -210,7 +210,7 @@ static constexpr Model dev9874[] = {
     {0xE6, "AMD Radeon R5 Graphics"},
 };
 
-// Stoney
+//! Stoney
 
 static constexpr Model dev98E4[] = {{0x80, "AMD Radeon R5E Graphics"}, {0x81, "AMD Radeon R4E Graphics"},
     {0x83, "AMD Radeon R2E Graphics"}, {0x84, "AMD Radeon R2E Graphics"}, {0x86, "AMD Radeon R1E Graphics"},

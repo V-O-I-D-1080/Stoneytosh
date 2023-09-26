@@ -1,5 +1,5 @@
-//  Copyright © 2022-2023 ChefKiss Inc. Licensed under the Thou Shalt Not Profit License version 1.5. See LICENSE for
-//  details.
+//!  Copyright © 2022-2023 ChefKiss Inc. Licensed under the Thou Shalt Not Profit License version 1.5. See LICENSE for
+//!  details.
 
 #ifndef X4000_hpp
 #define X4000_hpp
@@ -46,24 +46,20 @@ class X4000 {
     static void wrapInitializeFamilyType(void *that);
     static void wrapSetupAndInitializeHWCapabilities(void *that);
     static void wrapDumpASICHangState(bool param1);
-    static char *forceX4000HWLibs(void);
+    static const char *forceX4000HWLibs(void);
     static UInt64 wrapAdjustVRAMAddress(void *that, UInt64 addr);
     static UInt64 wrapInitializeMicroEngine(void *that);
-    UInt32 getUcodeAddressOffset(UInt32 fwnum);
-    UInt32 getUcodeDataOffset(UInt32 fwnum);
-    UInt32 loadCpFirmware();
-    UInt32 loadRlcFirmware();
 };
 
-/* ---- Patches ---- */
+// ---- Patches ---- //
 
-// makes a loop run once in startHWEngines
+//! makes a loop run once in startHWEngines
 static const UInt8 kStartHWEnginesOriginal[] = {0x40, 0x83, 0xF0, 0x02};
 static const UInt8 kStartHWEnginesMask[] = {0xF0, 0xFF, 0xF0, 0xFF};
 static const UInt8 kStartHWEnginesPatched[] = {0x40, 0x83, 0xF0, 0x01};
 
-// erase the 2nd SDMA engine. this is a viable method for us since we don't have VCN or any other component found in the
-// other kexts
+//! erase the 2nd SDMA engine. this is a viable method for us since we don't have VCN or any other component found in
+//! the other kexts
 static const UInt8 kAMDEllesmereHWallocHWEnginesOriginal[] = {0xE8, 0xAA, 0xF3, 0xFE, 0xFF, 0x48, 0x89, 0xC3, 0x48,
     0x89, 0xC7, 0xE8, 0xA9, 0xF3, 0xFE, 0xFF, 0x49, 0x89, 0x9E, 0xC0, 0x03, 0x00, 0x00};
 static const UInt8 kAMDEllesmereHWallocHWEnginesPatched[] = {0x66, 0x90, 0x66, 0x90, 0x66, 0x90, 0x66, 0x90, 0x66, 0x90,
