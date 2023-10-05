@@ -24,17 +24,14 @@ Great news, FB-Only is confirmed to work on Kabini and Kaveri APUs, the Accelera
 
 ### On which macOS versions am I able to use this on?
 
-I/We plan to support as old High Sierra, if we don't end up having to re-work all our patches for it
+The plan is to support as old High Sierra, if we don't end up having to re-work all our patches for 
 
 Now for Ventura and onwards we run into a problem
 
 Fiji, Tonga, Hawaii and Bonaire got dropped by macOS, so how do we support them all?
-Unfortunately for Kaveri, Kabini and Mullins, this is where your support ends.
-I/We do NOT condone using OCLP and any issues filed and encountered while using it will be disregarded.
+Unfortunately for Kaveri, Kabini, Mullins and Carrizo, this is where your support ends.
+We do NOT condone using OCLP and any issues filed and encountered while using it will be disregarded.
 
-Stoney **will** be worked on for Ventura, as we use Ellesmere logic for it
-
-Now what about Carrizo?
-Since Fiji got dropped, we're going to have to workaround a lot of the Ellesmere logic, it will take time, but in the end, it could be possible
+Stoney **will** be worked on for Ventura, as we use Ellesmere's Graphics Accelerator on those devices.
 
 For now, we only test using Big Sur.
