@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 46;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -125,6 +125,8 @@
 		F0B49E9429D93A600067BE5B /* Support.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Support.cpp; sourceTree = "<group>"; };
 		F0D396B52A3EE76200424389 /* PatcherPlus.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PatcherPlus.cpp; sourceTree = "<group>"; };
 		F0D396B62A3EE76200424389 /* PatcherPlus.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = PatcherPlus.hpp; sourceTree = "<group>"; };
+		F0F27D602AD60A8000FE4C97 /* Drivers.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Drivers.xml; sourceTree = "<group>"; };
+		F0F27D612AD60A8100FE4C97 /* LegacyDrivers.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = LegacyDrivers.xml; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -190,6 +192,8 @@
 		408F201A288AC068002EEC15 /* Firmware */ = {
 			isa = PBXGroup;
 			children = (
+				F0F27D602AD60A8000FE4C97 /* Drivers.xml */,
+				F0F27D612AD60A8100FE4C97 /* LegacyDrivers.xml */,
 				F0A0A59E2AC2B35900AF57AD /* amde31a.dat */,
 				F0A0A5932AC2B35700AF57AD /* amde34a.dat */,
 				F0A0A5962AC2B35700AF57AD /* ativce02.dat */,
@@ -363,7 +367,6 @@
 /* Begin PBXShellScriptBuildPhase section */
 		408F2028288ACCC6002EEC15 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
 			files = (
 			);
@@ -454,7 +457,6 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
-					"LILU_CUSTOM_IOKIT_INIT=1",
 					"$(inherited)",
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
@@ -589,7 +591,7 @@
 					"$(inherited)",
 				);
 				OTHER_LDFLAGS = "-static";
-				PRODUCT_BUNDLE_IDENTIFIER = com.NootInc.LegacyRed;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ChefKissInc.LegacyRed;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				RUN_CLANG_STATIC_ANALYZER = YES;
 				WRAPPER_EXTENSION = kext;
@@ -612,7 +614,6 @@
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"MODULE_VERSION=$(MODULE_VERSION)",
 					"PRODUCT_NAME=$(PRODUCT_NAME)",
-					"LILU_CUSTOM_IOKIT_INIT=1",
 				);
 				HEADER_SEARCH_PATHS = "$(inherited)";
 				INFOPLIST_FILE = LegacyRed/Info.plist;
@@ -643,7 +644,7 @@
 					"$(inherited)",
 				);
 				OTHER_LDFLAGS = "-static";
-				PRODUCT_BUNDLE_IDENTIFIER = com.NootInc.LegacyRed;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ChefKissInc.LegacyRed;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRIP_STYLE = "non-global";
 				WRAPPER_EXTENSION = kext;
@@ -687,7 +688,6 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
-					"LILU_CUSTOM_IOKIT_INIT=1",
 					"$(inherited)",
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
@@ -726,7 +726,6 @@
 					"MODULE_VERSION=$(MODULE_VERSION)",
 					"APPLE_KEXT_ASSERTIONS=1",
 					"PRODUCT_NAME=$(PRODUCT_NAME)",
-					"LILU_CUSTOM_IOKIT_INIT=1",
 					"$(inherited)",
 				);
 				HEADER_SEARCH_PATHS = "$(inherited)";
@@ -759,7 +758,7 @@
 					"$(inherited)",
 				);
 				OTHER_LDFLAGS = "-static";
-				PRODUCT_BUNDLE_IDENTIFIER = com.NootInc.LegacyRed;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ChefKissInc.LegacyRed;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = kext;
 			};

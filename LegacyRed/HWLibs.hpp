@@ -46,7 +46,7 @@ class HWLibs {
     static void wrapBonaireLoadUcodeViaPortRegister(UInt64 param1, UInt64 param2, void *param3, UInt32 param4,
         UInt32 param5);
     static UInt64 wrapBonaireProgramAspm(UInt64 param1);
-    static void wrapVWriteMmRegisterUlong(void *param1, UInt64 val, UInt64 addr);
+    static void wrapVWriteMmRegisterUlong(void *param1, UInt64 addr, UInt64 val);
 };
 
 /* ---- Pattern ---- */

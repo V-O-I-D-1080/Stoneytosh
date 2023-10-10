@@ -9,6 +9,7 @@
 #include "X4000.hpp"
 #include <Headers/kern_api.hpp>
 #include <Headers/kern_devinfo.hpp>
+#include <IOKit/IOCatalogue.h>
 #include <IOKit/IODeviceTreeSupport.h>
 
 static const char *pathAGDP = "/System/Library/Extensions/AppleGraphicsControl.kext/Contents/PlugIns/"
@@ -117,6 +118,40 @@ void LRed::processPatcher(KernelPatcher &patcher) {
     size_t num = arrsize(requests);
     PANIC_COND(!patcher.routeMultipleLong(KernelPatcher::KernelID, requests, num), "LRed",
         "Failed to route kernel symbols");
+
+    if ((lilu.getRunMode() & LiluAPI::RunningInstallerRecovery) || checkKernelArgument("-CKFBOnly")) { return; }
+
+    auto &desc = getFWDescByName("Drivers.xml");
+    OSString *errStr = nullptr;
+    auto *dataNull = new char[desc.size + 1];
+    memcpy(dataNull, desc.data, desc.size);
+    dataNull[desc.size] = 0;
+    auto *dataUnserialized = OSUnserializeXML(dataNull, desc.size + 1, &errStr);
+    delete[] dataNull;
+    PANIC_COND(!dataUnserialized, "LegacyRed", "Failed to unserialize Drivers.xml: %s",
+        errStr ? errStr->getCStringNoCopy() : "<No additional information>");
+    auto *drivers = OSDynamicCast(OSArray, dataUnserialized);
+    PANIC_COND(!drivers, "LegacyRed", "Failed to cast Drivers.xml data");
+    PANIC_COND(!gIOCatalogue->addDrivers(drivers), "LegacyRed", "Failed to add drivers");
+    dataUnserialized->release();
+
+    if (getKernelVersion() <= KernelVersion::Monterey || checkKernelArgument("-CKBypassOSLimit")) {
+        return;
+    }    //! If I see this in anybody's boot arguments your issue is getting instantly marked as invalid.
+
+    auto &legacyDesc = getFWDescByName("LegacyDrivers.xml");
+    OSString *legacyErrStr = nullptr;
+    auto *legacyDataNull = new char[legacyDesc.size + 1];
+    memcpy(legacyDataNull, legacyDesc.data, legacyDesc.size);
+    legacyDataNull[legacyDesc.size] = 0;
+    auto *legacyDataUnserialized = OSUnserializeXML(legacyDataNull, legacyDesc.size + 1, &legacyErrStr);
+    delete[] legacyDataNull;
+    PANIC_COND(!legacyDataUnserialized, "LegacyRed", "Failed to unserialize LegacyDrivers.xml: %s",
+        legacyErrStr ? legacyErrStr->getCStringNoCopy() : "<No additional information>");
+    auto *legacyDrivers = OSDynamicCast(OSArray, legacyDataUnserialized);
+    PANIC_COND(!legacyDrivers, "LegacyRed", "Failed to cast Drivers.xml data");
+    PANIC_COND(!gIOCatalogue->addDrivers(legacyDrivers), "LegacyRed", "Failed to add drivers");
+    legacyDataUnserialized->release();
 }
 
 OSMetaClassBase *LRed::wrapSafeMetaCast(const OSMetaClassBase *anObject, const OSMetaClass *toMeta) {

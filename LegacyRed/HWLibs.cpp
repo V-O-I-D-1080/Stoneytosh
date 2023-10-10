@@ -254,6 +254,7 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
             {"_bonaire_load_ucode_via_port_register", wrapBonaireLoadUcodeViaPortRegister,
                 this->orgBonaireLoadUcodeViaPortRegister},
             {"_bonaire_program_aspm", wrapBonaireProgramAspm, this->orgBonaireProgramAspm},
+            {"_vWriteMmRegisterUlong", wrapVWriteMmRegisterUlong, this->orgVWriteMmRegisterUlong},
         };
         PANIC_COND(!patcher.routeMultiple(index, requests, address, size), "HWLibs", "Failed to route symbols");
 
@@ -298,76 +299,19 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
             orgCapsTable++;
         }
         PANIC_COND(!found, "HWLibs", "Failed to find caps table entry for target 0x%x", targetDeviceId);
-
-        char filename[128] = {0};
-        auto *prefix = LRed::getChipName();
-        snprintf(filename, 128, "%s_rlc_ucode.bin", prefix);
-        DBGLOG("HWLibs", "RLC filename: %s", filename);
-        auto &rlcFwDesc = getFWDescByName(filename);
-        memcpy(ucodeInfo->rlcUcode, rlcFwDesc.data, rlcFwDesc.size);
-        memset(filename, 0, 128);
-
-        snprintf(filename, 128, "%s_sdma0_ucode.bin", prefix);
-        DBGLOG("HWLibs", "SDMA0 filename: %s", filename);
-        auto &sdmaFwDesc = getFWDescByName(filename);
-        memcpy(ucodeInfo->sdma0Ucode, sdmaFwDesc.data, sdmaFwDesc.size);
-        memset(filename, 0, 128);
-
-        if (LRed::callback->chipType != ChipType::Stoney) {
-            snprintf(filename, 128, "%s_sdma1_ucode.bin", prefix);
-            DBGLOG("HWLibs", "SDMA1 filename: %s", filename);
-            auto &sdma1FwDesc = getFWDescByName(filename);
-            memcpy(ucodeInfo->sdma1Ucode, sdma1FwDesc.data, sdma1FwDesc.size);
-            memset(filename, 0, 128);
-            //! Technically, in the files, Stoney has SDMA1 Ucode, named `SkipLoading_SDMA1`, same with its MEC2 ucode
-        }
-
-        snprintf(filename, 128, "%s_ce_ucode.bin", prefix);
-        DBGLOG("HWLibs", "CE filename: %s", filename);
-        auto &ceFwDesc = getFWDescByName(filename);
-        memcpy(ucodeInfo->ceUcode, ceFwDesc.data, ceFwDesc.size);
-        memset(filename, 0, 128);
-
-        snprintf(filename, 128, "%s_pfp_ucode.bin", prefix);
-        DBGLOG("HWLibs", "PFP filename: %s", filename);
-        auto &pfpFwDesc = getFWDescByName(filename);
-        memcpy(ucodeInfo->pfpUcode, pfpFwDesc.data, pfpFwDesc.size);
-        memset(filename, 0, 128);
-
-        snprintf(filename, 128, "%s_me_ucode.bin", prefix);
-        DBGLOG("HWLibs", "ME filename: %s", filename);
-        auto &meFwDesc = getFWDescByName(filename);
-        memcpy(ucodeInfo->meUcode, meFwDesc.data, meFwDesc.size);
-        memset(filename, 0, 128);
-
-        snprintf(filename, 128, "%s_mec1_ucode.bin", prefix);
-        DBGLOG("HWLibs", "MEC1 filename: %s", filename);
-        auto &mecFwDesc = getFWDescByName(filename);
-        memcpy(ucodeInfo->mec1Ucode, mecFwDesc.data, mecFwDesc.size);
-        memset(filename, 0, 128);
-
-        if (LRed::callback->chipType == ChipType::Carrizo || LRed::callback->chipType <= ChipType::Spooky) {
-            snprintf(filename, 128, "%s_mec2_ucode.bin", prefix);
-            DBGLOG("HWLibs", "MEC2 filename: %s", filename);
-            auto &mec2FwDesc = getFWDescByName(filename);
-            memcpy(ucodeInfo->mec2Ucode, mec2FwDesc.data, mec2FwDesc.size);
-            memset(filename, 0, 128);
-        }
-
-        if (LRed::callback->chipType == ChipType::Stoney) {
-            snprintf(filename, 128, "%s_tmz_ucode.bin", prefix);
-            DBGLOG("HWLibs", "TMZ filename: %s", filename);
-            auto &tmzFwDesc = getFWDescByName(filename);
-            memcpy(ucodeInfo->tmzUcode, tmzFwDesc.data, tmzFwDesc.size);
-            memset(filename, 0, 128);
-        }
-
-        DBGLOG("HWLibs", "Planted newer Ucode into UcodeInfo");
-
         // we do not have the Device Capability table on X4000
         MachInfo::setKernelWriting(false, KernelPatcher::kernelWriteLock);
         DBGLOG("HWLibs", "Managed to find caps entries for target 0x%x", targetDeviceId);
         DBGLOG("HWLibs", "Applied DDI Caps patches");
+
+        DBGLOG("HWLibs", "RLC address: 0x%llx", ucodeInfo->rlcUcode);
+        DBGLOG("HWLibs", "SDMA0 address: 0x%llx", ucodeInfo->sdma0Ucode);
+        DBGLOG("HWLibs", "SDMA1 address: 0x%llx", ucodeInfo->sdma1Ucode);
+        DBGLOG("HWLibs", "CE address: 0x%llx", ucodeInfo->ceUcode);
+        DBGLOG("HWLibs", "PFP address: 0x%llx", ucodeInfo->pfpUcode);
+        DBGLOG("HWLibs", "ME address: 0x%llx", ucodeInfo->meUcode);
+        DBGLOG("HWLibs", "TMZ address: 0x%llx", ucodeInfo->tmzUcode);
+        DBGLOG("HWLibs", "UCode address: 0x%llx", ucodeInfo);
 
         return true;
     }
@@ -445,8 +389,8 @@ void HWLibs::wrapCailBonaireLoadUcode(void *param1, UInt64 ucodeId, void *param3
     DBGLOG("HWLibs", "_Cail_Bonaire_LoadUcode >> void");
 }
 
-void HWLibs::wrapVWriteMmRegisterUlong(void *param1, UInt64 val, UInt64 addr) {
-    DBGLOG("HWLibs", "_vWriteMmRegisterUlong << (val: 0x%llX addr: 0x%llX)", val, addr);
+void HWLibs::wrapVWriteMmRegisterUlong(void *param1, UInt64 addr, UInt64 val) {
+    DBGLOG("HWLibs", "_vWriteMmRegisterUlong << (addr: 0x%llX val: 0x%llX)", addr, val);
     switch (val) {
         case 0x3400:
         case 0x3401:
@@ -476,7 +420,11 @@ void HWLibs::wrapVWriteMmRegisterUlong(void *param1, UInt64 val, UInt64 addr) {
         default:
             break;
     }
-    FunctionCast(wrapVWriteMmRegisterUlong, callback->orgVWriteMmRegisterUlong)(param1, val, addr);
+    if (addr == 0x260D && LRed::callback->chipType == ChipType::Godavari) {
+        FunctionCast(wrapVWriteMmRegisterUlong, callback->orgVWriteMmRegisterUlong)(param1, 0x260C0, 0x0);
+        //! AMDGPU uses that offset instead of 260D?
+    }
+    FunctionCast(wrapVWriteMmRegisterUlong, callback->orgVWriteMmRegisterUlong)(param1, addr, val);
     DBGLOG("HWLibs", "_vWriteMmRegisterUlong >> void");
 }
 

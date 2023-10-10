@@ -12,7 +12,7 @@ DYLDPatches *DYLDPatches::callback = nullptr;
 void DYLDPatches::init() { callback = this; }
 
 void DYLDPatches::processPatcher(KernelPatcher &patcher) {
-    if (!(lilu.getRunMode() & LiluAPI::RunningNormal) || !checkKernelArgument("-lreddy;d")) { return; }
+    if (!(lilu.getRunMode() & LiluAPI::RunningNormal) || !checkKernelArgument("-lreddyld")) { return; }
 
     auto *entry = IORegistryEntry::fromPath("/", gIODTPlane);
     if (entry) {
