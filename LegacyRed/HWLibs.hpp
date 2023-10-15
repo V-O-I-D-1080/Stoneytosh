@@ -32,6 +32,8 @@ class HWLibs {
     mach_vm_address_t orgBonaireLoadUcodeViaPortRegister {0};
     mach_vm_address_t orgBonaireProgramAspm {0};
     mach_vm_address_t orgVWriteMmRegisterUlong {0};
+    mach_vm_address_t orgGetGpuHwConstants {0};
+    CAILUcodeInfo *orgCailUcodeInfo {0};
 
     static void wrapAmdCailServicesConstructor(void *that, IOPCIDevice *provider);
     static UInt64 wrapCAILQueryEngineRunningState(void *param1, UInt32 *param2, UInt64 param3);
@@ -42,11 +44,12 @@ class HWLibs {
     static UInt64 wrapSMUMInitialize(UInt64 param1, UInt32 *param2, UInt64 param3);
     static void wrapMCILDebugPrint(UInt32 level_max, char *fmt, UInt64 param3, UInt64 param4, UInt64 param5,
         uint level);
-    static void wrapCailBonaireLoadUcode(void *param1, UInt64 ucodeId, void *param3, void *param4);
+    static void wrapCailBonaireLoadUcode(void *param1, UInt64 ucodeId, void *ucodeData, void *param4);
     static void wrapBonaireLoadUcodeViaPortRegister(UInt64 param1, UInt64 param2, void *param3, UInt32 param4,
         UInt32 param5);
     static UInt64 wrapBonaireProgramAspm(UInt64 param1);
     static void wrapVWriteMmRegisterUlong(void *param1, UInt64 addr, UInt64 val);
+    static void *wrapGetGpuHwConstants(void *param1);
 };
 
 /* ---- Pattern ---- */

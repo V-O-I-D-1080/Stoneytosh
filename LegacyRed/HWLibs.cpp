@@ -27,8 +27,6 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
         const void *goldenCaps[static_cast<UInt32>(ChipType::Unknown)] = {nullptr};
         const UInt32 *ddiCaps[static_cast<UInt32>(ChipType::Unknown)] = {nullptr};
 
-        CAILUcodeInfo *ucodeInfo;
-
         auto gcn3 = (LRed::callback->chipType <= ChipType::Carrizo);
 
         // The pains of supporting more than two iGPU generations
@@ -52,7 +50,7 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
                         "Failed to resolve symbols");
                 }
                 DBGLOG("HWLibs", "Set ASIC caps to Spectre");
-                SolveRequestPlus solveRequest {"_Spectre_UcodeInfo", ucodeInfo};
+                SolveRequestPlus solveRequest {"_Spectre_UcodeInfo", this->orgCailUcodeInfo};
                 PANIC_COND(!solveRequest.solve(patcher, index, address, size), "HWLibs",
                     "Failed to rseolve Ucode info");
                 break;
@@ -76,7 +74,7 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
                         "Failed to resolve symbols");
                 }
                 DBGLOG("HWLibs", "Set ASIC caps to Spectre");
-                SolveRequestPlus solveRequest {"_Spectre_UcodeInfo", ucodeInfo};
+                SolveRequestPlus solveRequest {"_Spectre_UcodeInfo", this->orgCailUcodeInfo};
                 PANIC_COND(!solveRequest.solve(patcher, index, address, size), "HWLibs",
                     "Failed to rseolve Ucode info");
                 break;
@@ -146,7 +144,7 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
                         break;
                     }
                 }
-                SolveRequestPlus solveRequest {"_Kalindi_UcodeInfo", ucodeInfo};
+                SolveRequestPlus solveRequest {"_Kalindi_UcodeInfo", this->orgCailUcodeInfo};
                 PANIC_COND(!solveRequest.solve(patcher, index, address, size), "HWLibs",
                     "Failed to rseolve Ucode info");
                 break;
@@ -163,7 +161,7 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
                 PANIC_COND(!SolveRequestPlus::solveAll(patcher, index, solveRequests, address, size), "HWLibs",
                     "Failed to resolve symbols");
                 DBGLOG("HWLibs", "Set ASIC Caps to Goadavari");
-                SolveRequestPlus solveRequest {"_Godavari_UcodeInfo", ucodeInfo};
+                SolveRequestPlus solveRequest {"_Godavari_UcodeInfo", this->orgCailUcodeInfo};
                 PANIC_COND(!solveRequest.solve(patcher, index, address, size), "HWLibs",
                     "Failed to rseolve Ucode info");
                 break;
@@ -188,7 +186,7 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
                         "Failed to resolve symbols");
                     DBGLOG("HWLibs", "Set ASIC Caps to Carrizo, variant A0");
                 }
-                SolveRequestPlus solveRequest {"_Carrizo_UcodeInfo", ucodeInfo};
+                SolveRequestPlus solveRequest {"_Carrizo_UcodeInfo", this->orgCailUcodeInfo};
                 PANIC_COND(!solveRequest.solve(patcher, index, address, size), "HWLibs",
                     "Failed to rseolve Ucode info");
                 break;
@@ -209,7 +207,7 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
                     PANIC_COND(!SolveRequestPlus::solveAll(patcher, index, solveRequests, address, size), "HWLibs",
                         "Failed to resolve symbols");
                 }
-                SolveRequestPlus solveRequest {"_Stoney_UcodeInfo", ucodeInfo};
+                SolveRequestPlus solveRequest {"_Stoney_UcodeInfo", this->orgCailUcodeInfo};
                 PANIC_COND(!solveRequest.solve(patcher, index, address, size), "HWLibs",
                     "Failed to rseolve Ucode info");
                 DBGLOG("HWLibs", "Set ASIC Caps to Stoney");
@@ -255,6 +253,7 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
                 this->orgBonaireLoadUcodeViaPortRegister},
             {"_bonaire_program_aspm", wrapBonaireProgramAspm, this->orgBonaireProgramAspm},
             {"_vWriteMmRegisterUlong", wrapVWriteMmRegisterUlong, this->orgVWriteMmRegisterUlong},
+            {"_GetGpuHwConstants", wrapGetGpuHwConstants, this->orgGetGpuHwConstants},
         };
         PANIC_COND(!patcher.routeMultiple(index, requests, address, size), "HWLibs", "Failed to route symbols");
 
@@ -304,14 +303,16 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
         DBGLOG("HWLibs", "Managed to find caps entries for target 0x%x", targetDeviceId);
         DBGLOG("HWLibs", "Applied DDI Caps patches");
 
-        DBGLOG("HWLibs", "RLC address: 0x%llx", ucodeInfo->rlcUcode);
-        DBGLOG("HWLibs", "SDMA0 address: 0x%llx", ucodeInfo->sdma0Ucode);
-        DBGLOG("HWLibs", "SDMA1 address: 0x%llx", ucodeInfo->sdma1Ucode);
-        DBGLOG("HWLibs", "CE address: 0x%llx", ucodeInfo->ceUcode);
-        DBGLOG("HWLibs", "PFP address: 0x%llx", ucodeInfo->pfpUcode);
-        DBGLOG("HWLibs", "ME address: 0x%llx", ucodeInfo->meUcode);
-        DBGLOG("HWLibs", "TMZ address: 0x%llx", ucodeInfo->tmzUcode);
-        DBGLOG("HWLibs", "UCode address: 0x%llx", ucodeInfo);
+        DBGLOG("HWLibs", "RLC address: 0x%llx", this->orgCailUcodeInfo->rlcUcode);
+        DBGLOG("HWLibs", "SDMA0 address: 0x%llx", this->orgCailUcodeInfo->sdma0Ucode);
+        DBGLOG("HWLibs", "SDMA1 address: 0x%llx", this->orgCailUcodeInfo->sdma1Ucode);
+        DBGLOG("HWLibs", "CE address: 0x%llx", this->orgCailUcodeInfo->ceUcode);
+        DBGLOG("HWLibs", "PFP address: 0x%llx", this->orgCailUcodeInfo->pfpUcode);
+        DBGLOG("HWLibs", "ME address: 0x%llx", this->orgCailUcodeInfo->meUcode);
+        DBGLOG("HWLibs", "MEC1 address: 0x%llx", this->orgCailUcodeInfo->mec1Ucode);
+        DBGLOG("HWLibs", "MEC2 address: 0x%llx", this->orgCailUcodeInfo->mec2Ucode);
+        DBGLOG("HWLibs", "TMZ address: 0x%llx", this->orgCailUcodeInfo->tmzUcode);
+        DBGLOG("HWLibs", "UCode address: 0x%llx", this->orgCailUcodeInfo);
 
         return true;
     }
@@ -382,10 +383,10 @@ AMDReturn X5000HWLibs::wrapSmuRavenInitialize(void *smum, UInt32 param2) {
 }
 */
 
-void HWLibs::wrapCailBonaireLoadUcode(void *param1, UInt64 ucodeId, void *param3, void *param4) {
-    DBGLOG("HWLibs", "_Cail_Bonaire_LoadUcode << (param1: 0x%llX id: 0x%llX param3: 0x%llX param4: 0x%llX)", param1,
-        ucodeId, param3, param4);
-    FunctionCast(wrapCailBonaireLoadUcode, callback->orgCailBonaireLoadUcode)(param1, ucodeId, param3, param4);
+void HWLibs::wrapCailBonaireLoadUcode(void *param1, UInt64 ucodeId, void *ucodeData, void *param4) {
+    DBGLOG("HWLibs", "_Cail_Bonaire_LoadUcode << (param1: 0x%llX id: 0x%llX data: 0x%llX param4: 0x%llX)", param1,
+        ucodeId, ucodeData, param4);
+    FunctionCast(wrapCailBonaireLoadUcode, callback->orgCailBonaireLoadUcode)(param1, ucodeId, ucodeData, param4);
     DBGLOG("HWLibs", "_Cail_Bonaire_LoadUcode >> void");
 }
 
@@ -421,7 +422,7 @@ void HWLibs::wrapVWriteMmRegisterUlong(void *param1, UInt64 addr, UInt64 val) {
             break;
     }
     if (addr == 0x260D && LRed::callback->chipType == ChipType::Godavari) {
-        FunctionCast(wrapVWriteMmRegisterUlong, callback->orgVWriteMmRegisterUlong)(param1, 0x260C0, 0x0);
+        FunctionCast(wrapVWriteMmRegisterUlong, callback->orgVWriteMmRegisterUlong)(param1, 0x260C0, val);
         //! AMDGPU uses that offset instead of 260D?
     }
     FunctionCast(wrapVWriteMmRegisterUlong, callback->orgVWriteMmRegisterUlong)(param1, addr, val);
@@ -441,4 +442,11 @@ void HWLibs::wrapBonaireLoadUcodeViaPortRegister(UInt64 param1, UInt64 param2, v
 UInt64 HWLibs::wrapBonaireProgramAspm(UInt64 param1) {
     DBGLOG("HWLibs", "_bonaire_program_aspm << (param1: 0x%llX)", param1);
     return 0;
+}
+
+void *HWLibs::wrapGetGpuHwConstants(void *param1) {
+    void *ret = FunctionCast(wrapGetGpuHwConstants, callback->orgGetGpuHwConstants)(param1);
+    //! I have zero idea if this will change anything.
+    getMember<CAILUcodeInfo *>(ret, 0x30) = callback->orgCailUcodeInfo;
+    return ret;
 }

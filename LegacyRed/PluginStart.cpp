@@ -32,6 +32,6 @@ PluginConfiguration ADDPR(config) {
     bootargBeta,
     arrsize(bootargBeta),
     KernelVersion::HighSierra,    // we cannot go older, AMD patches only support HS+
-    KernelVersion::Sonoma,       // we don't actually support Sonoma, here for debugging/testing
+    KernelVersion::Sonoma,        // we don't actually support Sonoma, here for debugging/testing
     []() { lred.init(); },
 };
