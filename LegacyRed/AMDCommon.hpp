@@ -44,35 +44,15 @@ constexpr UInt32 mmMP0PUB_IND_DATA = 0x181;
 constexpr UInt32 mmPCIE_INDEX2 = 0xC;
 constexpr UInt32 mmPCIE_DATA2 = 0xD;
 
-struct CAILAsicCapsEntry {
-    UInt32 familyId, deviceId;
-    UInt32 revision, extRevision;
-    UInt32 pciRevision;
-    UInt32 _reserved;
-    const UInt32 *caps;
-    const UInt32 *skeleton;
-} PACKED;
+constexpr UInt32 mmCHUB_CONTROL = 0x619;
+constexpr UInt32 bypassVM = (1 << 0);
 
-struct CAILAsicCapsInitEntry {
-    UInt64 familyId, deviceId;
-    UInt64 revision, extRevision;
-    UInt64 pciRevision;
-    const UInt32 *caps;
-    const void *goldenCaps;
-} PACKED;
+constexpr UInt32 mmSRBM_STATUS = 0x394;
 
-enum AMDReturn : UInt32 {
-    kAMDReturnSuccess = 0,
-    kAMDReturnInvalidArgument,
-    kAMDReturnGeneralFailure,
-    kAMDReturnResourcesExhausted,
-    kAMDReturnUnsupported,
-};
-
-struct CailDeviceTypeEntry {
-    UInt32 deviceId;
-    UInt32 deviceType;
-} PACKED;
+constexpr UInt32 SRBM_STATUS__MCB_BUSY_MASK = 0x200;
+constexpr UInt32 SRBM_STATUS__MCB_NON_DISPLAY_BUSY_MASK = 0x400;
+constexpr UInt32 SRBM_STATUS__MCC_BUSY_MASK = 0x800;
+constexpr UInt32 SRBM_STATUS__MCD_BUSY_MASK = 0x1000;
 
 struct CAILUcodeInfo {
     UInt32 *rlcUcode;
@@ -96,6 +76,48 @@ struct CAILUcodeInfo {
     UInt32 *rlcVRegister;
     UInt32 *tmzUcode;
 };
+
+struct CAILASICGoldenRegisterSettings {
+    UInt32 offset;
+    UInt32 mask;
+    UInt32 value;
+};
+
+struct CAILASICGoldenSettings {
+    void *hwConstants;
+    CAILASICGoldenRegisterSettings *goldenRegisterSettings;
+    CAILUcodeInfo *ucodeInfo;    //! UcodeInfo can be contained in both HWConstants and GoldenSettings.
+};
+
+struct CAILAsicCapsEntry {
+    UInt32 familyId, deviceId;
+    UInt32 revision, extRevision;
+    UInt32 pciRevision;
+    UInt32 _reserved;
+    const UInt32 *caps;
+    const UInt32 *skeleton;
+} PACKED;
+
+struct CAILAsicCapsInitEntry {
+    UInt64 familyId, deviceId;
+    UInt64 revision, extRevision;
+    UInt64 pciRevision;
+    const UInt32 *caps;
+    const CAILASICGoldenSettings *goldenCaps;
+} PACKED;
+
+enum AMDReturn : UInt32 {
+    kAMDReturnSuccess = 0,
+    kAMDReturnInvalidArgument,
+    kAMDReturnGeneralFailure,
+    kAMDReturnResourcesExhausted,
+    kAMDReturnUnsupported,
+};
+
+struct CailDeviceTypeEntry {
+    UInt32 deviceId;
+    UInt32 deviceType;
+} PACKED;
 
 constexpr UInt32 ADDR_CHIP_FAMILY_VI = 7;
 constexpr UInt32 ADDR_CHIP_FAMILY_CI = 6;

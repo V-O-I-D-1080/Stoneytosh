@@ -24,10 +24,11 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
 
         CAILAsicCapsEntry *orgCapsTable = nullptr;
         CAILAsicCapsInitEntry *orgCapsInitTable = nullptr;
-        const void *goldenCaps[static_cast<UInt32>(ChipType::Unknown)] = {nullptr};
+        CAILASICGoldenSettings *goldenCaps[static_cast<UInt32>(ChipType::Unknown)] = {nullptr};
         const UInt32 *ddiCaps[static_cast<UInt32>(ChipType::Unknown)] = {nullptr};
 
-        auto gcn3 = (LRed::callback->chipType <= ChipType::Carrizo);
+        bool gcn3 = (LRed::callback->chipType >= ChipType::Carrizo);
+        bool catalina = (getKernelVersion() == KernelVersion::Catalina);
 
         // The pains of supporting more than two iGPU generations
         switch (LRed::callback->chipType) {
@@ -237,12 +238,19 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
                 "Failed to resolve PowerTuneServices symbol");
         }
 
+        const char *qERS;
+
+        if (catalina) {
+            qERS = "__ZN15AmdCailServices23queryEngineRunningStateEP20_AMD_HW_ENGINE_QUEUEP22CailEngineRunningState";
+        } else {
+            qERS = "__ZN15AmdCailServices23queryEngineRunningStateEP17CailHwEngineQueueP22CailEngineRunningState";
+        }
+
         KernelPatcher::RouteRequest requests[] = {
             {"__ZN15AmdCailServicesC2EP11IOPCIDevice", wrapAmdCailServicesConstructor, orgAmdCailServicesConstructor},
             {"__ZN25AtiApplePowerTuneServices23createPowerTuneServicesEP11PP_InstanceP18PowerPlayCallbacks",
                 wrapCreatePowerTuneServices},
-            {"__ZN15AmdCailServices23queryEngineRunningStateEP17CailHwEngineQueueP22CailEngineRunningState",
-                wrapCAILQueryEngineRunningState, orgCAILQueryEngineRunningState},
+            {qERS, wrapCAILQueryEngineRunningState, orgCAILQueryEngineRunningState},
             {"_CailMonitorPerformanceCounter", wrapCailMonitorPerformanceCounter, orgCailMonitorPerformanceCounter},
             {"_CailMonitorEngineInternalState", wrapCailMonitorEngineInternalState, orgCailMonitorEngineInternalState},
             {"_MCILDebugPrint", wrapMCILDebugPrint, orgMCILDebugPrint},
@@ -254,11 +262,38 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
             {"_bonaire_program_aspm", wrapBonaireProgramAspm, this->orgBonaireProgramAspm},
             {"_vWriteMmRegisterUlong", wrapVWriteMmRegisterUlong, this->orgVWriteMmRegisterUlong},
             {"_GetGpuHwConstants", wrapGetGpuHwConstants, this->orgGetGpuHwConstants},
+            {"_bonaire_perform_srbm_soft_reset", wrapBonairePerformSrbmReset, this->orgBonairePerformSrbmReset},
         };
         PANIC_COND(!patcher.routeMultiple(index, requests, address, size), "HWLibs", "Failed to route symbols");
 
+        if (checkKernelArgument("-CKDumpGoldenRegisters")) {
+            CAILASICGoldenRegisterSettings *settings =
+                goldenCaps[static_cast<UInt32>(LRed::callback->chipType)]->goldenRegisterSettings;
+            size_t num = 0;
+            while (settings->offset != 0xFFFFFFFF) {
+                DBGLOG("HWLibs", "Reg No. %zu, OFF: 0x%x, MASK: 0x%x VAL: 0x%x", num, settings->offset, settings->mask,
+                    settings->value);
+                num++;
+                settings++;
+            };
+        }
+
+        CAILASICGoldenRegisterSettings *settings =
+            goldenCaps[static_cast<UInt32>(LRed::callback->chipType)]->goldenRegisterSettings;
+
         PANIC_COND(MachInfo::setKernelWriting(true, KernelPatcher::kernelWriteLock) != KERN_SUCCESS, "HWLibs",
             "Failed to enable kernel writing");
+
+        while (settings->offset != 0xFFFFFFFF) {
+            if (settings->offset == 0x3108 && settings->value == 0xFFFFFFFF) { settings->value = 0xFFFFFFFC; }
+            if (LRed::callback->chipType == ChipType::Godavari) {
+                if (settings->offset == 0x260D && settings->mask == 0xF00FFFFF) {
+                    settings->offset = 0x260C0;
+                    //! AMDGPU is weird.
+                }
+            }
+            settings++;
+        }
 
         bool found = false;
         auto targetExtRev = ((LRed::callback->chipType == ChipType::Kalindi)) ?
@@ -449,4 +484,13 @@ void *HWLibs::wrapGetGpuHwConstants(void *param1) {
     //! I have zero idea if this will change anything.
     getMember<CAILUcodeInfo *>(ret, 0x30) = callback->orgCailUcodeInfo;
     return ret;
+}
+
+void HWLibs::wrapBonairePerformSrbmReset(void *param1, UInt32 bit) {
+    UInt32 tmp = LRed::callback->readReg32(mmSRBM_STATUS);
+    if (tmp & (SRBM_STATUS__MCB_BUSY_MASK | SRBM_STATUS__MCB_NON_DISPLAY_BUSY_MASK | SRBM_STATUS__MCC_BUSY_MASK |
+                  SRBM_STATUS__MCD_BUSY_MASK)) {
+        return;
+    }
+    FunctionCast(wrapBonairePerformSrbmReset, callback->orgBonairePerformSrbmReset)(param1, bit);
 }

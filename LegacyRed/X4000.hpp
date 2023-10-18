@@ -38,6 +38,8 @@ class X4000 {
     mach_vm_address_t orgDumpASICHangState {0};
     mach_vm_address_t orgAdjustVRAMAddress {0};
     mach_vm_address_t orgInitializeMicroEngine {0};
+    mach_vm_address_t orgInitializeVMRegs {0};
+    mach_vm_address_t orgSoftReset {0};
 
     void *callbackAccelerator = nullptr;
 
@@ -49,6 +51,9 @@ class X4000 {
     static const char *forceX4000HWLibs(void);
     static UInt64 wrapAdjustVRAMAddress(void *that, UInt64 addr);
     static UInt64 wrapInitializeMicroEngine(void *that);
+    static bool wrapIsDebugFlagEnabled(void *that, UInt32 flag);
+    static void wrapInitializeVMRegs(void *that);
+    static void wrapSoftReset(void *that, UInt32 addr, UInt32 val);
 };
 
 // ---- Patches ---- //

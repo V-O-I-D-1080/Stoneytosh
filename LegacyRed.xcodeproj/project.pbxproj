@@ -77,6 +77,7 @@
 		F067C20F29D82E58004BB52E /* X4000.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = X4000.cpp; sourceTree = "<group>"; };
 		F067C21029D82E58004BB52E /* AMDCommon.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = AMDCommon.hpp; sourceTree = "<group>"; };
 		F067C21229D82E58004BB52E /* LRed.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LRed.cpp; sourceTree = "<group>"; };
+		F0962EA62ADF9FB5002E1CC9 /* LegacyFramebuffers.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = LegacyFramebuffers.xml; sourceTree = "<group>"; };
 		F0A0A58A2AC2B35500AF57AD /* spectre_sdma1_ucode.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = spectre_sdma1_ucode.bin; sourceTree = "<group>"; };
 		F0A0A58B2AC2B35500AF57AD /* stoney_ce_ucode.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = stoney_ce_ucode.bin; sourceTree = "<group>"; };
 		F0A0A58C2AC2B35500AF57AD /* stoney_me_ucode.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = stoney_me_ucode.bin; sourceTree = "<group>"; };
@@ -194,6 +195,7 @@
 			children = (
 				F0F27D602AD60A8000FE4C97 /* Drivers.xml */,
 				F0F27D612AD60A8100FE4C97 /* LegacyDrivers.xml */,
+				F0962EA62ADF9FB5002E1CC9 /* LegacyFramebuffers.xml */,
 				F0A0A59E2AC2B35900AF57AD /* amde31a.dat */,
 				F0A0A5932AC2B35700AF57AD /* amde34a.dat */,
 				F0A0A5962AC2B35700AF57AD /* ativce02.dat */,

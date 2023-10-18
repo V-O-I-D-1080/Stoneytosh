@@ -91,6 +91,9 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
                 {"__ZN28AMDRadeonX4000_AMDCIHardware20initializeFamilyTypeEv", wrapInitializeFamilyType},
                 {"__ZN29AMDRadeonX4000_AMDCIPM4Engine21initializeMicroEngineEv", wrapInitializeMicroEngine,
                     this->orgInitializeMicroEngine},
+                {"__ZN29AMDRadeonX4000_AMDCIPM4Engine9softResetEjj", wrapSoftReset, this->orgSoftReset},
+                {"__ZN28AMDRadeonX4000_AMDCIHardware16initializeVMRegsEv", wrapInitializeVMRegs,
+                    this->orgInitializeVMRegs},
             };
             PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "X4000",
                 "Failed to route symbols");
@@ -102,6 +105,7 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
                 this->orgDumpASICHangState},
             {"__ZN26AMDRadeonX4000_AMDHWMemory17adjustVRAMAddressEy", wrapAdjustVRAMAddress,
                 this->orgAdjustVRAMAddress},
+            {"__ZN27AMDRadeonX4000_AMDHWChannel18isDebugFlagEnabledEj", wrapIsDebugFlagEnabled},
         };
         PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "X4000",
             "Failed to route symbols");
@@ -306,10 +310,30 @@ UInt64 X4000::wrapAdjustVRAMAddress(void *that, UInt64 addr) {
     return ret != addr ? (ret + LRed::callback->fbOffset) : ret;
 }
 
-//! CNTL registers are the same accross GFX7 & GFX8
 UInt64 X4000::wrapInitializeMicroEngine(void *that) {
     DBGLOG("X4000", "initializeMicroEngine << (that: %p)", that);
     auto ret = FunctionCast(wrapInitializeMicroEngine, callback->orgInitializeMicroEngine)(that);
     DBGLOG("X4000", "initializeMicroEngine >> 0x%llX", ret);
     return ret;
+}
+
+bool X4000::wrapIsDebugFlagEnabled(void *that, UInt32 flag) {
+    DBGLOG("X4000", "isDebugFlagEnabled << flag: 0x%x", flag);
+    DBGLOG("X4000", "isDebugFlagEnabled >> true");
+    return true;
+}
+
+void X4000::wrapInitializeVMRegs(void *that) {
+    FunctionCast(wrapInitializeVMRegs, callback->orgInitializeVMRegs)(that);
+    if (LRed::callback->chipType == ChipType::Spectre || LRed::callback->chipType == ChipType::Spooky) {
+        UInt32 tmp = LRed::callback->readReg32(mmCHUB_CONTROL);
+        tmp &= ~bypassVM;
+        LRed::callback->writeReg32(mmCHUB_CONTROL, tmp);
+    }
+}
+
+void X4000::wrapSoftReset(void *that, UInt32 addr, UInt32 val) {
+    DBGLOG("X4000", "PM4 softReset: 0x%x, 0x%x", addr, val);
+    FunctionCast(wrapSoftReset, callback->orgSoftReset)(that, addr, val);
+    DBGLOG("X4000", "PM4 softReset >> void");
 }

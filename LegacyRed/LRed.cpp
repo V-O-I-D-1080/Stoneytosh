@@ -119,6 +119,32 @@ void LRed::processPatcher(KernelPatcher &patcher) {
     PANIC_COND(!patcher.routeMultipleLong(KernelPatcher::KernelID, requests, num), "LRed",
         "Failed to route kernel symbols");
 
+    bool bypass = checkKernelArgument("-CKBypassOSLimit");
+
+    if (bypass) {
+        SYSLOG("LRed", "--------------------------------------------------------------");
+        SYSLOG("LRed", "|      You Have Enabled ChefKiss Bypass OS Injection Limit   |");
+        SYSLOG("LRed", "|          Do NOT Report any issues encountered to us        |");
+        SYSLOG("LRed", "|          You are on your own, and have been warned.        |");
+        SYSLOG("LRed", "--------------------------------------------------------------");
+    }
+
+    if ((getKernelVersion() <= KernelVersion::Monterey) || bypass) {
+        auto &legacyFBDesc = getFWDescByName("LegacyFramebuffers.xml");
+        OSString *legacyFBErrStr = nullptr;
+        auto *legacyFBDataNull = new char[legacyFBDesc.size + 1];
+        memcpy(legacyFBDataNull, legacyFBDesc.data, legacyFBDesc.size);
+        legacyFBDataNull[legacyFBDesc.size] = 0;
+        auto *legacyFBDataUnserialized = OSUnserializeXML(legacyFBDataNull, legacyFBDesc.size + 1, &legacyFBErrStr);
+        delete[] legacyFBDataNull;
+        PANIC_COND(!legacyFBDataUnserialized, "LegacyRed", "Failed to unserialize LegacyFramebuffers.xml: %s",
+            legacyFBErrStr ? legacyFBErrStr->getCStringNoCopy() : "<No additional information>");
+        auto *legacyFBDrivers = OSDynamicCast(OSArray, legacyFBDataUnserialized);
+        PANIC_COND(!legacyFBDrivers, "LegacyRed", "Failed to cast LegacyFramebuffers.xml data");
+        PANIC_COND(!gIOCatalogue->addDrivers(legacyFBDrivers), "LegacyRed", "Failed to add framebuffers");
+        legacyFBDataUnserialized->release();
+    }
+
     if ((lilu.getRunMode() & LiluAPI::RunningInstallerRecovery) || checkKernelArgument("-CKFBOnly")) { return; }
 
     auto &desc = getFWDescByName("Drivers.xml");
@@ -135,9 +161,7 @@ void LRed::processPatcher(KernelPatcher &patcher) {
     PANIC_COND(!gIOCatalogue->addDrivers(drivers), "LegacyRed", "Failed to add drivers");
     dataUnserialized->release();
 
-    if (getKernelVersion() <= KernelVersion::Monterey || checkKernelArgument("-CKBypassOSLimit")) {
-        return;
-    }    //! If I see this in anybody's boot arguments your issue is getting instantly marked as invalid.
+    if (!(getKernelVersion() <= KernelVersion::Monterey) && !bypass) { return; }
 
     auto &legacyDesc = getFWDescByName("LegacyDrivers.xml");
     OSString *legacyErrStr = nullptr;
@@ -149,7 +173,7 @@ void LRed::processPatcher(KernelPatcher &patcher) {
     PANIC_COND(!legacyDataUnserialized, "LegacyRed", "Failed to unserialize LegacyDrivers.xml: %s",
         legacyErrStr ? legacyErrStr->getCStringNoCopy() : "<No additional information>");
     auto *legacyDrivers = OSDynamicCast(OSArray, legacyDataUnserialized);
-    PANIC_COND(!legacyDrivers, "LegacyRed", "Failed to cast Drivers.xml data");
+    PANIC_COND(!legacyDrivers, "LegacyRed", "Failed to cast LegacyDrivers.xml data");
     PANIC_COND(!gIOCatalogue->addDrivers(legacyDrivers), "LegacyRed", "Failed to add drivers");
     legacyDataUnserialized->release();
 }

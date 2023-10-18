@@ -33,6 +33,7 @@ class HWLibs {
     mach_vm_address_t orgBonaireProgramAspm {0};
     mach_vm_address_t orgVWriteMmRegisterUlong {0};
     mach_vm_address_t orgGetGpuHwConstants {0};
+    mach_vm_address_t orgBonairePerformSrbmReset {0};
     CAILUcodeInfo *orgCailUcodeInfo {0};
 
     static void wrapAmdCailServicesConstructor(void *that, IOPCIDevice *provider);
@@ -50,6 +51,7 @@ class HWLibs {
     static UInt64 wrapBonaireProgramAspm(UInt64 param1);
     static void wrapVWriteMmRegisterUlong(void *param1, UInt64 addr, UInt64 val);
     static void *wrapGetGpuHwConstants(void *param1);
+    static void wrapBonairePerformSrbmReset(void *param1, UInt32 bit);
 };
 
 /* ---- Pattern ---- */
