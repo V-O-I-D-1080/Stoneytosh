@@ -281,6 +281,15 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
         CAILASICGoldenRegisterSettings *settings =
             goldenCaps[static_cast<UInt32>(LRed::callback->chipType)]->goldenRegisterSettings;
 
+        LookupPatchPlus const patches[] = {
+            {&kextRadeonX4000HWLibs, AtiPowerPlayServicesCOriginal, AtiPowerPlayServicesCPatched, 1},
+            // {&kextRadeonX4000HWLibs, kCAILBonaireLoadUcode1Original, kCAILBonaireLoadUcode1Mask,
+               // kCAILBonaireLoadUcode1Patched, kCAILBonaireLoadUcode1Mask, 1},
+        };
+
+        PANIC_COND(!LookupPatchPlus::applyAll(patcher, patches, 2, address, size), "HWLibs",
+            "Failed to apply patches!");
+
         PANIC_COND(MachInfo::setKernelWriting(true, KernelPatcher::kernelWriteLock) != KERN_SUCCESS, "HWLibs",
             "Failed to enable kernel writing");
 
@@ -418,48 +427,154 @@ AMDReturn X5000HWLibs::wrapSmuRavenInitialize(void *smum, UInt32 param2) {
 }
 */
 
-void HWLibs::wrapCailBonaireLoadUcode(void *param1, UInt64 ucodeId, void *ucodeData, void *param4) {
-    DBGLOG("HWLibs", "_Cail_Bonaire_LoadUcode << (param1: 0x%llX id: 0x%llX data: 0x%llX param4: 0x%llX)", param1,
-        ucodeId, ucodeData, param4);
-    FunctionCast(wrapCailBonaireLoadUcode, callback->orgCailBonaireLoadUcode)(param1, ucodeId, ucodeData, param4);
+void HWLibs::wrapCailBonaireLoadUcode(void *param1, UInt64 ucodeId, UInt8 *ucodeData, void *param4, UInt64 param5,
+    UInt64 param6) {
+    DBGLOG("HWLibs",
+        "_Cail_Bonaire_LoadUcode << (param1: 0x%llX id: 0x%llX data: 0x%llX param4: 0x%llX param5: 0x%llx, param6: "
+        "0x%llx)",
+        param1, ucodeId, ucodeData, param4, param5, param6);
+    const char *prefix = LRed::callback->getPrefix();
+    char filename[128];
+    const UInt32 *regs = LRed::callback->isGCN3 ? ucodeRegisterIndexCollectionGFX8 : ucodeRegisterIndexCollectionCIK;
+    switch (ucodeId) {
+        case kCAILUcodeIdSDMA0: {
+            snprintf(filename, 128, "%ssdma.bin", prefix);
+            auto &fwDesc = getFWDescByName(filename);
+            DBGLOG("HWLibs", "filename: %s", filename);
+            auto *fwHeader = reinterpret_cast<const SdmaFwHeaderV1 *>(fwDesc.data);
+            size_t fwSize = (fwHeader->ucodeSize / 4);
+            auto *fwData = (fwDesc.data + fwHeader->ucodeOff);
+            //! this is cursed, but it's how AMDGPU does it.
+            LRed::callback->writeReg32(regs[12], 0);
+            for (size_t i = 0; i < fwSize; i++) {
+                UInt32 rawData = (UInt32) * (fwData++);
+                LRed::callback->writeReg32(regs[13], rawData);
+            }
+            LRed::callback->writeReg32(regs[12], fwHeader->ucodeVer);
+            DBGLOG("x4000", "SDMA0 FW: version: %x, feature version %x", fwHeader->ucodeVer, fwHeader->ucodeFeatureVer);
+            return;
+        }
+        case kCAILUcodeIdSDMA1: {
+            if (LRed::callback->chipType == ChipType::Stoney) { return; }
+            snprintf(filename, 128, "%ssdma1.bin", prefix);
+            auto &fwDesc = getFWDescByName(filename);
+            DBGLOG("HWLibs", "filename: %s", filename);
+            auto *fwHeader = reinterpret_cast<const SdmaFwHeaderV1 *>(fwDesc.data);
+            size_t fwSize = (fwHeader->ucodeSize / 4);
+            auto *fwData = (fwDesc.data + fwHeader->ucodeOff);
+            //! this is cursed, but it's how AMDGPU does it.
+            LRed::callback->writeReg32(regs[14], 0);
+            for (size_t i = 0; i < fwSize; i++) {
+                UInt32 rawData = (UInt32) * (fwData++);
+                LRed::callback->writeReg32(regs[15], rawData);
+            }
+            LRed::callback->writeReg32(regs[14], fwHeader->ucodeVer);
+            DBGLOG("x4000", "SDMA1 FW: version: %x, feature version %x", fwHeader->ucodeVer, fwHeader->ucodeFeatureVer);
+            return;
+        }
+        case kCAILUcodeIdCE: {
+            if (LRed::callback->chipType == ChipType::Stoney) { return; }
+            snprintf(filename, 128, "%sce.bin", prefix);
+            auto &fwDesc = getFWDescByName(filename);
+            DBGLOG("HWLibs", "filename: %s", filename);
+            auto *fwHeader = reinterpret_cast<const GfxFwHeaderV1 *>(fwDesc.data);
+            size_t fwSize = (fwHeader->ucodeSize / 4);
+            auto *fwData = (fwDesc.data + fwHeader->ucodeOff);
+            //! this is cursed, but it's how AMDGPU does it.
+            LRed::callback->writeReg32(regs[4], 0);
+            for (size_t i = 0; i < fwSize; i++) {
+                UInt32 rawData = (UInt32) * (fwData++);
+                LRed::callback->writeReg32(regs[5], rawData);
+            }
+            LRed::callback->writeReg32(regs[4], fwHeader->ucodeVer);
+            DBGLOG("x4000", "CE FW: version: %x, feature version %x", fwHeader->ucodeVer, fwHeader->ucodeFeatureVer);
+            return;
+        }
+        case kCAILUcodeIdPFP: {
+            if (LRed::callback->chipType == ChipType::Stoney) { return; }
+            snprintf(filename, 128, "%spfp.bin", prefix);
+            auto &fwDesc = getFWDescByName(filename);
+            DBGLOG("HWLibs", "filename: %s", filename);
+            auto *fwHeader = reinterpret_cast<const GfxFwHeaderV1 *>(fwDesc.data);
+            size_t fwSize = (fwHeader->ucodeSize / 4);
+            auto *fwData = (fwDesc.data + fwHeader->ucodeOff);
+            //! this is cursed, but it's how AMDGPU does it.
+            LRed::callback->writeReg32(regs[0], 0);
+            for (size_t i = 0; i < fwSize; i++) {
+                UInt32 rawData = (UInt32) * (fwData++);
+                LRed::callback->writeReg32(regs[1], rawData);
+            }
+            LRed::callback->writeReg32(regs[0], fwHeader->ucodeVer);
+            DBGLOG("x4000", "PFP FW: version: %x, feature version %x", fwHeader->ucodeVer, fwHeader->ucodeFeatureVer);
+            return;
+        }
+        case kCAILUcodeIdME: {
+            if (LRed::callback->chipType == ChipType::Stoney) { return; }
+            snprintf(filename, 128, "%sme.bin", prefix);
+            auto &fwDesc = getFWDescByName(filename);
+            DBGLOG("HWLibs", "filename: %s", filename);
+            auto *fwHeader = reinterpret_cast<const GfxFwHeaderV1 *>(fwDesc.data);
+            size_t fwSize = (fwHeader->ucodeSize / 4);
+            auto *fwData = (fwDesc.data + fwHeader->ucodeOff);
+            //! this is cursed, but it's how AMDGPU does it.
+            LRed::callback->writeReg32(regs[2], 0);
+            for (size_t i = 0; i < fwSize; i++) {
+                UInt32 rawData = (UInt32) * (fwData++);
+                LRed::callback->writeReg32(regs[3], rawData);
+            }
+            LRed::callback->writeReg32(regs[2], fwHeader->ucodeVer);
+            DBGLOG("x4000", "ME FW: version: %x, feature version %x", fwHeader->ucodeVer, fwHeader->ucodeFeatureVer);
+            return;
+        }
+        case kCAILUcodeIdMEC1: {
+            if (LRed::callback->chipType == ChipType::Stoney) { return; }
+            snprintf(filename, 128, "%smec.bin", prefix);
+            auto &fwDesc = getFWDescByName(filename);
+            DBGLOG("HWLibs", "filename: %s", filename);
+            auto *fwHeader = reinterpret_cast<const GfxFwHeaderV1 *>(fwDesc.data);
+            size_t fwSize = (fwHeader->ucodeSize / 4);
+            auto *fwData = (fwDesc.data + fwHeader->ucodeOff);
+            //! this is cursed, but it's how AMDGPU does it.
+            LRed::callback->writeReg32(regs[6], 0);
+            for (size_t i = 0; i < fwSize; i++) {
+                UInt32 rawData = (UInt32) * (fwData++);
+                LRed::callback->writeReg32(regs[7], rawData);
+            }
+            LRed::callback->writeReg32(regs[6], fwHeader->ucodeVer);
+            DBGLOG("x4000", "MEC1 FW: version: %x, feature version %x", fwHeader->ucodeVer, fwHeader->ucodeFeatureVer);
+            return;
+        }
+    }
+    FunctionCast(wrapCailBonaireLoadUcode, callback->orgCailBonaireLoadUcode)(param1, ucodeId, ucodeData, param4,
+        param5, param6);
     DBGLOG("HWLibs", "_Cail_Bonaire_LoadUcode >> void");
 }
 
 void HWLibs::wrapVWriteMmRegisterUlong(void *param1, UInt64 addr, UInt64 val) {
     DBGLOG("HWLibs", "_vWriteMmRegisterUlong << (addr: 0x%llX val: 0x%llX)", addr, val);
-    switch (val) {
-        case 0x3400:
-        case 0x3401:
-            DBGLOG("HWLibs", "SDMA0 Ucode is being loaded!");
-            break;
-        case 0x3600:
-        case 0x3601:
-            DBGLOG("HWLibs", "SDMA1 Ucode is being loaded!");
-            break;
-        case 0x3054:
-        case 0x3055:
-        case 0xF814:
-        case 0xF815:
-            DBGLOG("HWLibs", "PFP Ucode is being loaded!");
-            break;
-        case 0x3057:
-        case 0x3058:
-        case 0xF816:
-        case 0xF817:
-            DBGLOG("HWLibs", "ME Ucode is being loaded!");
-            break;
-        case 0x305A:
-        case 0x305B:
-        case 0xF818:
-        case 0xF819:
-            DBGLOG("HWLibs", "CE Ucode is being loaded!");
-        default:
-            break;
-    }
     if (addr == 0x260D && LRed::callback->chipType == ChipType::Godavari) {
         FunctionCast(wrapVWriteMmRegisterUlong, callback->orgVWriteMmRegisterUlong)(param1, 0x260C0, val);
         //! AMDGPU uses that offset instead of 260D?
+        return;
+    } else if (addr == 0x30E2 || addr == 0x30E3) {
+        DBGLOG("HWLibs", "Attempting to intercept RLC firmware!");
+        char filename[128] = {0};
+        snprintf(filename, 128, "%srlc.bin", LRed::callback->getPrefix());
+        DBGLOG("HWLibs", "filename: %s", filename);
+        auto &fwDesc = getFWDescByName(filename);
+        auto *fwHeader = reinterpret_cast<const RlcFwHeaderV1 *>(fwDesc.data);
+        size_t fwSize = (fwHeader->ucodeSize / 4);
+        auto *fwData = (fwDesc.data + fwHeader->ucodeOff);
+        LRed::callback->writeReg32(0x30E2, 0);
+        for (size_t i = 0; i < fwSize; i++) {
+            UInt32 rawData = (UInt32) * (fwData++);
+            LRed::callback->writeReg32(0x30E3, rawData);
+        }
+        LRed::callback->writeReg32(0x30E2, fwHeader->ucodeVer);
+        DBGLOG("x4000", "RLC FW: version: %x, feature version %x", fwHeader->ucodeVer, fwHeader->ucodeFeatureVer);
+        return;    //! The RLC firmware in the binary shouldn't load
     }
+
     FunctionCast(wrapVWriteMmRegisterUlong, callback->orgVWriteMmRegisterUlong)(param1, addr, val);
     DBGLOG("HWLibs", "_vWriteMmRegisterUlong >> void");
 }

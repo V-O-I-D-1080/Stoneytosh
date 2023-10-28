@@ -73,6 +73,12 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
                 {"__ZN28AMDRadeonX4000_AMDVIHardware20initializeFamilyTypeEv", wrapInitializeFamilyType},
                 {"__ZN26AMDRadeonX4000_AMDHardware12getHWChannelE20_eAMD_HW_ENGINE_TYPE18_eAMD_HW_RING_TYPE",
                     wrapGetHWChannel, this->orgGetHWChannel},
+                {"__ZN32AMDRadeonX4000_AMDFijiPM4Channel27commitIndirectCommandBufferEP30AMD_SUBMIT_COMMAND_BUFFER_"
+                 "INFO",
+                    wrapCommitIndirectCommandBuffer, this->orgCommitindirectCommandBuffer},
+                {"__ZN39AMDRadeonX4000_AMDFijiPM4ComputeChannel27commitIndirectCommandBufferEP30AMD_SUBMIT_COMMAND_"
+                 "BUFFER_INFO",
+                    wrapCommitIndirectCommandBufferCompute, this->orgCommitindirectCommandBufferCompute},
             };
             PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "X4000",
                 "Failed to route symbols");
@@ -81,6 +87,13 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
                 {"__ZN30AMDRadeonX4000_AMDFijiHardware32setupAndInitializeHWCapabilitiesEv",
                     wrapSetupAndInitializeHWCapabilities},
                 {"__ZN28AMDRadeonX4000_AMDVIHardware20initializeFamilyTypeEv", wrapInitializeFamilyType},
+                {"__ZN32AMDRadeonX4000_AMDFijiPM4Channel27commitIndirectCommandBufferEP30AMD_SUBMIT_COMMAND_BUFFER_"
+                 "INFO",
+                    wrapCommitIndirectCommandBuffer, this->orgCommitindirectCommandBuffer},
+                {"__ZN39AMDRadeonX4000_AMDFijiPM4ComputeChannel27commitIndirectCommandBufferEP30AMD_SUBMIT_COMMAND_"
+                 "BUFFER_INFO",
+                    wrapCommitIndirectCommandBufferCompute, this->orgCommitindirectCommandBufferCompute},
+
             };
             PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "X4000",
                 "Failed to route symbols");
@@ -94,6 +107,11 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
                 {"__ZN29AMDRadeonX4000_AMDCIPM4Engine9softResetEjj", wrapSoftReset, this->orgSoftReset},
                 {"__ZN28AMDRadeonX4000_AMDCIHardware16initializeVMRegsEv", wrapInitializeVMRegs,
                     this->orgInitializeVMRegs},
+                {"__ZN30AMDRadeonX4000_AMDCIPM4Channel27commitIndirectCommandBufferEP30AMD_SUBMIT_COMMAND_BUFFER_INFO",
+                    wrapCommitIndirectCommandBuffer, this->orgCommitindirectCommandBuffer},
+                {"__ZN37AMDRadeonX4000_AMDCIPM4ComputeChannel27commitIndirectCommandBufferEP30AMD_SUBMIT_COMMAND_"
+                 "BUFFER_INFO",
+                    wrapCommitIndirectCommandBufferCompute, this->orgCommitindirectCommandBufferCompute},
             };
             PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "X4000",
                 "Failed to route symbols");
@@ -336,4 +354,21 @@ void X4000::wrapSoftReset(void *that, UInt32 addr, UInt32 val) {
     DBGLOG("X4000", "PM4 softReset: 0x%x, 0x%x", addr, val);
     FunctionCast(wrapSoftReset, callback->orgSoftReset)(that, addr, val);
     DBGLOG("X4000", "PM4 softReset >> void");
+}
+
+UInt32 X4000::wrapCommitIndirectCommandBuffer(void *that, void *cmdbuf) {
+    DBGLOG("X4000", "PM4: commitIndirectCommandBuffer: cmdbuf: off 0x0: 0x%x, off 0x4: 0x%x, off 0xC: 0x%x",
+        getMember<UInt32>(cmdbuf, 0), getMember<UInt32>(cmdbuf, 0x4), getMember<UInt32>(cmdbuf, 0xC));
+    auto ret = FunctionCast(wrapCommitIndirectCommandBuffer, callback->orgCommitindirectCommandBuffer)(that, cmdbuf);
+    DBGLOG("X4000", "PM4: commitIndirectCommandBuffer >> 0x%x", ret);
+    return ret;
+}
+
+UInt32 X4000::wrapCommitIndirectCommandBufferCompute(void *that, void *cmdbuf) {
+    DBGLOG("X4000", "PM4 COMPUTE: commitIndirectCommandBuffer: cmdbuf: off 0x0: 0x%x, off 0x4: 0x%x, off 0xC: 0x%x",
+        getMember<UInt32>(cmdbuf, 0), getMember<UInt32>(cmdbuf, 0x4), getMember<UInt32>(cmdbuf, 0xC));
+    auto ret = FunctionCast(wrapCommitIndirectCommandBufferCompute,
+        callback->orgCommitindirectCommandBufferCompute)(that, cmdbuf);
+    DBGLOG("X4000", "PM4 COMPUTE: commitIndirectCommandBuffer >> 0x%x", ret);
+    return ret;
 }

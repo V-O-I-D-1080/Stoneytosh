@@ -89,9 +89,9 @@ class LRed {
     void setRMMIOIfNecessary();
 
     private:
-    static const char *getChipName() {
+    static const char *getPrefix() {
         PANIC_COND(callback->chipType == ChipType::Unknown, "LRed", "Unknown chip type");
-        static const char *chipNames[] = {"spectre", "spectre", "kalindi", "godavari", "carrizo", "stoney"};
+        static const char *chipNames[] = {"kaveri_", "kaveri_", "kabini_", "mullins_", "carrizo_", "stoney_"};
         return chipNames[static_cast<int>(callback->chipType)];
     }
 

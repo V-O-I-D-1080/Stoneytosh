@@ -45,7 +45,8 @@ class HWLibs {
     static UInt64 wrapSMUMInitialize(UInt64 param1, UInt32 *param2, UInt64 param3);
     static void wrapMCILDebugPrint(UInt32 level_max, char *fmt, UInt64 param3, UInt64 param4, UInt64 param5,
         uint level);
-    static void wrapCailBonaireLoadUcode(void *param1, UInt64 ucodeId, void *ucodeData, void *param4);
+    static void wrapCailBonaireLoadUcode(void *param1, UInt64 ucodeId, UInt8 *ucodeData, void *param4, UInt64 param5,
+        UInt64 param6);
     static void wrapBonaireLoadUcodeViaPortRegister(UInt64 param1, UInt64 param2, void *param3, UInt32 param4,
         UInt32 param5);
     static UInt64 wrapBonaireProgramAspm(UInt64 param1);
@@ -54,9 +55,22 @@ class HWLibs {
     static void wrapBonairePerformSrbmReset(void *param1, UInt32 bit);
 };
 
-/* ---- Pattern ---- */
+/* ---- Patterns ---- */
 
 static const UInt8 kCailAsicCapsTableHWLibsPattern[] = {0x6E, 0x00, 0x00, 0x00, 0x98, 0x67, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00};
+
+static const UInt8 kCailBonaireLoadUcodeMontereyPattern[] = {0x55, 0x48, 0x89, 0xE5, 0x41, 0x57, 0x41, 0x56, 0x41, 0x55,
+    0x41, 0x54, 0x53, 0x48, 0x83, 0xEC, 0x28, 0x31, 0xC0};
+
+// ----- Patch ----- //
+
+//! Force allow all log levels.
+static const UInt8 AtiPowerPlayServicesCOriginal[] = {0x8B, 0x40, 0x60, 0x48, 0x8D};
+static const UInt8 AtiPowerPlayServicesCPatched[] = {0x6A, 0xFF, 0x58, 0x48, 0x8D};
+
+static const UInt8 kCAILBonaireLoadUcode1Original[] = {0x85, 0xC0, 0x74, 0x00};
+static const UInt8 kCAILBonaireLoadUcode1Mask[] = {0xFF, 0xFF, 0xFF, 0x00};
+static const UInt8 kCAILBonaireLoadUcode1Patched[] = {0x85, 0xC0, 0x75, 0x00};
 
 #endif /* HWLibs_hpp */

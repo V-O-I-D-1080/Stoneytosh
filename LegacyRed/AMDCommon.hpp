@@ -54,16 +54,22 @@ constexpr UInt32 SRBM_STATUS__MCB_NON_DISPLAY_BUSY_MASK = 0x400;
 constexpr UInt32 SRBM_STATUS__MCC_BUSY_MASK = 0x800;
 constexpr UInt32 SRBM_STATUS__MCD_BUSY_MASK = 0x1000;
 
+struct CAILFirmwareBlob {
+    void *unknown, *unknown0, *unknown2;
+    UInt32 *rawData;
+    void *unknown3, *unknown4;
+};
+
 struct CAILUcodeInfo {
-    UInt32 *rlcUcode;
-    UInt32 *sdma0Ucode;
-    UInt32 *sdma1Ucode;
-    UInt32 *ceUcode;
-    UInt32 *pfpUcode;
-    UInt32 *meUcode;
-    UInt32 *mec1Ucode;
-    UInt32 *mec2Ucode;
-    UInt32 *rlcVUcode;
+    CAILFirmwareBlob *rlcUcode;
+    CAILFirmwareBlob *sdma0Ucode;
+    CAILFirmwareBlob *sdma1Ucode;
+    CAILFirmwareBlob *ceUcode;
+    CAILFirmwareBlob *pfpUcode;
+    CAILFirmwareBlob *meUcode;
+    CAILFirmwareBlob *mec1Ucode;
+    CAILFirmwareBlob *mec2Ucode;
+    CAILFirmwareBlob *rlcVUcode;
     UInt32 *microEngineRegisters;
     UInt32 *rlcRegister;
     UInt32 *sdma0Register;
@@ -74,7 +80,41 @@ struct CAILUcodeInfo {
     UInt32 *mec1Register;
     UInt32 *mec2Register;
     UInt32 *rlcVRegister;
-    UInt32 *tmzUcode;
+    UInt8 *tmzUcode;
+};
+
+struct CommonFirmwareHeader {
+    UInt32 size;
+    UInt32 headerSize;
+    UInt16 headerMajor;
+    UInt16 headerMinor;
+    UInt16 ipMajor;
+    UInt16 ipMinor;
+    UInt32 ucodeVer;
+    UInt32 ucodeSize;
+    UInt32 ucodeOff;
+    UInt32 crc32;
+} PACKED;
+
+struct GfxFwHeaderV1 : public CommonFirmwareHeader {
+    UInt32 ucodeFeatureVer;
+    UInt32 jtOff;
+    UInt32 jtSize;
+} PACKED;
+
+struct SdmaFwHeaderV1 : public CommonFirmwareHeader {
+    UInt32 ucodeFeatureVer;
+    UInt32 ucodeChangeVer;
+    UInt32 jtOff;
+    UInt32 jtSize;
+} PACKED;
+
+struct RlcFwHeaderV1 : public CommonFirmwareHeader {
+    UInt32 ucodeFeatureVer;
+    UInt32 saveAndRestoreOff;
+    UInt32 clearStateDescOff;
+    UInt32 availScratchRamLocations;
+    UInt32 masterPktDescriptionOff;
 };
 
 struct CAILASICGoldenRegisterSettings {
@@ -121,5 +161,60 @@ struct CailDeviceTypeEntry {
 
 constexpr UInt32 ADDR_CHIP_FAMILY_VI = 7;
 constexpr UInt32 ADDR_CHIP_FAMILY_CI = 6;
+
+enum kCAILUcodeId : UInt32 {
+    kCAILUcodeIdSDMA0 = 1,
+    kCAILUcodeIdSDMA1,
+    kCAILUcodeIdCE,
+    kCAILUcodeIdPFP,
+    kCAILUcodeIdME,
+    kCAILUcodeIdMEC1,
+};
+
+//! These can be found in their respective asic_reg header
+constexpr UInt32 ucodeRegisterIndexCollectionCIK[] = {
+    //! gfx_7_0_d.h
+    0x3054,    //! mmCP_PFP_UCODE_ADDR
+    0x3055,    //! mmCP_PFP_UCODE_DATA
+    0x3057,    //! mmCP_ME_RAM_WADDR
+    0x3058,    //! mmCP_ME_RAM_DATA
+    0x305A,    //! mmCP_CE_UCODE_ADDR
+    0x305B,    //! mmCP_CE_UCODE_DATA
+    0x305C,    //! mmCP_MEC_ME1_UCODE_ADDR
+    0x305D,    //! mmCP_MEC_ME1_UCODE_DATA
+    0x305E,    //! mmCP_MEC_ME2_UCODE_ADDR
+    0x305F,    //! mmCP_MEC_ME2_UCODE_DATA
+    0x30E2,    //! mmRLC_GPM_UCODE_ADDR
+    0x30E3,    //! mmRLC_GPM_UCODE_DATA
+    //! oss_2_0_d.h
+    0x3400,    //! mmSDMA0_UCODE_ADDR
+    0x3401,    //! mmSDMA0_UCODE_DATA
+    0x3600,    //! mmSDMA1_UCODE_ADDR
+    0x3601,    //! mmSDMA1_UCODE_ADDR
+};
+
+//! This should not be used. The SMU (SMU 8) handles ucode in HWLibs.
+//! The side-effect of using the registers are currently unknown.
+//! Despite this, HWLibs still uses the CAIL stack implementation. Debugging required.
+constexpr UInt32 ucodeRegisterIndexCollectionGFX8[] = {
+    //! gfx_8_1_d.h
+    0xF814,    //! mmCP_PFP_UCODE_ADDR
+    0xF815,    //! mmCP_PFP_UCODE_DATA
+    0xF816,    //! mmCP_ME_RAM_WADDR
+    0xF817,    //! mmCP_ME_RAM_DATA
+    0xF818,    //! mmCP_CE_UCODE_ADDR
+    0xF819,    //! mmCP_CE_UCODE_DATA
+    0xF81A,    //! mmCP_MEC_ME1_UCODE_ADDR
+    0xF81B,    //! mmCP_MEC_ME1_UCODE_DATA
+    0xF81C,    //! mmCP_MEC_ME2_UCODE_ADDR
+    0xF81B,    //! mmCP_MEC_ME2_UCODE_DATA
+    0xF83C,    //! mmRLC_GPM_UCODE_ADDR
+    0xF83D,    //! mmRLC_GPM_UCODE_DATA
+    //! oss_3_0_1_d.h
+    0x3400,    //! mmSDMA0_UCODE_ADDR
+    0x3401,    //! mmSDMA0_UCODE_DATA
+    0x3600,    //! mmSDMA1_UCODE_ADDR
+    0x3601,    //! mmSDMA1_UCODE_ADDR
+};
 
 #endif /* AMDCommon.hpp */

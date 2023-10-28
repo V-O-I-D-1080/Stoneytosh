@@ -101,11 +101,17 @@
 			<key>PP_EnableLoadFalconSmcFirmware</key>
 			<integer>0</integer>
 			<key>PP_Falcon_QuickTransition_Enable</key>
-			<integer>1</integer>
+			<integer>0</integer>
 			<key>PP_MclkActivityTarget</key>
 			<integer>5</integer>
 			<key>PP_PhmUseDummyBackEnd</key>
 			<integer>0</integer>
+			<key>PP_LogLevel</key>
+			<integer>-1</integer>
+			<key>PP_LogSource</key>
+			<integer>-1</integer>
+			<key>PP_LogTarget</key>
+			<integer>-1</integer>
 		</dict>
 	</dict>
 	<dict>
@@ -235,6 +241,12 @@
 			<integer>5</integer>
 			<key>PP_MclkDpmDisabled</key>
 			<integer>0</integer>
+			<key>PP_LogLevel</key>
+			<integer>-1</integer>
+			<key>PP_LogSource</key>
+			<integer>-1</integer>
+			<key>PP_LogTarget</key>
+			<integer>-1</integer>
 		</dict>
 	</dict>
 </array>
