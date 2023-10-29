@@ -34,6 +34,7 @@ class HWLibs {
     mach_vm_address_t orgVWriteMmRegisterUlong {0};
     mach_vm_address_t orgGetGpuHwConstants {0};
     mach_vm_address_t orgBonairePerformSrbmReset {0};
+    mach_vm_address_t orgBonaireInitRlc {0};
     CAILUcodeInfo *orgCailUcodeInfo {0};
 
     static void wrapAmdCailServicesConstructor(void *that, IOPCIDevice *provider);
@@ -41,7 +42,7 @@ class HWLibs {
     static UInt64 wrapCailMonitorEngineInternalState(void *that, UInt32 param1, UInt32 *param2);
     static UInt64 wrapCailMonitorPerformanceCounter(void *that, UInt32 *param1);
     static void *wrapCreatePowerTuneServices(void *that, void *param2);
-    static AMDReturn wrapSmuCzInitialize(void *smum, UInt32 param2);
+    static CAILResult wrapSmuCzInitialize(void *smum, UInt32 param2);
     static UInt64 wrapSMUMInitialize(UInt64 param1, UInt32 *param2, UInt64 param3);
     static void wrapMCILDebugPrint(UInt32 level_max, char *fmt, UInt64 param3, UInt64 param4, UInt64 param5,
         uint level);
@@ -53,6 +54,7 @@ class HWLibs {
     static void wrapVWriteMmRegisterUlong(void *param1, UInt64 addr, UInt64 val);
     static void *wrapGetGpuHwConstants(void *param1);
     static void wrapBonairePerformSrbmReset(void *param1, UInt32 bit);
+    static UInt64 wrapBonaireInitRlc(void *data);
 };
 
 /* ---- Patterns ---- */
@@ -72,5 +74,11 @@ static const UInt8 AtiPowerPlayServicesCPatched[] = {0x6A, 0xFF, 0x58, 0x48, 0x8
 static const UInt8 kCAILBonaireLoadUcode1Original[] = {0x85, 0xC0, 0x74, 0x00};
 static const UInt8 kCAILBonaireLoadUcode1Mask[] = {0xFF, 0xFF, 0xFF, 0x00};
 static const UInt8 kCAILBonaireLoadUcode1Patched[] = {0x85, 0xC0, 0x75, 0x00};
+
+//! It gets _bonaire_init_rlc writing the RLC version, HWLibs thinks that the old ASICs load the firmware by itself?
+static const UInt8 kBonaireInitRlcOriginal[] = {0xBE, 0x53, 0x00, 0x00, 0x00, 0xE8, 0x91, 0x62, 0xFD, 0xFF, 0x4C, 0x89,
+    0xE7, 0x85, 0xC0, 0x74, 0x09};
+static const UInt8 kBonaireInitRlcPatched[] = {0xBE, 0x53, 0x00, 0x00, 0x00, 0xE8, 0x91, 0x62, 0xFD, 0xFF, 0x4C, 0x89,
+    0xE7, 0x85, 0xC0, 0xEB, 0x09};
 
 #endif /* HWLibs_hpp */

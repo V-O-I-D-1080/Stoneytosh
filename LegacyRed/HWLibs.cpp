@@ -263,6 +263,7 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
             {"_vWriteMmRegisterUlong", wrapVWriteMmRegisterUlong, this->orgVWriteMmRegisterUlong},
             {"_GetGpuHwConstants", wrapGetGpuHwConstants, this->orgGetGpuHwConstants},
             {"_bonaire_perform_srbm_soft_reset", wrapBonairePerformSrbmReset, this->orgBonairePerformSrbmReset},
+            {"_bonaire_init_rlc", wrapBonaireInitRlc, this->orgBonaireInitRlc},
         };
         PANIC_COND(!patcher.routeMultiple(index, requests, address, size), "HWLibs", "Failed to route symbols");
 
@@ -283,11 +284,12 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
 
         LookupPatchPlus const patches[] = {
             {&kextRadeonX4000HWLibs, AtiPowerPlayServicesCOriginal, AtiPowerPlayServicesCPatched, 1},
+            // {&kextRadeonX4000HWLibs, kBonaireInitRlcOriginal, kBonaireInitRlcOriginal, 1},
             // {&kextRadeonX4000HWLibs, kCAILBonaireLoadUcode1Original, kCAILBonaireLoadUcode1Mask,
-               // kCAILBonaireLoadUcode1Patched, kCAILBonaireLoadUcode1Mask, 1},
+            // kCAILBonaireLoadUcode1Patched, kCAILBonaireLoadUcode1Mask, 1},
         };
 
-        PANIC_COND(!LookupPatchPlus::applyAll(patcher, patches, 2, address, size), "HWLibs",
+        PANIC_COND(!LookupPatchPlus::applyAll(patcher, patches, 0, address, size), "HWLibs",
             "Failed to apply patches!");
 
         PANIC_COND(MachInfo::setKernelWriting(true, KernelPatcher::kernelWriteLock) != KERN_SUCCESS, "HWLibs",
@@ -556,7 +558,7 @@ void HWLibs::wrapVWriteMmRegisterUlong(void *param1, UInt64 addr, UInt64 val) {
         FunctionCast(wrapVWriteMmRegisterUlong, callback->orgVWriteMmRegisterUlong)(param1, 0x260C0, val);
         //! AMDGPU uses that offset instead of 260D?
         return;
-    } else if (addr == 0x30E2 || addr == 0x30E3) {
+    } else if (addr == 0x30E3) {
         DBGLOG("HWLibs", "Attempting to intercept RLC firmware!");
         char filename[128] = {0};
         snprintf(filename, 128, "%srlc.bin", LRed::callback->getPrefix());
@@ -597,7 +599,6 @@ UInt64 HWLibs::wrapBonaireProgramAspm(UInt64 param1) {
 void *HWLibs::wrapGetGpuHwConstants(void *param1) {
     void *ret = FunctionCast(wrapGetGpuHwConstants, callback->orgGetGpuHwConstants)(param1);
     //! I have zero idea if this will change anything.
-    getMember<CAILUcodeInfo *>(ret, 0x30) = callback->orgCailUcodeInfo;
     return ret;
 }
 
@@ -608,4 +609,27 @@ void HWLibs::wrapBonairePerformSrbmReset(void *param1, UInt32 bit) {
         return;
     }
     FunctionCast(wrapBonairePerformSrbmReset, callback->orgBonairePerformSrbmReset)(param1, bit);
+}
+
+UInt64 HWLibs::wrapBonaireInitRlc(void *data) {
+    DBGLOG("HWLibs", "_bonaire_init_rlc >>");
+    //! This is when HWLibs loads the RLC firmware.
+    char filename[128] = {0};
+    const UInt32 *regs = LRed::callback->isGCN3 ? ucodeRegisterIndexCollectionGFX8 : ucodeRegisterIndexCollectionCIK;
+    snprintf(filename, 128, "%srlc.bin", LRed::callback->getPrefix());
+    DBGLOG("HWLibs", "filename: %s", filename);
+    auto &fwDesc = getFWDescByName(filename);
+    auto *fwHeader = reinterpret_cast<const RlcFwHeaderV1 *>(fwDesc.data);
+    size_t fwSize = (fwHeader->ucodeSize / 4);
+    auto *fwData = (fwDesc.data + fwHeader->ucodeOff);
+    LRed::callback->writeReg32(regs[10], 0);
+    for (size_t i = 0; i < fwSize; i++) {
+        UInt32 rawData = (UInt32) * (fwData++);
+        LRed::callback->writeReg32(regs[11], rawData);
+    }
+    LRed::callback->writeReg32(regs[10], fwHeader->ucodeVer);
+    DBGLOG("x4000", "RLC FW: version: %x, feature version %x", fwHeader->ucodeVer, fwHeader->ucodeFeatureVer);
+    auto ret = FunctionCast(wrapBonaireInitRlc, callback->orgBonaireInitRlc)(data);
+    DBGLOG("HWLibs", "_bonaire_init_rlc << %llu", ret);
+    return ret;
 }

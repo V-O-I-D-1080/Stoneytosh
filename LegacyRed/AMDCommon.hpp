@@ -146,12 +146,12 @@ struct CAILAsicCapsInitEntry {
     const CAILASICGoldenSettings *goldenCaps;
 } PACKED;
 
-enum AMDReturn : UInt32 {
-    kAMDReturnSuccess = 0,
-    kAMDReturnInvalidArgument,
-    kAMDReturnGeneralFailure,
-    kAMDReturnResourcesExhausted,
-    kAMDReturnUnsupported,
+enum CAILResult : UInt32 {
+    kCAILResultSuccess = 0,
+    kCAILResultInvalidArgument,
+    kCAILResultGeneralFailure,
+    kCAILResultResourcesExhausted,
+    kCAILResultUnsupported,
 };
 
 struct CailDeviceTypeEntry {
@@ -190,7 +190,7 @@ constexpr UInt32 ucodeRegisterIndexCollectionCIK[] = {
     0x3400,    //! mmSDMA0_UCODE_ADDR
     0x3401,    //! mmSDMA0_UCODE_DATA
     0x3600,    //! mmSDMA1_UCODE_ADDR
-    0x3601,    //! mmSDMA1_UCODE_ADDR
+    0x3601,    //! mmSDMA1_UCODE_DATA
 };
 
 //! This should not be used. The SMU (SMU 8) handles ucode in HWLibs.
@@ -214,7 +214,7 @@ constexpr UInt32 ucodeRegisterIndexCollectionGFX8[] = {
     0x3400,    //! mmSDMA0_UCODE_ADDR
     0x3401,    //! mmSDMA0_UCODE_DATA
     0x3600,    //! mmSDMA1_UCODE_ADDR
-    0x3601,    //! mmSDMA1_UCODE_ADDR
+    0x3601,    //! mmSDMA1_UCODE_DATA
 };
 
 #endif /* AMDCommon.hpp */

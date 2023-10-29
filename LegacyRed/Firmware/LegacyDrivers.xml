@@ -122,7 +122,7 @@
 			<key>CAIL_DisableJpegEngine</key>
 			<integer>1</integer>
 			<key>CAIL_DisableSAMUPowerGating</key>
-			<integer>0</integer>
+			<integer>1</integer>
 			<key>CAIL_DisableSysClockGating</key>
 			<integer>1</integer>
 			<key>CAIL_DisableUVDPowerGating</key>
