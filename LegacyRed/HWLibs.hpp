@@ -32,9 +32,7 @@ class HWLibs {
     mach_vm_address_t orgBonaireLoadUcodeViaPortRegister {0};
     mach_vm_address_t orgBonaireProgramAspm {0};
     mach_vm_address_t orgVWriteMmRegisterUlong {0};
-    mach_vm_address_t orgGetGpuHwConstants {0};
     mach_vm_address_t orgBonairePerformSrbmReset {0};
-    mach_vm_address_t orgBonaireInitRlc {0};
     CAILUcodeInfo *orgCailUcodeInfo {0};
 
     static void wrapAmdCailServicesConstructor(void *that, IOPCIDevice *provider);
@@ -52,9 +50,7 @@ class HWLibs {
         UInt32 param5);
     static UInt64 wrapBonaireProgramAspm(UInt64 param1);
     static void wrapVWriteMmRegisterUlong(void *param1, UInt64 addr, UInt64 val);
-    static void *wrapGetGpuHwConstants(void *param1);
     static void wrapBonairePerformSrbmReset(void *param1, UInt32 bit);
-    static UInt64 wrapBonaireInitRlc(void *data);
 };
 
 /* ---- Patterns ---- */
@@ -70,12 +66,13 @@ static const UInt8 kCailBonaireLoadUcodeMontereyPattern[] = {0x55, 0x48, 0x89, 0
 //! Force allow all log levels.
 static const UInt8 AtiPowerPlayServicesCOriginal[] = {0x8B, 0x40, 0x60, 0x48, 0x8D};
 static const UInt8 AtiPowerPlayServicesCPatched[] = {0x6A, 0xFF, 0x58, 0x48, 0x8D};
+//! _bonaire_load_ucode_via_port_register doesn't seem to trigger on pre-Carrizo ASICs?
+static const UInt8 kCAILBonaireLoadUcode1Original[] = {0xBE, 0x53, 0x00, 0x00, 0x00, 0xE8, 0xD9, 0xC2, 0xFD, 0xFF, 0x85,
+    0xC0, 0x74, 0x4F};
+static const UInt8 kCAILBonaireLoadUcode1Patched[] = {0xBE, 0x53, 0x00, 0x00, 0x00, 0xE8, 0xD9, 0xC2, 0xFD, 0xFF, 0x85,
+    0xC0, 0xEB, 0x4F};
 
-static const UInt8 kCAILBonaireLoadUcode1Original[] = {0x85, 0xC0, 0x74, 0x00};
-static const UInt8 kCAILBonaireLoadUcode1Mask[] = {0xFF, 0xFF, 0xFF, 0x00};
-static const UInt8 kCAILBonaireLoadUcode1Patched[] = {0x85, 0xC0, 0x75, 0x00};
-
-//! It gets _bonaire_init_rlc writing the RLC version, HWLibs thinks that the old ASICs load the firmware by itself?
+//! Forces _bonaire_init_rlc to load the RLC firmware, tested on macOS Big Sur
 static const UInt8 kBonaireInitRlcOriginal[] = {0xBE, 0x53, 0x00, 0x00, 0x00, 0xE8, 0x91, 0x62, 0xFD, 0xFF, 0x4C, 0x89,
     0xE7, 0x85, 0xC0, 0x74, 0x09};
 static const UInt8 kBonaireInitRlcPatched[] = {0xBE, 0x53, 0x00, 0x00, 0x00, 0xE8, 0x91, 0x62, 0xFD, 0xFF, 0x4C, 0x89,

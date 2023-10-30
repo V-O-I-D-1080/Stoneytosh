@@ -73,8 +73,6 @@
 		F03C423E2AEDADCC008C1C1A /* stoney_mec.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = stoney_mec.bin; sourceTree = "<group>"; };
 		F03C423F2AEDADCC008C1C1A /* kabini_pfp.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = kabini_pfp.bin; sourceTree = "<group>"; };
 		F03C42402AEDADCC008C1C1A /* stoney_pfp.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = stoney_pfp.bin; sourceTree = "<group>"; };
-		F03C42412AEDADCC008C1C1A /* stoney_rlc.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = stoney_rlc.bin; sourceTree = "<group>"; };
-		F03C42422AEDADCC008C1C1A /* kaveri_rlc.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = kaveri_rlc.bin; sourceTree = "<group>"; };
 		F03C42432AEDADCC008C1C1A /* kaveri_me.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = kaveri_me.bin; sourceTree = "<group>"; };
 		F03C42442AEDADCC008C1C1A /* mullins_me.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = mullins_me.bin; sourceTree = "<group>"; };
 		F03C42452AEDADCC008C1C1A /* kaveri_mec2.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = kaveri_mec2.bin; sourceTree = "<group>"; };
@@ -87,17 +85,14 @@
 		F03C424C2AEDADCD008C1C1A /* kaveri_pfp.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = kaveri_pfp.bin; sourceTree = "<group>"; };
 		F03C424D2AEDADCD008C1C1A /* kaveri_mec.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = kaveri_mec.bin; sourceTree = "<group>"; };
 		F03C424E2AEDADCE008C1C1A /* kabini_sdma1.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = kabini_sdma1.bin; sourceTree = "<group>"; };
-		F03C424F2AEDADCE008C1C1A /* carrizo_rlc.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = carrizo_rlc.bin; sourceTree = "<group>"; };
 		F03C42502AEDADCE008C1C1A /* carrizo_sdma1.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = carrizo_sdma1.bin; sourceTree = "<group>"; };
 		F03C42512AEDADCE008C1C1A /* carrizo_pfp.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = carrizo_pfp.bin; sourceTree = "<group>"; };
 		F03C42522AEDADCE008C1C1A /* carrizo_ce.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = carrizo_ce.bin; sourceTree = "<group>"; };
 		F03C42532AEDADCE008C1C1A /* kaveri_sdma1.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = kaveri_sdma1.bin; sourceTree = "<group>"; };
 		F03C42542AEDADCE008C1C1A /* carrizo_sdma.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = carrizo_sdma.bin; sourceTree = "<group>"; };
-		F03C42552AEDADCE008C1C1A /* mullins_rlc.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = mullins_rlc.bin; sourceTree = "<group>"; };
 		F03C42562AEDADCE008C1C1A /* carrizo_me.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = carrizo_me.bin; sourceTree = "<group>"; };
 		F03C42572AEDADCF008C1C1A /* mullins_sdma.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = mullins_sdma.bin; sourceTree = "<group>"; };
 		F03C42582AEDADCF008C1C1A /* stoney_me.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = stoney_me.bin; sourceTree = "<group>"; };
-		F03C42592AEDADCF008C1C1A /* kabini_rlc.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = kabini_rlc.bin; sourceTree = "<group>"; };
 		F03C425A2AEDADCF008C1C1A /* kabini_sdma.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = kabini_sdma.bin; sourceTree = "<group>"; };
 		F03C425B2AEDADCF008C1C1A /* mullins_pfp.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = mullins_pfp.bin; sourceTree = "<group>"; };
 		F067C20329D82E57004BB52E /* GFXCon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GFXCon.cpp; sourceTree = "<group>"; };
@@ -207,14 +202,12 @@
 				F03C424B2AEDADCD008C1C1A /* carrizo_mec.bin */,
 				F03C42462AEDADCD008C1C1A /* carrizo_mec2.bin */,
 				F03C42512AEDADCE008C1C1A /* carrizo_pfp.bin */,
-				F03C424F2AEDADCE008C1C1A /* carrizo_rlc.bin */,
 				F03C42542AEDADCE008C1C1A /* carrizo_sdma.bin */,
 				F03C42502AEDADCE008C1C1A /* carrizo_sdma1.bin */,
 				F03C42492AEDADCD008C1C1A /* kabini_ce.bin */,
 				F03C42382AEDADCB008C1C1A /* kabini_me.bin */,
 				F03C42392AEDADCB008C1C1A /* kabini_mec.bin */,
 				F03C423F2AEDADCC008C1C1A /* kabini_pfp.bin */,
-				F03C42592AEDADCF008C1C1A /* kabini_rlc.bin */,
 				F03C425A2AEDADCF008C1C1A /* kabini_sdma.bin */,
 				F03C424E2AEDADCE008C1C1A /* kabini_sdma1.bin */,
 				F03C423B2AEDADCC008C1C1A /* kaveri_ce.bin */,
@@ -222,21 +215,18 @@
 				F03C424D2AEDADCD008C1C1A /* kaveri_mec.bin */,
 				F03C42452AEDADCC008C1C1A /* kaveri_mec2.bin */,
 				F03C424C2AEDADCD008C1C1A /* kaveri_pfp.bin */,
-				F03C42422AEDADCC008C1C1A /* kaveri_rlc.bin */,
 				F03C423D2AEDADCC008C1C1A /* kaveri_sdma.bin */,
 				F03C42532AEDADCE008C1C1A /* kaveri_sdma1.bin */,
 				F03C423A2AEDADCB008C1C1A /* mullins_ce.bin */,
 				F03C42442AEDADCC008C1C1A /* mullins_me.bin */,
 				F03C423C2AEDADCC008C1C1A /* mullins_mec.bin */,
 				F03C425B2AEDADCF008C1C1A /* mullins_pfp.bin */,
-				F03C42552AEDADCE008C1C1A /* mullins_rlc.bin */,
 				F03C42572AEDADCF008C1C1A /* mullins_sdma.bin */,
 				F03C424A2AEDADCD008C1C1A /* mullins_sdma1.bin */,
 				F03C42472AEDADCD008C1C1A /* stoney_ce.bin */,
 				F03C42582AEDADCF008C1C1A /* stoney_me.bin */,
 				F03C423E2AEDADCC008C1C1A /* stoney_mec.bin */,
 				F03C42402AEDADCC008C1C1A /* stoney_pfp.bin */,
-				F03C42412AEDADCC008C1C1A /* stoney_rlc.bin */,
 				F03C42482AEDADCD008C1C1A /* stoney_sdma.bin */,
 			);
 			path = Firmware;
