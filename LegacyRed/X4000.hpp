@@ -42,6 +42,7 @@ class X4000 {
     mach_vm_address_t orgSoftReset {0};
     mach_vm_address_t orgCommitindirectCommandBuffer {0};
     mach_vm_address_t orgCommitindirectCommandBufferCompute {0};
+    mach_vm_address_t orgHwlInitGlobalParams {0};
 
     void *callbackAccelerator = nullptr;
 
@@ -58,6 +59,7 @@ class X4000 {
     static void wrapSoftReset(void *that, UInt32 addr, UInt32 val);
     static UInt32 wrapCommitIndirectCommandBuffer(void *that, void *cmdbuf);
     static UInt32 wrapCommitIndirectCommandBufferCompute(void *that, void *cmdbuf);
+    static int wrapHwlInitGlobalParams(void *that, const void *creationInfo);
 };
 
 // ---- Patches ---- //

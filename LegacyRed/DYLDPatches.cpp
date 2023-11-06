@@ -12,25 +12,47 @@ DYLDPatches *DYLDPatches::callback = nullptr;
 void DYLDPatches::init() { callback = this; }
 
 void DYLDPatches::processPatcher(KernelPatcher &patcher) {
-    if (!(lilu.getRunMode() & LiluAPI::RunningNormal) || !checkKernelArgument("-lreddyld")) { return; }
+    KernelPatcher::RouteRequest request {"_cs_validate_page", wrapCsValidatePage, this->orgCsValidatePage};
+
+    PANIC_COND(!patcher.routeMultipleLong(KernelPatcher::KernelID, &request, 1), "DYLD",
+        "Failed to route kernel symbols");
+
+    //! Dear end users, do NOT use `-ChefKissInternal`. THIS FLAG ENABLES FEATURES FOR *DEVELOPER* TESTING.
+    //! And to whoever documents them, thanks for making our life harder by making people experience issues
+    //! they would otherwise not have, you bloody wanker.
+    if (getKernelVersion() == KernelVersion::Catalina || !(lilu.getRunMode() & LiluAPI::RunningNormal) ||
+        !checkKernelArgument("-ChefKissInternal")) {
+        return;
+    }
+
+    SYSLOG("DYLD", "----------------------------------------------------------------");
+    SYSLOG("DYLD", "|          You Have Enabled ChefKiss Internal Testing          |");
+    SYSLOG("DYLD", "|                Do NOT Report any issues to us                |");
+    SYSLOG("DYLD", "|         You are on your OWN, and you've been warned!         |");
+    SYSLOG("DYLD", "----------------------------------------------------------------");
 
     auto *entry = IORegistryEntry::fromPath("/", gIODTPlane);
     if (entry) {
         DBGLOG("DYLD", "Setting hwgva-id to iMacPro1,1");
         entry->setProperty("hwgva-id", const_cast<char *>(kHwGvaId), arrsize(kHwGvaId));
-        entry->release();
+        OSSafeReleaseNULL(entry);
     }
-
-    KernelPatcher::RouteRequest request {"_cs_validate_page", csValidatePage, this->orgCsValidatePage};
-
-    PANIC_COND(!patcher.routeMultipleLong(KernelPatcher::KernelID, &request, 1), "DYLD",
-        "Failed to route kernel symbols");
 }
 
-void DYLDPatches::csValidatePage(vnode *vp, memory_object_t pager, memory_object_offset_t page_offset, const void *data,
-    int *validated_p, int *tainted_p, int *nx_p) {
-    FunctionCast(csValidatePage, callback->orgCsValidatePage)(vp, pager, page_offset, data, validated_p, tainted_p,
+void DYLDPatches::wrapCsValidatePage(vnode *vp, memory_object_t pager, memory_object_offset_t page_offset,
+    const void *data, int *validated_p, int *tainted_p, int *nx_p) {
+    FunctionCast(wrapCsValidatePage, callback->orgCsValidatePage)(vp, pager, page_offset, data, validated_p, tainted_p,
         nx_p);
+
+    const DYLDPatch patch = {kAMDMTLBronzeAsicIDToFamilyInfoOriginal, kAMDMTLBronzeAsicIDToFamilyInfoFindMask,
+        kAMDMTLBronzeAsicIDToFamilyInfoPatched, kAMDMTLBronzeAsicIDToFamilyInfoReplaceMask,
+        "amdMtl_Bronze_asicIDToFamilyInfo patch (forces VI & CI IDs for KV & CZ)"};
+    patch.apply(const_cast<void *>(data), PAGE_SIZE);
+
+    if (getKernelVersion() == KernelVersion::Catalina || !(lilu.getRunMode() & LiluAPI::RunningNormal) ||
+        !checkKernelArgument("-ChefKissInternal")) {
+        return;
+    }
 
     char path[PATH_MAX];
     int pathlen = PATH_MAX;

@@ -40,7 +40,7 @@ class DYLDPatch {
         if (UNLIKELY(KernelPatcher::findAndReplaceWithMask(data, size, this->find, this->size, this->findMask,
                 this->findMask ? this->size : 0, this->replace, this->size, this->replaceMask,
                 this->replaceMask ? this->size : 0))) {
-            DBGLOG("dyld", "Applied '%s' patch", this->comment);
+            DBGLOG("DYLD", "Applied '%s' patch", this->comment);
         }
     }
 
@@ -62,29 +62,44 @@ class DYLDPatches {
     void processPatcher(KernelPatcher &patcher);
 
     private:
+    static void apply(char *path, void *data, size_t size);
+
     mach_vm_address_t orgCsValidatePage {0};
-    static void csValidatePage(vnode *vp, memory_object_t pager, memory_object_offset_t page_offset, const void *data,
-        int *validated_p, int *tainted_p, int *nx_p);
+    static void wrapCsValidatePage(vnode *vp, memory_object_t pager, memory_object_offset_t page_offset,
+        const void *data, int *validated_p, int *tainted_p, int *nx_p);
 };
 
-/** VideoToolbox DRM model check */
+//! VideoToolbox DRM model check
 static const char kVideoToolboxDRMModelOriginal[] = "MacPro5,1\0MacPro6,1\0IOService";
 
 static const char kHwGvaId[] = "Mac-7BA5B2D9E42DDD94";
 
-/** AppleGVA model check */
+//! AppleGVA model check
 static const char kAGVABoardIdOriginal[] = "board-id\0hw.model";
 static const char kAGVABoardIdPatched[] = "hwgva-id\0hw.model";
-static_assert(arrsize(kAGVABoardIdOriginal) == arrsize(kAGVABoardIdPatched));
 
 static const char kCoreLSKDMSEPath[] = "/System/Library/PrivateFrameworks/CoreLSKDMSE.framework/Versions/A/CoreLSKDMSE";
 static const char kCoreLSKDPath[] = "/System/Library/PrivateFrameworks/CoreLSKD.framework/Versions/A/CoreLSKD";
 
 static const UInt8 kCoreLSKDOriginal[] = {0xC7, 0xC0, 0x01, 0x00, 0x00, 0x00, 0x0F, 0xA2};
 static const UInt8 kCoreLSKDPatched[] = {0xC7, 0xC0, 0xC3, 0x06, 0x03, 0x00, 0x66, 0x90};
-static_assert(arrsize(kCoreLSKDOriginal) == arrsize(kCoreLSKDPatched));
 
-/** AppleGVAHEVCEncoder model check */
+//! AppleGVAHEVCEncoder model check
 static const char kHEVCEncBoardIdOriginal[] = "vendor8bit\0IOService\0board-id";
 static const char kHEVCEncBoardIdPatched[] = "vendor8bit\0IOService\0hwgva-id";
-static_assert(arrsize(kHEVCEncBoardIdOriginal) == arrsize(kHEVCEncBoardIdPatched));
+
+//! Replaces a whole chunk of amdMtl_Bronze_asicIDToFamilyInfo
+//! The Spectre & Spooky problem is untested, actually all of this is untested, since KIQ is still broken
+//! Anyways, hopefully it should fix up any MTLBronzeDriver problems, atleast in the early init for it anyways.
+static const UInt8 kAMDMTLBronzeAsicIDToFamilyInfoOriginal[] = {0x81, 0xFF, 0xDF, 0x6F, 0x00, 0x00, 0x74, 0x00, 0x81,
+    0xFF, 0x00, 0x73, 0x00, 0x00, 0x74, 0x00, 0x81, 0xFF, 0x0F, 0x73, 0x00, 0x00, 0x74, 0x00, 0xEB, 0x00, 0x81, 0xFF,
+    0xA0, 0x66, 0x00, 0x00, 0x74, 0xBD};
+static const UInt8 kAMDMTLBronzeAsicIDToFamilyInfoFindMask[] = {0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0x00, 0xFF,
+    0xFF, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0xFF,
+    0xFF, 0xFF, 0x00, 0x00, 0xFF, 0x00};
+static const UInt8 kAMDMTLBronzeAsicIDToFamilyInfoPatched[] = {0x81, 0xFF, 0x70, 0x98, 0x00, 0x00, 0x74, 0x00, 0x81,
+    0xFF, 0x74, 0x98, 0x00, 0x00, 0x74, 0x00, 0x81, 0xFF, 0xE4, 0x98, 0x00, 0x00, 0x74, 0x00, 0xEB, 0x00, 0x66, 0x90,
+    0x66, 0x90, 0x66, 0x90, 0xEB, 0x00};
+static const UInt8 kAMDMTLBronzeAsicIDToFamilyInfoReplaceMask[] = {0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0x00, 0xFF,
+    0xFF, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0xFF,
+    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00};

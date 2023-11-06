@@ -79,6 +79,7 @@ class LRed {
     friend class HWLibs;
     friend class X4000;
     friend class Support;
+    friend class DYLDPatches;
 
     public:
     static LRed *callback;

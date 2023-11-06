@@ -124,6 +124,8 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
             {"__ZN26AMDRadeonX4000_AMDHWMemory17adjustVRAMAddressEy", wrapAdjustVRAMAddress,
                 this->orgAdjustVRAMAddress},
             {"__ZN27AMDRadeonX4000_AMDHWChannel18isDebugFlagEnabledEj", wrapIsDebugFlagEnabled},
+            {"__ZN4Addr2V15CiLib19HwlInitGlobalParamsEPK18_ADDR_CREATE_INPUT", wrapHwlInitGlobalParams,
+                orgHwlInitGlobalParams},
         };
         PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "X4000",
             "Failed to route symbols");
@@ -343,7 +345,7 @@ bool X4000::wrapIsDebugFlagEnabled(void *that, UInt32 flag) {
 
 void X4000::wrapInitializeVMRegs(void *that) {
     FunctionCast(wrapInitializeVMRegs, callback->orgInitializeVMRegs)(that);
-    if (LRed::callback->chipType == ChipType::Spectre || LRed::callback->chipType == ChipType::Spooky) {
+    if (LRed::callback->chipType <= ChipType::Spooky) {
         UInt32 tmp = LRed::callback->readReg32(mmCHUB_CONTROL);
         tmp &= ~bypassVM;
         LRed::callback->writeReg32(mmCHUB_CONTROL, tmp);
@@ -370,5 +372,21 @@ UInt32 X4000::wrapCommitIndirectCommandBufferCompute(void *that, void *cmdbuf) {
     auto ret = FunctionCast(wrapCommitIndirectCommandBufferCompute,
         callback->orgCommitindirectCommandBufferCompute)(that, cmdbuf);
     DBGLOG("X4000", "PM4 COMPUTE: commitIndirectCommandBuffer >> 0x%x", ret);
+    return ret;
+}
+
+int X4000::wrapHwlInitGlobalParams(void *that, const void *creationInfo) {
+    DBGLOG("X4000", "HwlInitGlobalParams >>");
+    auto ret = FunctionCast(wrapHwlInitGlobalParams, callback->orgHwlInitGlobalParams)(that, creationInfo);
+    UInt32 pipes = getMember<UInt32>(that, 0x38);
+    if (pipes != 2 || (pipes != 4 && LRed::callback->chipType == ChipType::Spectre)) {
+        DBGLOG("X4000", "Correcting pipe number");
+        if (LRed::callback->chipType == ChipType::Spectre) {
+            getMember<UInt32>(that, 0x38) = 4;
+        } else {
+            getMember<UInt32>(that, 0x38) = 2;
+        }
+    }
+    DBGLOG("X4000", "HwlInitGlobalParams << 0x%x, pipes: %d", ret, pipes);
     return ret;
 }
