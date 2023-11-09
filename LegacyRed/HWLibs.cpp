@@ -145,9 +145,6 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
                         break;
                     }
                 }
-                SolveRequestPlus solveRequest {"_Kalindi_UcodeInfo", this->orgCailUcodeInfo};
-                PANIC_COND(!solveRequest.solve(patcher, index, address, size), "HWLibs",
-                    "Failed to rseolve Ucode info");
                 break;
             }
             case ChipType::Godavari: {
@@ -240,6 +237,7 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
 
         const char *qERS;
 
+        //! Same signature, different enumeration
         if (catalina) {
             qERS = "__ZN15AmdCailServices23queryEngineRunningStateEP20_AMD_HW_ENGINE_QUEUEP22CailEngineRunningState";
         } else {
@@ -262,6 +260,7 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
             {"_bonaire_program_aspm", wrapBonaireProgramAspm, this->orgBonaireProgramAspm},
             {"_vWriteMmRegisterUlong", wrapVWriteMmRegisterUlong, this->orgVWriteMmRegisterUlong},
             {"_bonaire_perform_srbm_soft_reset", wrapBonairePerformSrbmReset, this->orgBonairePerformSrbmReset},
+            {"_CailCopyMicroCode", wrapCailCopyMicroCode, this->orgCailCopyMicroCode},
         };
         PANIC_COND(!patcher.routeMultiple(index, requests, address, size), "HWLibs", "Failed to route symbols");
 
@@ -345,18 +344,6 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
         MachInfo::setKernelWriting(false, KernelPatcher::kernelWriteLock);
         DBGLOG("HWLibs", "Managed to find caps entries for target 0x%x", targetDeviceId);
         DBGLOG("HWLibs", "Applied DDI Caps patches");
-
-        DBGLOG("HWLibs", "RLC address: 0x%llx", this->orgCailUcodeInfo->rlcUcode);
-        DBGLOG("HWLibs", "SDMA0 address: 0x%llx", this->orgCailUcodeInfo->sdma0Ucode);
-        DBGLOG("HWLibs", "SDMA1 address: 0x%llx", this->orgCailUcodeInfo->sdma1Ucode);
-        DBGLOG("HWLibs", "CE address: 0x%llx", this->orgCailUcodeInfo->ceUcode);
-        DBGLOG("HWLibs", "PFP address: 0x%llx", this->orgCailUcodeInfo->pfpUcode);
-        DBGLOG("HWLibs", "ME address: 0x%llx", this->orgCailUcodeInfo->meUcode);
-        DBGLOG("HWLibs", "MEC1 address: 0x%llx", this->orgCailUcodeInfo->mec1Ucode);
-        DBGLOG("HWLibs", "MEC2 address: 0x%llx", this->orgCailUcodeInfo->mec2Ucode);
-        DBGLOG("HWLibs", "TMZ address: 0x%llx", this->orgCailUcodeInfo->tmzUcode);
-        DBGLOG("HWLibs", "UCode address: 0x%llx", this->orgCailUcodeInfo);
-
         return true;
     }
 
@@ -425,7 +412,9 @@ AMDReturn X5000HWLibs::wrapSmuRavenInitialize(void *smum, UInt32 param2) {
     return ret;
 }
 */
-
+//! WIP.
+//! //! CAIL doesn't load our firmware, resulting in a GPU diagnosis dump
+//! An attempt has been made to bypass, however, it has not worked.
 void HWLibs::wrapCailBonaireLoadUcode(void *param1, UInt64 ucodeId, UInt8 *ucodeData, void *param4, UInt64 param5,
     UInt64 param6) {
     DBGLOG("HWLibs",
@@ -580,10 +569,19 @@ UInt64 HWLibs::wrapBonaireProgramAspm(UInt64 param1) {
 
 void HWLibs::wrapBonairePerformSrbmReset(void *param1, UInt32 bit) {
     UInt32 tmp = LRed::callback->readReg32(mmSRBM_STATUS);
+    DBGLOG("HWLibs", "_bonaire_perform_srbm_reset >>");
     //! According to AMDGPU's source, it shouldnt be reset if it matches this
     if (tmp & (SRBM_STATUS__MCB_BUSY_MASK | SRBM_STATUS__MCB_NON_DISPLAY_BUSY_MASK | SRBM_STATUS__MCC_BUSY_MASK |
                   SRBM_STATUS__MCD_BUSY_MASK)) {
+        DBGLOG("HWLibs", "Skipping reset.");
         return;
     }
     FunctionCast(wrapBonairePerformSrbmReset, callback->orgBonairePerformSrbmReset)(param1, bit);
+}
+
+CAILResult HWLibs::wrapCailCopyMicroCode(void *cailData, UInt32 *flags) {
+    DBGLOG("HWLibs", "_CailCopyMicroCode >>");
+    auto ret = FunctionCast(wrapCailCopyMicroCode, callback->orgCailCopyMicroCode)(cailData, flags);
+    DBGLOG("HWLibs", "_CailCopyMicroCode << %x", ret);
+    return ret;
 }

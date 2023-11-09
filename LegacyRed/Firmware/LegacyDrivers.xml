@@ -84,9 +84,9 @@
 			<key>CAIL_DisableSysClockGating</key>
 			<integer>1</integer>
 			<key>CAIL_DisableUVDPowerGating</key>
-			<integer>1</integer>
-			<key>CAIL_DisableVCEPowerGating</key>
 			<integer>0</integer>
+			<key>CAIL_DisableVCEPowerGating</key>
+			<integer>1</integer>
 		</dict>
 	</dict>
 	<dict>

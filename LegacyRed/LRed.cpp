@@ -201,33 +201,7 @@ void LRed::setRMMIOIfNecessary() {
         SYSLOG("LRed", "Gathered framebuffer offset: 0x%llX", this->fbOffset);
         switch (this->deviceId) {
                 //! Who thought it would be a good idea to use this many Device IDs and Revisions?
-            case 0x1309:
-                [[fallthrough]];
-            case 0x130A:
-                [[fallthrough]];
-            case 0x130B:
-                [[fallthrough]];
-            case 0x130C:
-                [[fallthrough]];
-            case 0x130D:
-                [[fallthrough]];
-            case 0x130E:
-                [[fallthrough]];
-            case 0x130F:
-                [[fallthrough]];
-            case 0x1313:
-                [[fallthrough]];
-            case 0x1315:
-                [[fallthrough]];
-            case 0x1316:
-                [[fallthrough]];
-            case 0x1318:
-                [[fallthrough]];
-            case 0x131B:
-                [[fallthrough]];
-            case 0x131C:
-                [[fallthrough]];
-            case 0x131D:
+            case 0x1309 ... 0x131D:
                 this->currentFamilyId = AMDGPU_FAMILY_KV;
                 if (this->deviceId == 0x1312 || this->deviceId == 0x1316 || this->deviceId == 0x1317) {
                     this->chipType = ChipType::Spooky;
@@ -242,27 +216,7 @@ void LRed::setRMMIOIfNecessary() {
                 this->enumeratedRevision = 0x1;
                 this->revision = (this->readReg32(0x1559) & 0xF000000) >> 0x1c;
                 break;
-            case 0x9830:
-                [[fallthrough]];
-            case 0x9831:
-                [[fallthrough]];
-            case 0x9832:
-                [[fallthrough]];
-            case 0x9833:
-                [[fallthrough]];
-            case 0x9834:
-                [[fallthrough]];
-            case 0x9835:
-                [[fallthrough]];
-            case 0x9836:
-                [[fallthrough]];
-            case 0x9837:
-                [[fallthrough]];
-            case 0x9838:
-                [[fallthrough]];
-            case 0x9839:
-                [[fallthrough]];
-            case 0x983D:
+            case 0x9830 ... 0x983D:
                 this->currentFamilyId = AMDGPU_FAMILY_KV;
                 if (this->revision == 0x00) {
                     this->chipType = ChipType::Kalindi;
@@ -285,55 +239,7 @@ void LRed::setRMMIOIfNecessary() {
                 }
                 this->revision = (this->readReg32(0x1559) & 0xF000000) >> 0x1c;
                 break;
-            case 0x9850:
-                this->chipType = ChipType::Godavari;
-                this->chipVariant = ChipVariant::Mullins;
-                this->enumeratedRevision = 0xA1;
-                this->currentFamilyId = AMDGPU_FAMILY_KV;
-                DBGLOG("LRed", "Chip type is Godavari, Chip variant is Mullins");
-                this->revision = (this->readReg32(0x1559) & 0xF000000) >> 0x1c;
-                break;
-            case 0x9851:
-                this->chipType = ChipType::Godavari;
-                this->chipVariant = ChipVariant::Mullins;
-                this->enumeratedRevision = 0xA1;
-                this->currentFamilyId = AMDGPU_FAMILY_KV;
-                DBGLOG("LRed", "Chip type is Godavari, Chip variant is Mullins");
-                this->revision = (this->readReg32(0x1559) & 0xF000000) >> 0x1c;
-                break;
-            case 0x9852:
-                this->chipType = ChipType::Godavari;
-                this->chipVariant = ChipVariant::Mullins;
-                this->enumeratedRevision = 0xA1;
-                this->currentFamilyId = AMDGPU_FAMILY_KV;
-                DBGLOG("LRed", "Chip type is Godavari, Chip variant is Mullins");
-                this->revision = (this->readReg32(0x1559) & 0xF000000) >> 0x1c;
-                break;
-            case 0x9853:
-                this->chipType = ChipType::Godavari;
-                this->chipVariant = ChipVariant::Mullins;
-                this->enumeratedRevision = 0xA1;
-                this->currentFamilyId = AMDGPU_FAMILY_KV;
-                DBGLOG("LRed", "Chip type is Godavari, Chip variant is Mullins");
-                this->revision = (this->readReg32(0x1559) & 0xF000000) >> 0x1c;
-                break;
-            case 0x9854:
-                this->chipType = ChipType::Godavari;
-                this->chipVariant = ChipVariant::Mullins;
-                this->enumeratedRevision = 0xA1;
-                this->currentFamilyId = AMDGPU_FAMILY_KV;
-                DBGLOG("LRed", "Chip type is Godavari, Chip variant is Mullins");
-                this->revision = (this->readReg32(0x1559) & 0xF000000) >> 0x1c;
-                break;
-            case 0x9855:
-                this->chipType = ChipType::Godavari;
-                this->chipVariant = ChipVariant::Mullins;
-                this->enumeratedRevision = 0xA1;
-                this->currentFamilyId = AMDGPU_FAMILY_KV;
-                DBGLOG("LRed", "Chip type is Godavari, Chip variant is Mullins");
-                this->revision = (this->readReg32(0x1559) & 0xF000000) >> 0x1c;
-                break;
-            case 0x9856:
+            case 0x9850 ... 0x9856:
                 this->chipType = ChipType::Godavari;
                 this->chipVariant = ChipVariant::Mullins;
                 this->enumeratedRevision = 0xA1;

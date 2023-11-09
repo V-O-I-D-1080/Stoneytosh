@@ -9,17 +9,6 @@
 #include <Headers/kern_util.hpp>
 #include <IOKit/IOService.h>
 
-enum FwEnum : UInt32 {
-    SDMA0 = 1,
-    SDMA1,
-    PFP,
-    CE,
-    ME,
-    MEC,
-    MEC2,
-    RLC,
-};
-
 class X4000 {
     public:
     static X4000 *callback;
@@ -27,11 +16,6 @@ class X4000 {
     bool processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t address, size_t size);
 
     private:
-    t_GenericConstructor orgBaffinPM4EngineConstructor {nullptr};
-    t_GenericConstructor orgGFX8SDMAEngineConstructor {nullptr};
-    t_GenericConstructor orgPolarisVCEEngineConstructor {nullptr};
-    t_GenericConstructor orgPolarisUVDEngineConstructor {nullptr};
-    t_GenericConstructor orgGFX8SAMUEngineConstructor {nullptr};
     mach_vm_address_t orgAccelStart {0};
     mach_vm_address_t orgGetHWChannel {0};
     mach_vm_address_t orgSetupAndInitializeHWCapabilities {0};

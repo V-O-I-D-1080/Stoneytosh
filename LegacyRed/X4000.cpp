@@ -46,11 +46,8 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
 
         if (stoney) {
             SolveRequestPlus solveRequests[] = {
-                {"__ZN31AMDRadeonX4000_AMDBaffinPM4EngineC1Ev", this->orgBaffinPM4EngineConstructor},
-                {"__ZN30AMDRadeonX4000_AMDVIsDMAEngineC1Ev", this->orgGFX8SDMAEngineConstructor},
-                {"__ZN32AMDRadeonX4000_AMDUVD6v3HWEngineC1Ev", this->orgPolarisUVDEngineConstructor},
-                {"__ZN30AMDRadeonX4000_AMDVISAMUEngineC1Ev", this->orgGFX8SAMUEngineConstructor},
-                {"__ZN32AMDRadeonX4000_AMDVCE3v4HWEngineC1Ev", this->orgPolarisVCEEngineConstructor},
+                {"__ZN28AMDRadeonX4000_AMDVIHardware32setupAndInitializeHWCapabilitiesEv",
+                    this->orgSetupAndInitializeHWCapabilities},
                 {"__ZZN37AMDRadeonX4000_AMDGraphicsAccelerator19createAccelChannelsEbE12channelTypes", orgChannelTypes},
                 {"__ZN26AMDRadeonX4000_AMDHardware14startHWEnginesEv", startHWEngines},
             };

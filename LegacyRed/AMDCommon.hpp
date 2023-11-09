@@ -27,11 +27,6 @@ constexpr UInt16 PPSMC_MSG_SDMAPowerOn = 0xE;
 constexpr UInt16 PPSMC_MSG_XDMAPowerOff = 0xF;
 constexpr UInt16 PPSMC_MSG_XDMAPowerOn = 0x10;
 
-constexpr UInt32 GFX_FW_TYPE_CP_MEC = 5;
-constexpr UInt32 GFX_FW_TYPE_CP_MEC_ME2 = 6;
-
-constexpr UInt32 MP_BASE = 0x16000;
-
 constexpr UInt32 AMDGPU_MAX_USEC_TIMEOUT = 100000;
 
 constexpr UInt32 mmMP1_SMN_C2PMSG_90 = 0x29A;
@@ -108,14 +103,6 @@ struct SdmaFwHeaderV1 : public CommonFirmwareHeader {
     UInt32 jtOff;
     UInt32 jtSize;
 } PACKED;
-
-struct RlcFwHeaderV1 : public CommonFirmwareHeader {
-    UInt32 ucodeFeatureVer;
-    UInt32 saveAndRestoreOff;
-    UInt32 clearStateDescOff;
-    UInt32 availScratchRamLocations;
-    UInt32 masterPktDescriptionOff;
-};
 
 struct CAILASICGoldenRegisterSettings {
     UInt32 offset;
