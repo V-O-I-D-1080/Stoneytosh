@@ -49,6 +49,7 @@ void DYLDPatches::wrapCsValidatePage(vnode *vp, memory_object_t pager, memory_ob
         "amdMtl_Bronze_asicIDToFamilyInfo patch (forces VI & CI IDs for KV & CZ)"};
     patch.apply(const_cast<void *>(data), PAGE_SIZE);
 
+    //-------- ONLY DRM PATCHES BEYOND THIS LINE --------//
     if (getKernelVersion() == KernelVersion::Catalina || !(lilu.getRunMode() & LiluAPI::RunningNormal) ||
         !checkKernelArgument("-ChefKissInternal")) {
         return;

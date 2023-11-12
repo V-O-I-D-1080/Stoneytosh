@@ -549,7 +549,6 @@ void HWLibs::wrapVWriteMmRegisterUlong(void *param1, UInt64 addr, UInt64 val) {
         return;
     }
     FunctionCast(wrapVWriteMmRegisterUlong, callback->orgVWriteMmRegisterUlong)(param1, addr, val);
-    DBGLOG("HWLibs", "_vWriteMmRegisterUlong >> void");
 }
 
 void HWLibs::wrapBonaireLoadUcodeViaPortRegister(UInt64 param1, UInt64 param2, void *param3, UInt32 param4,

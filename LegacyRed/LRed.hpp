@@ -225,6 +225,7 @@ class LRed {
     ChipVariant chipVariant = ChipVariant::Unknown;
     bool isGCN3 = false;
     bool isStoney3CU = false;
+    bool isStoney = false;
     UInt64 fbOffset {0};
     IOMemoryMap *rmmio {nullptr};
     volatile UInt32 *rmmioPtr {nullptr};

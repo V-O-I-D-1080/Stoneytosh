@@ -263,6 +263,7 @@ void LRed::setRMMIOIfNecessary() {
             case 0x98E4:
                 this->chipType = ChipType::Stoney;
                 this->isGCN3 = true;
+                this->isStoney = true;
                 this->enumeratedRevision = 0x61;
                 this->revision = (smcReadReg32Cz(0xC0014044) & 0x00001E00) >> 9;
                 this->currentFamilyId = AMDGPU_FAMILY_CZ;

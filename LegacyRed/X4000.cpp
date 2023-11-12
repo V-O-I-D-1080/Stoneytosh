@@ -164,6 +164,7 @@ enum HWCapability : UInt64 {
     SECount = 0x34,             //! UInt32
     SHPerSE = 0x3C,             //! UInt32
     CUPerSH = 0x70,             //! UInt32
+    Unknown0 = 0x8F,            //! bool
 };
 
 template<typename T>
@@ -173,128 +174,15 @@ static inline void setHWCapability(void *that, HWCapability capability, T value)
 
 void X4000::wrapSetupAndInitializeHWCapabilities(void *that) {
     DBGLOG("X4000", "setupAndInitializeHWCapabilities: this = %p", that);
-    switch (LRed::callback->chipType) {
-        case ChipType::Spectre:
-            [[fallthrough]];
-        case ChipType::Spooky: {
-            setHWCapability<UInt32>(that, HWCapability::SECount, 1);
-            setHWCapability<UInt32>(that, HWCapability::SHPerSE, 1);
-            switch (LRed::callback->deviceId) {
-                case 0x1304:
-                    [[fallthrough]];
-                case 0x1305:
-                    [[fallthrough]];
-                case 0x130C:
-                    [[fallthrough]];
-                case 0x130F:
-                    [[fallthrough]];
-                case 0x1310:
-                    [[fallthrough]];
-                case 0x1311:
-                    [[fallthrough]];
-                case 0x131C:
-                    setHWCapability<UInt32>(that, HWCapability::CUPerSH, 8);
-                    break;
-                case 0x1309:
-                    [[fallthrough]];
-                case 0x130A:
-                    [[fallthrough]];
-                case 0x130D:
-                    [[fallthrough]];
-                case 0x1313:
-                    [[fallthrough]];
-                case 0x131D:
-                    setHWCapability<UInt32>(that, HWCapability::CUPerSH, 6);
-                    break;
-                case 0x1306:
-                    [[fallthrough]];
-                case 0x1307:
-                    [[fallthrough]];
-                case 0x130B:
-                    [[fallthrough]];
-                case 0x130E:
-                    [[fallthrough]];
-                case 0x1315:
-                    [[fallthrough]];
-                case 0x131B:
-                    setHWCapability<UInt32>(that, HWCapability::CUPerSH, 4);
-                    break;
-                default:
-                    setHWCapability<UInt32>(that, HWCapability::CUPerSH, 3);
-                    break;
-            }
-            break;
-        }
-        case ChipType::Kalindi:
-            [[fallthrough]];
-        case ChipType::Godavari: {
-            setHWCapability<UInt32>(that, HWCapability::SECount, 1);
-            setHWCapability<UInt32>(that, HWCapability::SHPerSE, 1);
-            setHWCapability<UInt32>(that, HWCapability::CUPerSH, 2);
-            break;
-        }
-        case ChipType::Carrizo: {
-            setHWCapability<UInt32>(that, HWCapability::SECount, 1);
-            setHWCapability<UInt32>(that, HWCapability::SHPerSE, 1);
-            switch (LRed::callback->revision) {
-                case 0xC4:
-                    [[fallthrough]];
-                case 0x84:
-                    [[fallthrough]];
-                case 0xC8:
-                    [[fallthrough]];
-                case 0xCC:
-                    [[fallthrough]];
-                case 0xE1:
-                    [[fallthrough]];
-                case 0xE3:
-                    setHWCapability<UInt32>(that, HWCapability::CUPerSH, 8);
-                    break;
-                case 0xC5:
-                    [[fallthrough]];
-                case 0x81:
-                    [[fallthrough]];
-                case 0x85:
-                    [[fallthrough]];
-                case 0xC9:
-                    [[fallthrough]];
-                case 0xCD:
-                    [[fallthrough]];
-                case 0xE2:
-                    [[fallthrough]];
-                case 0xE4:
-                    [[fallthrough]];
-                case 0xC6:
-                    [[fallthrough]];
-                case 0xCA:
-                    [[fallthrough]];
-                case 0xCE:
-                    [[fallthrough]];
-                case 0x88:
-                    setHWCapability<UInt32>(that, HWCapability::CUPerSH, 6);
-                    break;
-                default:
-                    setHWCapability<UInt32>(that, HWCapability::CUPerSH, 4);
-                    break;
-            }
-            break;
-        }
-        case ChipType::Stoney: {
-            setHWCapability<UInt32>(that, HWCapability::SECount, 1);
-            setHWCapability<UInt32>(that, HWCapability::SHPerSE, 1);
-            if (!LRed::callback->isStoney3CU) {
-                setHWCapability<UInt32>(that, HWCapability::CUPerSH, 3);
-            } else {
-                setHWCapability<UInt32>(that, HWCapability::CUPerSH, 2);
-            }
-            break;
-        }
-        default: {
-            PANIC("X4000", "Unknown ChipType!");
-            break;
-        }
-    }
+    UInt32 cuPerSh = 2;
+    if (LRed::callback->chipType <= ChipType::Spooky || LRed::callback->chipType == ChipType::Carrizo) { cuPerSh = 8; }
+    if (LRed::callback->isStoney3CU) { cuPerSh = 3; }
+    setHWCapability<UInt32>(that, HWCapability::SECount, 1);
+    setHWCapability<UInt32>(that, HWCapability::SHPerSE, 1);
+    setHWCapability<UInt32>(that, HWCapability::CUPerSH, cuPerSh);
     FunctionCast(wrapSetupAndInitializeHWCapabilities, callback->orgSetupAndInitializeHWCapabilities)(that);
+
+    if (LRed::callback->chipType == ChipType::Stoney) { setHWCapability<bool>(that, HWCapability::Unknown0, true); }
 }
 
 void X4000::wrapInitializeFamilyType(void *that) {
@@ -322,7 +210,7 @@ void X4000::wrapDumpASICHangState(bool param1) {
 
 UInt64 X4000::wrapAdjustVRAMAddress(void *that, UInt64 addr) {
     auto ret = FunctionCast(wrapAdjustVRAMAddress, callback->orgAdjustVRAMAddress)(that, addr);
-    SYSLOG("X4000", "AdjustVRAMAddress: returned: 0x%llx, our value: 0x%x", ret,
+    SYSLOG("X4000", "AdjustVRAMAddress: returned: 0x%llx, our value: 0x%llx", ret,
         ret != addr ? (ret + LRed::callback->fbOffset) : ret);
     return ret != addr ? (ret + LRed::callback->fbOffset) : ret;
 }
@@ -336,8 +224,8 @@ UInt64 X4000::wrapInitializeMicroEngine(void *that) {
 
 bool X4000::wrapIsDebugFlagEnabled(void *that, UInt32 flag) {
     DBGLOG("X4000", "isDebugFlagEnabled << flag: 0x%x", flag);
-    DBGLOG("X4000", "isDebugFlagEnabled >> true");
-    return true;
+    DBGLOG("X4000", "isDebugFlagEnabled >>");
+    return false;
 }
 
 void X4000::wrapInitializeVMRegs(void *that) {
@@ -385,5 +273,11 @@ int X4000::wrapHwlInitGlobalParams(void *that, const void *creationInfo) {
         }
     }
     DBGLOG("X4000", "HwlInitGlobalParams << 0x%x, pipes: %d", ret, pipes);
+    return ret;
+}
+
+IOReturn X4000::wrapGetHWInfo(void *ctx, void *hwInfo) {
+    auto ret = FunctionCast(wrapGetHWInfo, callback->orgGetHWInfo)(ctx, hwInfo);
+    getMember<UInt32>(hwInfo, 0x4) = LRed::callback->isGCN3 ? (LRed::callback->isStoney ? 0x67DF : 0x7300) : 0x6640;
     return ret;
 }
