@@ -291,17 +291,6 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
         PANIC_COND(MachInfo::setKernelWriting(true, KernelPatcher::kernelWriteLock) != KERN_SUCCESS, "HWLibs",
             "Failed to enable kernel writing");
 
-        while (settings->offset != 0xFFFFFFFF) {
-            if (settings->offset == 0x3108 && settings->value == 0xFFFFFFFF) { settings->value = 0xFFFFFFFC; }
-            if (LRed::callback->chipType == ChipType::Godavari) {
-                if (settings->offset == 0x260D && settings->mask == 0xF00FFFFF) {
-                    settings->offset = 0x260C0;
-                    //! AMDGPU is weird.
-                }
-            }
-            settings++;
-        }
-
         bool found = false;
         auto targetExtRev = ((LRed::callback->chipType == ChipType::Kalindi)) ?
                                 static_cast<UInt32>(LRed::callback->enumeratedRevision) :
