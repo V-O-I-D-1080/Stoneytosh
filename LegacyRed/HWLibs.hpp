@@ -19,21 +19,17 @@ class HWLibs {
 
     private:
     t_XPowerTuneConstructor orgPowerTuneConstructor {nullptr};
-    t_sendMsgToSmc orgCISendMsgToSmc {nullptr};
-    t_sendMsgToSmc orgCzSendMsgToSmc {nullptr};
     mach_vm_address_t orgAmdCailServicesConstructor {0};
     mach_vm_address_t orgCAILQueryEngineRunningState {0};
     mach_vm_address_t orgCailMonitorEngineInternalState {0};
     mach_vm_address_t orgCailMonitorPerformanceCounter {0};
     mach_vm_address_t orgSMUMInitialize {0};
-    mach_vm_address_t orgSmuCzInitialize {0};
     mach_vm_address_t orgMCILDebugPrint {0};
     mach_vm_address_t orgCailBonaireLoadUcode {0};
     mach_vm_address_t orgBonaireLoadUcodeViaPortRegister {0};
     mach_vm_address_t orgBonaireProgramAspm {0};
-    mach_vm_address_t orgVWriteMmRegisterUlong {0};
     mach_vm_address_t orgBonairePerformSrbmReset {0};
-    mach_vm_address_t orgCailCopyMicroCode = {0};
+    mach_vm_address_t orgCailCapsEnabled = {0};
     CAILUcodeInfo *orgCailUcodeInfo {0};
 
     static void wrapAmdCailServicesConstructor(void *that, IOPCIDevice *provider);
@@ -41,7 +37,6 @@ class HWLibs {
     static UInt64 wrapCailMonitorEngineInternalState(void *that, UInt32 param1, UInt32 *param2);
     static UInt64 wrapCailMonitorPerformanceCounter(void *that, UInt32 *param1);
     static void *wrapCreatePowerTuneServices(void *that, void *param2);
-    static CAILResult wrapSmuCzInitialize(void *smum, UInt32 param2);
     static UInt64 wrapSMUMInitialize(UInt64 param1, UInt32 *param2, UInt64 param3);
     static void wrapMCILDebugPrint(UInt32 level_max, char *fmt, UInt64 param3, UInt64 param4, UInt64 param5,
         uint level);
@@ -50,9 +45,10 @@ class HWLibs {
     static void wrapBonaireLoadUcodeViaPortRegister(UInt64 param1, UInt64 param2, void *param3, UInt32 param4,
         UInt32 param5);
     static UInt64 wrapBonaireProgramAspm(UInt64 param1);
-    static void wrapVWriteMmRegisterUlong(void *param1, UInt64 addr, UInt64 val);
     static void wrapBonairePerformSrbmReset(void *param1, UInt32 bit);
-    static CAILResult wrapCailCopyMicroCode(void *cailData, UInt32 *flags);
+    static UInt32 wrapCailCapsEnabled(UInt64 caps, UInt32 cap);
+
+    bool isRunningLoaderTask = false;
 };
 
 /* ---- Patterns ---- */

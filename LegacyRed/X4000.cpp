@@ -109,6 +109,7 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
                 {"__ZN37AMDRadeonX4000_AMDCIPM4ComputeChannel27commitIndirectCommandBufferEP30AMD_SUBMIT_COMMAND_"
                  "BUFFER_INFO",
                     wrapCommitIndirectCommandBufferCompute, this->orgCommitindirectCommandBufferCompute},
+                {"__ZN27AMDRadeonX4000_AMDHWChannel14waitForHwStampEj", wrapWaitForHwStamp, this->orgWaitForHwStamp},
             };
             PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "X4000",
                 "Failed to route symbols");
@@ -280,5 +281,21 @@ int X4000::wrapHwlInitGlobalParams(void *that, const void *creationInfo) {
 IOReturn X4000::wrapGetHWInfo(void *ctx, void *hwInfo) {
     auto ret = FunctionCast(wrapGetHWInfo, callback->orgGetHWInfo)(ctx, hwInfo);
     getMember<UInt32>(hwInfo, 0x4) = LRed::callback->isGCN3 ? (LRed::callback->isStoney ? 0x67DF : 0x7300) : 0x6640;
+    return ret;
+}
+
+bool X4000::wrapWaitForHwStamp(void *accelChannel, UInt32 stamp) {
+    auto ret = FunctionCast(wrapWaitForHwStamp, callback->orgWaitForHwStamp)(accelChannel, stamp);
+    size_t retries = 0;
+    while (!ret) {
+        if (retries == 0xA) {
+            DBGLOG("X4000", "well crap, waiting didn't work!");
+            break;
+        }
+        DBGLOG("X4000", "WAIT. LONGER.");
+        ret = FunctionCast(wrapWaitForHwStamp, callback->orgWaitForHwStamp)(accelChannel, stamp);
+        retries++;
+    }
+    DBGLOG("X4000", "waitForHwStamp >> 0x%x", ret);
     return ret;
 }

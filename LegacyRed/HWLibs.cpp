@@ -253,14 +253,12 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
             {"_CailMonitorEngineInternalState", wrapCailMonitorEngineInternalState, orgCailMonitorEngineInternalState},
             {"_MCILDebugPrint", wrapMCILDebugPrint, orgMCILDebugPrint},
             {"_SMUM_Initialize", wrapSMUMInitialize, orgSMUMInitialize},
-            //{"_SmuCz_Initialize", wrapSmuCzInitialize, this->orgSmuCzInitialize},
             {"_Cail_Bonaire_LoadUcode", wrapCailBonaireLoadUcode, this->orgCailBonaireLoadUcode},
             {"_bonaire_load_ucode_via_port_register", wrapBonaireLoadUcodeViaPortRegister,
                 this->orgBonaireLoadUcodeViaPortRegister},
             {"_bonaire_program_aspm", wrapBonaireProgramAspm, this->orgBonaireProgramAspm},
-            {"_vWriteMmRegisterUlong", wrapVWriteMmRegisterUlong, this->orgVWriteMmRegisterUlong},
             {"_bonaire_perform_srbm_soft_reset", wrapBonairePerformSrbmReset, this->orgBonairePerformSrbmReset},
-            {"_CailCopyMicroCode", wrapCailCopyMicroCode, this->orgCailCopyMicroCode},
+            {"_CailCapsEnabled", wrapCailCapsEnabled, this->orgCailCapsEnabled},
         };
         PANIC_COND(!patcher.routeMultiple(index, requests, address, size), "HWLibs", "Failed to route symbols");
 
@@ -276,16 +274,13 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
             };
         }
 
-        CAILASICGoldenRegisterSettings *settings =
-            goldenCaps[static_cast<UInt32>(LRed::callback->chipType)]->goldenRegisterSettings;
-
         LookupPatchPlus const patches[] = {
             {&kextRadeonX4000HWLibs, AtiPowerPlayServicesCOriginal, AtiPowerPlayServicesCPatched, 1},
             {&kextRadeonX4000HWLibs, kBonaireInitRlcOriginal, kBonaireInitRlcPatched, 1},
-            {&kextRadeonX4000HWLibs, kCAILBonaireLoadUcode1Original, kCAILBonaireLoadUcode1Patched, 1},
+            //{&kextRadeonX4000HWLibs, kCAILBonaireLoadUcode1Original, kCAILBonaireLoadUcode1Patched, 1},
         };
 
-        PANIC_COND(!LookupPatchPlus::applyAll(patcher, patches, 2, address, size), "HWLibs",
+        PANIC_COND(!LookupPatchPlus::applyAll(patcher, patches, 1, address, size), "HWLibs",
             "Failed to apply patches!");
 
         PANIC_COND(MachInfo::setKernelWriting(true, KernelPatcher::kernelWriteLock) != KERN_SUCCESS, "HWLibs",
@@ -393,151 +388,17 @@ UInt64 HWLibs::wrapCailMonitorPerformanceCounter(void *that, UInt32 *param1) {
     return ret;
 }
 
-/** For future reference */
-/*
-AMDReturn X5000HWLibs::wrapSmuRavenInitialize(void *smum, UInt32 param2) {
-    auto ret = FunctionCast(wrapSmuRavenInitialize, callback->orgSmuRavenInitialize)(smum, param2);
-    callback->orgRavenSendMsgToSmc(smum, PPSMC_MSG_PowerUpSdma);
-    return ret;
-}
-*/
-//! WIP.
-//! //! CAIL doesn't load our firmware, resulting in a GPU diagnosis dump
-//! An attempt has been made to bypass, however, it has not worked.
 void HWLibs::wrapCailBonaireLoadUcode(void *param1, UInt64 ucodeId, UInt8 *ucodeData, void *param4, UInt64 param5,
     UInt64 param6) {
     DBGLOG("HWLibs",
         "_Cail_Bonaire_LoadUcode << (param1: 0x%llX id: 0x%llX data: 0x%llX param4: 0x%llX param5: 0x%llx, param6: "
         "0x%llx)",
         param1, ucodeId, ucodeData, param4, param5, param6);
-    const char *prefix = LRed::callback->getPrefix();
-    char filename[128];
-    const UInt32 *regs = LRed::callback->isGCN3 ? ucodeRegisterIndexCollectionGFX8 : ucodeRegisterIndexCollectionCIK;
-    switch (ucodeId) {
-        case kCAILUcodeIdSDMA0: {
-            snprintf(filename, 128, "%ssdma.bin", prefix);
-            auto &fwDesc = getFWDescByName(filename);
-            DBGLOG("HWLibs", "filename: %s", filename);
-            auto *fwHeader = reinterpret_cast<const SdmaFwHeaderV1 *>(fwDesc.data);
-            size_t fwSize = (fwHeader->ucodeSize / 4);
-            auto *fwData = (fwDesc.data + fwHeader->ucodeOff);
-            //! this is cursed, but it's how AMDGPU does it.
-            LRed::callback->writeReg32(regs[12], 0);
-            for (size_t i = 0; i < fwSize; i++) {
-                UInt32 rawData = (UInt32) * (fwData++);
-                LRed::callback->writeReg32(regs[13], rawData);
-            }
-            LRed::callback->writeReg32(regs[12], fwHeader->ucodeVer);
-            DBGLOG("x4000", "SDMA0 FW: version: %x, feature version %x", fwHeader->ucodeVer, fwHeader->ucodeFeatureVer);
-            return;
-        }
-        case kCAILUcodeIdSDMA1: {
-            if (LRed::callback->chipType == ChipType::Stoney) { return; }
-            snprintf(filename, 128, "%ssdma1.bin", prefix);
-            auto &fwDesc = getFWDescByName(filename);
-            DBGLOG("HWLibs", "filename: %s", filename);
-            auto *fwHeader = reinterpret_cast<const SdmaFwHeaderV1 *>(fwDesc.data);
-            size_t fwSize = (fwHeader->ucodeSize / 4);
-            auto *fwData = (fwDesc.data + fwHeader->ucodeOff);
-            //! this is cursed, but it's how AMDGPU does it.
-            LRed::callback->writeReg32(regs[14], 0);
-            for (size_t i = 0; i < fwSize; i++) {
-                UInt32 rawData = (UInt32) * (fwData++);
-                LRed::callback->writeReg32(regs[15], rawData);
-            }
-            LRed::callback->writeReg32(regs[14], fwHeader->ucodeVer);
-            DBGLOG("x4000", "SDMA1 FW: version: %x, feature version %x", fwHeader->ucodeVer, fwHeader->ucodeFeatureVer);
-            return;
-        }
-        case kCAILUcodeIdCE: {
-            if (LRed::callback->chipType == ChipType::Stoney) { return; }
-            snprintf(filename, 128, "%sce.bin", prefix);
-            auto &fwDesc = getFWDescByName(filename);
-            DBGLOG("HWLibs", "filename: %s", filename);
-            auto *fwHeader = reinterpret_cast<const GfxFwHeaderV1 *>(fwDesc.data);
-            size_t fwSize = (fwHeader->ucodeSize / 4);
-            auto *fwData = (fwDesc.data + fwHeader->ucodeOff);
-            //! this is cursed, but it's how AMDGPU does it.
-            LRed::callback->writeReg32(regs[4], 0);
-            for (size_t i = 0; i < fwSize; i++) {
-                UInt32 rawData = (UInt32) * (fwData++);
-                LRed::callback->writeReg32(regs[5], rawData);
-            }
-            LRed::callback->writeReg32(regs[4], fwHeader->ucodeVer);
-            DBGLOG("x4000", "CE FW: version: %x, feature version %x", fwHeader->ucodeVer, fwHeader->ucodeFeatureVer);
-            return;
-        }
-        case kCAILUcodeIdPFP: {
-            if (LRed::callback->chipType == ChipType::Stoney) { return; }
-            snprintf(filename, 128, "%spfp.bin", prefix);
-            auto &fwDesc = getFWDescByName(filename);
-            DBGLOG("HWLibs", "filename: %s", filename);
-            auto *fwHeader = reinterpret_cast<const GfxFwHeaderV1 *>(fwDesc.data);
-            size_t fwSize = (fwHeader->ucodeSize / 4);
-            auto *fwData = (fwDesc.data + fwHeader->ucodeOff);
-            //! this is cursed, but it's how AMDGPU does it.
-            LRed::callback->writeReg32(regs[0], 0);
-            for (size_t i = 0; i < fwSize; i++) {
-                UInt32 rawData = (UInt32) * (fwData++);
-                LRed::callback->writeReg32(regs[1], rawData);
-            }
-            LRed::callback->writeReg32(regs[0], fwHeader->ucodeVer);
-            DBGLOG("x4000", "PFP FW: version: %x, feature version %x", fwHeader->ucodeVer, fwHeader->ucodeFeatureVer);
-            return;
-        }
-        case kCAILUcodeIdME: {
-            if (LRed::callback->chipType == ChipType::Stoney) { return; }
-            snprintf(filename, 128, "%sme.bin", prefix);
-            auto &fwDesc = getFWDescByName(filename);
-            DBGLOG("HWLibs", "filename: %s", filename);
-            auto *fwHeader = reinterpret_cast<const GfxFwHeaderV1 *>(fwDesc.data);
-            size_t fwSize = (fwHeader->ucodeSize / 4);
-            auto *fwData = (fwDesc.data + fwHeader->ucodeOff);
-            //! this is cursed, but it's how AMDGPU does it.
-            LRed::callback->writeReg32(regs[2], 0);
-            for (size_t i = 0; i < fwSize; i++) {
-                UInt32 rawData = (UInt32) * (fwData++);
-                LRed::callback->writeReg32(regs[3], rawData);
-            }
-            LRed::callback->writeReg32(regs[2], fwHeader->ucodeVer);
-            DBGLOG("x4000", "ME FW: version: %x, feature version %x", fwHeader->ucodeVer, fwHeader->ucodeFeatureVer);
-            return;
-        }
-        case kCAILUcodeIdMEC1: {
-            if (LRed::callback->chipType == ChipType::Stoney) { return; }
-            snprintf(filename, 128, "%smec.bin", prefix);
-            auto &fwDesc = getFWDescByName(filename);
-            DBGLOG("HWLibs", "filename: %s", filename);
-            auto *fwHeader = reinterpret_cast<const GfxFwHeaderV1 *>(fwDesc.data);
-            size_t fwSize = (fwHeader->ucodeSize / 4);
-            auto *fwData = (fwDesc.data + fwHeader->ucodeOff);
-            //! this is cursed, but it's how AMDGPU does it.
-            LRed::callback->writeReg32(regs[6], 0);
-            for (size_t i = 0; i < fwSize; i++) {
-                UInt32 rawData = (UInt32) * (fwData++);
-                LRed::callback->writeReg32(regs[7], rawData);
-            }
-            LRed::callback->writeReg32(regs[6], fwHeader->ucodeVer);
-            DBGLOG("x4000", "MEC1 FW: version: %x, feature version %x", fwHeader->ucodeVer, fwHeader->ucodeFeatureVer);
-            return;
-        }
-    }
+    callback->isRunningLoaderTask = true;
     FunctionCast(wrapCailBonaireLoadUcode, callback->orgCailBonaireLoadUcode)(param1, ucodeId, ucodeData, param4,
         param5, param6);
+    callback->isRunningLoaderTask = false;
     DBGLOG("HWLibs", "_Cail_Bonaire_LoadUcode >> void");
-}
-
-void HWLibs::wrapVWriteMmRegisterUlong(void *param1, UInt64 addr, UInt64 val) {
-    //! spam spam spam
-    if (addr != 0x2398 && addr != 0x30E3) {
-        DBGLOG("HWLibs", "_vWriteMmRegisterUlong << (addr: 0x%llX val: 0x%llX)", addr, val);
-    }
-    if (addr == 0x260D && LRed::callback->chipType == ChipType::Godavari) {
-        FunctionCast(wrapVWriteMmRegisterUlong, callback->orgVWriteMmRegisterUlong)(param1, 0x260C0, val);
-        //! AMDGPU uses that offset instead of 260D?
-        return;
-    }
-    FunctionCast(wrapVWriteMmRegisterUlong, callback->orgVWriteMmRegisterUlong)(param1, addr, val);
 }
 
 void HWLibs::wrapBonaireLoadUcodeViaPortRegister(UInt64 param1, UInt64 param2, void *param3, UInt32 param4,
@@ -567,9 +428,8 @@ void HWLibs::wrapBonairePerformSrbmReset(void *param1, UInt32 bit) {
     FunctionCast(wrapBonairePerformSrbmReset, callback->orgBonairePerformSrbmReset)(param1, bit);
 }
 
-CAILResult HWLibs::wrapCailCopyMicroCode(void *cailData, UInt32 *flags) {
-    DBGLOG("HWLibs", "_CailCopyMicroCode >>");
-    auto ret = FunctionCast(wrapCailCopyMicroCode, callback->orgCailCopyMicroCode)(cailData, flags);
-    DBGLOG("HWLibs", "_CailCopyMicroCode << %x", ret);
+UInt32 HWLibs::wrapCailCapsEnabled(UInt64 caps, UInt32 cap) {
+    auto ret = FunctionCast(wrapCailCapsEnabled, callback->orgCailCapsEnabled)(caps, cap);
+    if (callback->isRunningLoaderTask == true && cap == 0x53) { return 0; }
     return ret;
 }

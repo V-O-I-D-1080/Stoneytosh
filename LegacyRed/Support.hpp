@@ -106,7 +106,6 @@ class Support {
     static void *wrapADCStart(void *that, IOService *provider);
 
     UInt32 currentObjectInfoOffset;
-    bool objectInfoFound {false};
 };
 
 /* ---- Patches ---- */

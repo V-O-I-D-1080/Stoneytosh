@@ -71,20 +71,12 @@ bool GFXCon::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
     return false;
 }
 
-uint16_t GFXCon::wrapGetFamilyId(void) {
-    auto id = FunctionCast(wrapGetFamilyId, callback->orgGetFamilyId)();
-    DBGLOG("GFXCon", "getFamilyId >> %d", id);
-    (void)id;    // to get clang-analyze to shut up
-    DBGLOG("GFXCon", "getFamilyId << %d", LRed::callback->currentFamilyId);
-    return LRed::callback->currentFamilyId;
-}
+uint16_t GFXCon::wrapGetFamilyId(void) { return LRed::callback->currentFamilyId; }
 
 IOReturn GFXCon::wrapPopulateDeviceInfo(void *that) {
-    DBGLOG("GFXCon", "populateDeviceInfo called!");
     auto ret = FunctionCast(wrapPopulateDeviceInfo, callback->orgPopulateDeviceInfo)(that);
     getMember<uint32_t>(that, 0x40) = LRed::callback->currentFamilyId;
     getMember<uint32_t>(that, 0x4C) = LRed::callback->currentEmulatedRevisionId;
-    DBGLOG("GFXCon", "emulatedRevision == %x", LRed::callback->currentEmulatedRevisionId);
     return ret;
 }
 

@@ -28,6 +28,7 @@ class X4000 {
     mach_vm_address_t orgCommitindirectCommandBufferCompute {0};
     mach_vm_address_t orgHwlInitGlobalParams {0};
     mach_vm_address_t orgGetHWInfo = {0};
+    mach_vm_address_t orgWaitForHwStamp {0};
 
     void *callbackAccelerator = nullptr;
 
@@ -46,6 +47,7 @@ class X4000 {
     static UInt32 wrapCommitIndirectCommandBufferCompute(void *that, void *cmdbuf);
     static int wrapHwlInitGlobalParams(void *that, const void *creationInfo);
     static IOReturn wrapGetHWInfo(void *ctx, void *hwInfo);
+    static bool wrapWaitForHwStamp(void *accelChannel, UInt32 stamp);
 };
 
 // ---- Patches ---- //
