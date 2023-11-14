@@ -288,7 +288,7 @@ bool X4000::wrapWaitForHwStamp(void *accelChannel, UInt32 stamp) {
     auto ret = FunctionCast(wrapWaitForHwStamp, callback->orgWaitForHwStamp)(accelChannel, stamp);
     size_t retries = 0;
     while (!ret) {
-        if (retries == 0xA) {
+        if (retries == 0x5) {
             DBGLOG("X4000", "well crap, waiting didn't work!");
             break;
         }
