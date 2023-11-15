@@ -41,7 +41,6 @@ bool HWLibs::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
         const UInt32 *ddiCaps[static_cast<UInt32>(ChipType::Unknown)] = {nullptr};
 
         bool gcn3 = (LRed::callback->chipType >= ChipType::Carrizo);
-        bool catalina = (getKernelVersion() == KernelVersion::Catalina);
 
         // The pains of supporting more than two iGPU generations
         switch (LRed::callback->chipType) {
