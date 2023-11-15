@@ -178,7 +178,7 @@ void LRed::setRMMIOIfNecessary() {
         //! Who thought it would be a good idea to use this many Device IDs and Revisions?
         switch (this->deviceId) {
             case 0x1309 ... 0x131D:
-                this->chipFamilyId = AMDGPU_FAMILY_KV;
+                this->familyId = AMDGPU_FAMILY_KV;
                 if (this->deviceId == 0x1312 || this->deviceId == 0x1316 || this->deviceId == 0x1317) {
                     this->chipType = ChipType::Spooky;
                     this->chipVariant = ChipVariant::Kaveri;
@@ -193,7 +193,7 @@ void LRed::setRMMIOIfNecessary() {
                 DBGLOG("LRed", "Chip type Spectre, Kaveri variant");
                 break;
             case 0x9830 ... 0x983D:
-                this->chipFamilyId = AMDGPU_FAMILY_KV;
+                this->familyId = AMDGPU_FAMILY_KV;
                 this->revision = (this->readReg32(0x1559) >> 0x1C) & 0xF;
                 this->chipType = ChipType::Kalindi;
                 switch (this->revision) {
@@ -219,15 +219,15 @@ void LRed::setRMMIOIfNecessary() {
             case 0x9850 ... 0x9856:
                 this->chipType = ChipType::Godavari;
                 this->chipVariant = ChipVariant::Mullins;
-                this->chipFamilyId = AMDGPU_FAMILY_KV;
+                this->familyId = AMDGPU_FAMILY_KV;
                 this->enumeratedRevision = 0xA1;
                 this->revision = (this->readReg32(0x1559) >> 0x1C) & 0xF;
                 DBGLOG("LRed", "Chip type Godavari, Mullins variant");
                 break;
             case 0x9874:
-                this->chipFamilyId = AMDGPU_FAMILY_CZ;
+                this->familyId = AMDGPU_FAMILY_CZ;
                 this->chipType = ChipType::Carrizo;
-                this->isGCN3 = true;
+                this->gcn3 = true;
                 this->enumeratedRevision = 0x1;
                 this->revision = (smcReadReg32Cz(0xC0014044) >> 9) & 0xF;
                 if ((this->revision >= 0xC8 && this->revision <= 0xCE) ||
@@ -242,26 +242,26 @@ void LRed::setRMMIOIfNecessary() {
             case 0x98E4:
                 this->chipType = ChipType::Stoney;
                 this->chipVariant = ChipVariant::Stoney;
-                this->isGCN3 = true;
-                this->isStoney = true;
+                this->gcn3 = true;
+                this->stoney = true;
                 this->enumeratedRevision = 0x61;
                 this->revision = (smcReadReg32Cz(0xC0014044) >> 9) & 0xF;
-                this->chipFamilyId = AMDGPU_FAMILY_CZ;
+                this->familyId = AMDGPU_FAMILY_CZ;
                 DBGLOG("LRed", "Chip type Stoney, Stoney variant");
                 //! R4 and up iGPUs have 3 compute units while the others have 2 CUs, hence the chip variations
-                this->isStoney3CU =
-                    this->pciRevision <= 0x81 || (this->pciRevision >= 0xC0 && this->pciRevision < 0xD0) ||
-                    (this->pciRevision >= 0xD9 && this->pciRevision < 0xDB) || this->pciRevision >= 0xE9;
-                DBGLOG("LRed", "Chip is a %dCU model", this->isStoney3CU ? 3 : 2);
+                this->stoney3CU = this->pciRevision <= 0x81 ||
+                                  (this->pciRevision >= 0xC0 && this->pciRevision < 0xD0) ||
+                                  (this->pciRevision >= 0xD9 && this->pciRevision < 0xDB) || this->pciRevision >= 0xE9;
+                DBGLOG("LRed", "Chip is a %dCU model", this->stoney3CU ? 3 : 2);
                 break;
             default:
                 PANIC("LRed", "Unknown device ID 0x%X", deviceId);
         }
-        DBGLOG_COND(this->isGCN3, "LRed", "iGPU is GCN 3 derivative");
+        DBGLOG_COND(this->gcn3, "LRed", "iGPU is GCN 3 derivative");
         //! Why ChipType instead of ChipVariant? For mullins we set it as 'Godavari', which is technically just
         //! Kalindi+, by the looks of AMDGPU code
         //! Very rough guess
-        this->currentEmulatedRevisionId =
+        this->emulatedRevision =
             (LRed::callback->chipType == ChipType::Kalindi) ?
                 static_cast<uint32_t>(LRed::callback->enumeratedRevision) :
                 static_cast<uint32_t>(LRed::callback->enumeratedRevision) + LRed::callback->revision;

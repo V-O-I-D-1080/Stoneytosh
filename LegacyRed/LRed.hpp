@@ -41,8 +41,6 @@ class AppleACPIPlatformExpert : IOACPIPlatformExpert {
 
 // https://elixir.bootlin.com/linux/latest/source/drivers/gpu/drm/amd/amdgpu/amdgpu_bios.c#L49
 static bool checkAtomBios(const uint8_t *bios, size_t size) {
-    uint16_t tmp, bios_header_start;
-
     if (size < 0x49) {
         DBGLOG("LRed", "VBIOS size is invalid");
         return false;
@@ -53,13 +51,13 @@ static bool checkAtomBios(const uint8_t *bios, size_t size) {
         return false;
     }
 
-    bios_header_start = bios[0x48] | (bios[0x49] << 8);
+    UInt16 bios_header_start = bios[0x48] | (bios[0x49] << 8);
     if (!bios_header_start) {
         DBGLOG("LRed", "Unable to locate VBIOS header");
         return false;
     }
 
-    tmp = bios_header_start + 4;
+    UInt16 tmp = bios_header_start + 4;
     if (size < tmp) {
         DBGLOG("LRed", "BIOS header is broken");
         return false;
@@ -110,26 +108,26 @@ class LRed {
         auto *expert = reinterpret_cast<AppleACPIPlatformExpert *>(obj->getPlatform());
         PANIC_COND(!expert, "LRed", "Failed to get AppleACPIPlatformExpert");
 
-        auto *vfctData = expert->getACPITableData("VFCT", 0);
+        const auto *vfctData = expert->getACPITableData("VFCT", 0);
         if (!vfctData) {
             DBGLOG("LRed", "No VFCT from AppleACPIPlatformExpert");
             return false;
         }
 
-        auto *vfct = static_cast<const VFCT *>(vfctData->getBytesNoCopy());
+        const auto *vfct = static_cast<const VFCT *>(vfctData->getBytesNoCopy());
         PANIC_COND(!vfct, "LRed", "VFCT OSData::getBytesNoCopy returned null");
 
         auto offset = vfct->vbiosImageOffset;
 
         while (offset < vfctData->getLength()) {
-            auto *vHdr =
+            const auto *vHdr =
                 static_cast<const GOPVideoBIOSHeader *>(vfctData->getBytesNoCopy(offset, sizeof(GOPVideoBIOSHeader)));
             if (!vHdr) {
                 DBGLOG("LRed", "VFCT header out of bounds");
                 return false;
             }
 
-            auto *vContent = static_cast<const uint8_t *>(
+            const auto *vContent = static_cast<const uint8_t *>(
                 vfctData->getBytesNoCopy(offset + sizeof(GOPVideoBIOSHeader), vHdr->imageLength));
             if (!vContent) {
                 DBGLOG("LRed", "VFCT VBIOS image out of bounds");
@@ -163,8 +161,8 @@ class LRed {
             OSSafeReleaseNULL(bar0);
             return false;
         }
-        auto *fb = reinterpret_cast<const uint8_t *>(bar0->getVirtualAddress());
-        UInt32 size = 256 * 1024;    //! ???
+        const auto *fb = reinterpret_cast<const uint8_t *>(bar0->getVirtualAddress());
+        const UInt32 size = 256 * 1024;    //! ???
         if (!checkAtomBios(fb, size)) {
             DBGLOG("LRed", "VRAM VBIOS is not an ATOMBIOS");
             OSSafeReleaseNULL(bar0);
@@ -178,12 +176,10 @@ class LRed {
     }
 
     UInt32 readReg32(UInt32 reg) {
-        if ((reg * 4) < this->rmmio->getLength()) {
-            return this->rmmioPtr[reg];
-        } else {
-            this->rmmioPtr[mmPCIE_INDEX2] = reg;
-            return this->rmmioPtr[mmPCIE_DATA2];
-        }
+        if ((reg * 4) < this->rmmio->getLength()) { return this->rmmioPtr[reg]; }
+
+        this->rmmioPtr[mmPCIE_INDEX2] = reg;
+        return this->rmmioPtr[mmPCIE_DATA2];
     }
 
     void writeReg32(UInt32 reg, UInt32 val) {
@@ -196,20 +192,20 @@ class LRed {
     }
 
     UInt32 smcReadReg32Cz(UInt32 reg) {
-        writeReg32(mmMP0PUB_IND_INDEX, reg);
-        return readReg32(mmMP0PUB_IND_DATA);
+        this->writeReg32(mmMP0PUB_IND_INDEX, reg);
+        return this->readReg32(mmMP0PUB_IND_DATA);
     }
 
     template<typename T>
     T *getVBIOSDataTable(UInt32 index) {
-        auto *vbios = static_cast<const uint8_t *>(this->vbiosData->getBytesNoCopy());
-        auto base = *reinterpret_cast<const uint16_t *>(vbios + ATOM_ROM_TABLE_PTR);
-        auto dataTable = *reinterpret_cast<const uint16_t *>(vbios + base + ATOM_ROM_DATA_PTR);
-        auto *mdt = reinterpret_cast<const uint16_t *>(vbios + dataTable + 4);
+        const auto *vbios = static_cast<const uint8_t *>(this->vbiosData->getBytesNoCopy());
+        const auto base = *reinterpret_cast<const uint16_t *>(vbios + ATOM_ROM_TABLE_PTR);
+        const auto dataTable = *reinterpret_cast<const uint16_t *>(vbios + base + ATOM_ROM_DATA_PTR);
+        const auto *mdt = reinterpret_cast<const uint16_t *>(vbios + dataTable + 4);
 
         if (mdt[index]) {
-            UInt32 offset = index * 2 + 4;
-            auto index = *reinterpret_cast<const uint16_t *>(vbios + dataTable + offset);
+            const UInt32 offset = index * 2 + 4;
+            const auto index = *reinterpret_cast<const uint16_t *>(vbios + dataTable + offset);
             return reinterpret_cast<T *>(const_cast<uint8_t *>(vbios) + index);
         }
 
@@ -217,11 +213,11 @@ class LRed {
     }
 
     OSData *vbiosData {nullptr};
-    ChipType chipType = ChipType::Unknown;
-    ChipVariant chipVariant = ChipVariant::Unknown;
-    bool isGCN3 = false;
-    bool isStoney3CU = false;
-    bool isStoney = false;
+    ChipType chipType {ChipType::Unknown};
+    ChipVariant chipVariant {ChipVariant::Unknown};
+    bool gcn3 {false};
+    bool stoney3CU {false};
+    bool stoney {false};
     UInt64 fbOffset {0};
     IOMemoryMap *rmmio {nullptr};
     volatile UInt32 *rmmioPtr {nullptr};
@@ -229,8 +225,8 @@ class LRed {
     UInt16 enumeratedRevision {0};
     UInt16 revision {0};
     UInt32 pciRevision {0};
-    UInt32 chipFamilyId {0};
-    UInt32 currentEmulatedRevisionId {0};
+    UInt32 familyId {0};
+    UInt32 emulatedRevision {0};
     IOPCIDevice *iGPU {nullptr};
 
     mach_vm_address_t orgApplePanelSetDisplay {0};

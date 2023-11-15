@@ -71,12 +71,12 @@ bool GFXCon::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
     return false;
 }
 
-uint16_t GFXCon::wrapGetFamilyId(void) { return LRed::callback->chipFamilyId; }
+uint16_t GFXCon::wrapGetFamilyId(void) { return LRed::callback->familyId; }
 
 IOReturn GFXCon::wrapPopulateDeviceInfo(void *that) {
     auto ret = FunctionCast(wrapPopulateDeviceInfo, callback->orgPopulateDeviceInfo)(that);
-    getMember<uint32_t>(that, 0x40) = LRed::callback->chipFamilyId;
-    getMember<uint32_t>(that, 0x4C) = LRed::callback->currentEmulatedRevisionId;
+    getMember<uint32_t>(that, 0x40) = LRed::callback->familyId;
+    getMember<uint32_t>(that, 0x4C) = LRed::callback->emulatedRevision;
     return ret;
 }
 

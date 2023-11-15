@@ -22,8 +22,8 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
         //! To keep things brief:
         //! Carizzo uses UVD 6.0 and VCE 3.1, Stoney uses UVD 6.2 and VCE 3.4.
         //! Both can only encode H264, but can decode HEVC.
-        bool stoney = (LRed::callback->chipType == ChipType::Stoney);
-        bool carrizo = (LRed::callback->chipType == ChipType::Carrizo);
+        const bool stoney = LRed::callback->chipType == ChipType::Stoney;
+        const bool carrizo = LRed::callback->chipType == ChipType::Carrizo;
 
         UInt32 *orgChannelTypes = nullptr;
         mach_vm_address_t startHWEngines = 0;
@@ -98,12 +98,12 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
             orgChannelTypes[11] = 0;    //! Fix getPagingChannel so that it gets SDMA0
             MachInfo::setKernelWriting(false, KernelPatcher::kernelWriteLock);
 
-            LookupPatchPlus const allocHWEnginesPatch {&kextRadeonX4000, kAMDEllesmereHWallocHWEnginesOriginal,
+            const LookupPatchPlus allocHWEnginesPatch {&kextRadeonX4000, kAMDEllesmereHWallocHWEnginesOriginal,
                 kAMDEllesmereHWallocHWEnginesPatched, 1};
             PANIC_COND(!allocHWEnginesPatch.apply(patcher, address, size), "X4000",
                 "Failed to apply AllocateHWEngines patch: %d", patcher.getError());
 
-            LookupPatchPlus const patch {&kextRadeonX4000, kStartHWEnginesOriginal, kStartHWEnginesMask,
+            const LookupPatchPlus patch {&kextRadeonX4000, kStartHWEnginesOriginal, kStartHWEnginesMask,
                 kStartHWEnginesPatched, kStartHWEnginesMask, 1};
             PANIC_COND(!patch.apply(patcher, startHWEngines, PAGE_SIZE), "X4000", "Failed to patch startHWEngines");
             DBGLOG("X4000", "Applied Singular SDMA lookup patch");
@@ -139,7 +139,7 @@ void X4000::wrapSetupAndInitializeHWCapabilities(void *that) {
     DBGLOG("X4000", "setupAndInitializeHWCapabilities: this = %p", that);
     UInt32 cuPerSh = 2;
     if (LRed::callback->chipType <= ChipType::Spooky || LRed::callback->chipType == ChipType::Carrizo) { cuPerSh = 8; }
-    if (LRed::callback->isStoney3CU) { cuPerSh = 3; }
+    if (LRed::callback->stoney3CU) { cuPerSh = 3; }
     setHWCapability<UInt32>(that, HWCapability::SECount, 1);
     setHWCapability<UInt32>(that, HWCapability::SHPerSE, 1);
     setHWCapability<UInt32>(that, HWCapability::CUPerSH, cuPerSh);
@@ -149,8 +149,8 @@ void X4000::wrapSetupAndInitializeHWCapabilities(void *that) {
 }
 
 void X4000::wrapInitializeFamilyType(void *that) {
-    DBGLOG("X4000", "initializeFamilyType << %x", LRed::callback->chipFamilyId);
-    getMember<UInt32>(that, 0x308) = LRed::callback->chipFamilyId;
+    DBGLOG("X4000", "initializeFamilyType << %x", LRed::callback->familyId);
+    getMember<UInt32>(that, 0x308) = LRed::callback->familyId;
 }
 
 void *X4000::wrapGetHWChannel(void *that, UInt32 engineType, UInt32 ringId) {
@@ -194,6 +194,6 @@ int X4000::wrapHwlInitGlobalParams(void *that, const void *creationInfo) {
 
 IOReturn X4000::wrapGetHWInfo(void *ctx, void *hwInfo) {
     auto ret = FunctionCast(wrapGetHWInfo, callback->orgGetHWInfo)(ctx, hwInfo);
-    getMember<UInt32>(hwInfo, 0x4) = LRed::callback->isGCN3 ? (LRed::callback->isStoney ? 0x67DF : 0x7300) : 0x6640;
+    getMember<UInt32>(hwInfo, 0x4) = LRed::callback->gcn3 ? (LRed::callback->stoney ? 0x67DF : 0x7300) : 0x6640;
     return ret;
 }

@@ -23,16 +23,18 @@ bool Support::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_
     if (kextRadeonSupport.loadIndex == index) {
         LRed::callback->setRMMIOIfNecessary();
 
-        bool agdcon = checkKernelArgument("-lredagdcon");
+        const bool agdcon = checkKernelArgument("-lredagdcon");
         if (agdcon) {
             RouteRequestPlus request {"__ZN16AtiDeviceControl5startEP9IOService", wrapADCStart, this->orgADCStart};
-            PANIC_COND(!request.route(patcher, index, address, size), "Support", "Failed to route symbols");
+            PANIC_COND(!request.route(patcher, index, address, size), "Support",
+                "Failed to route AtiDeviceControl::start");
         }
 
         if (checkKernelArgument("-lredvbiosdbg")) {
             RouteRequestPlus request {
                 "__ZN24AtiAtomFirmwareInterface16createAtomParserEP18BiosParserServicesPh11DCE_Version",
                 wrapCreateAtomBiosParser, this->orgCreateAtomBiosParser};
+            PANIC_COND(!request.route(patcher, index, address, size), "Support", "Failed to route createAtomParser");
         }
 
         RouteRequestPlus requests[] = {
@@ -52,21 +54,19 @@ bool Support::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_
             "Failed to route symbols");
 
         if (checkKernelArgument("-lredadcpatch")) {
-            LookupPatchPlus const patch {&kextRadeonSupport, kAtiDeviceControlGetVendorInfoOriginal,
+            const LookupPatchPlus patch {&kextRadeonSupport, kAtiDeviceControlGetVendorInfoOriginal,
                 kAtiDeviceControlGetVendorInfoMask, kAtiDeviceControlGetVendorInfoPatched,
                 kAtiDeviceControlGetVendorInfoMask, 1};
             PANIC_COND(!patch.apply(patcher, address, size), "Support", "Failed to apply getVendorInfo patch");
         }
 
         if (agdcon) {
-            LookupPatchPlus const patch {&kextRadeonSupport, kATIControllerStartAGDCCheckOriginal,
+            const LookupPatchPlus patch {&kextRadeonSupport, kATIControllerStartAGDCCheckOriginal,
                 kATIControllerStartAGDCCheckMask, kATIControllerStartAGDCCheckPatched, kATIControllerStartAGDCCheckMask,
                 1};
             PANIC_COND(!patch.apply(patcher, address, size), "Support",
                 "Failed to apply ATIController::start AGDC Check patch");
         }
-
-        DBGLOG("Support", "Applied patches.");
 
         return true;
     }
