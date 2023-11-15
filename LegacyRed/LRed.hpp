@@ -1,8 +1,7 @@
-//!  Copyright © 2022-2023 ChefKiss Inc. Licensed under the Thou Shalt Not Profit License version 1.5. See LICENSE for
-//!  details.
+//! Copyright © 2023 ChefKiss Inc. Licensed under the Thou Shalt Not Profit License version 1.5.
+//! See LICENSE for details.
 
-#ifndef kern_lred_hpp
-#define kern_lred_hpp
+#pragma once
 #include "AMDCommon.hpp"
 #include "ATOMBIOS.hpp"
 #include "Firmware.hpp"
@@ -45,29 +44,29 @@ static bool checkAtomBios(const uint8_t *bios, size_t size) {
     uint16_t tmp, bios_header_start;
 
     if (size < 0x49) {
-        DBGLOG("lred", "VBIOS size is invalid");
+        DBGLOG("LRed", "VBIOS size is invalid");
         return false;
     }
 
     if (bios[0] != 0x55 || bios[1] != 0xAA) {
-        DBGLOG("lred", "VBIOS signature <%x %x> is invalid", bios[0], bios[1]);
+        DBGLOG("LRed", "VBIOS signature <%x %x> is invalid", bios[0], bios[1]);
         return false;
     }
 
     bios_header_start = bios[0x48] | (bios[0x49] << 8);
     if (!bios_header_start) {
-        DBGLOG("lred", "Unable to locate VBIOS header");
+        DBGLOG("LRed", "Unable to locate VBIOS header");
         return false;
     }
 
     tmp = bios_header_start + 4;
     if (size < tmp) {
-        DBGLOG("lred", "BIOS header is broken");
+        DBGLOG("LRed", "BIOS header is broken");
         return false;
     }
 
     if (!memcmp(bios + tmp, "ATOM", 4) || !memcmp(bios + tmp, "MOTA", 4)) {
-        DBGLOG("lred", "ATOMBIOS detected");
+        DBGLOG("LRed", "ATOMBIOS detected");
         return true;
     }
 
@@ -107,18 +106,18 @@ class LRed {
     }
 
     bool getVBIOSFromVFCT(IOPCIDevice *obj) {
-        DBGLOG("lred", "Fetching VBIOS from VFCT table");
+        DBGLOG("LRed", "Fetching VBIOS from VFCT table");
         auto *expert = reinterpret_cast<AppleACPIPlatformExpert *>(obj->getPlatform());
-        PANIC_COND(!expert, "lred", "Failed to get AppleACPIPlatformExpert");
+        PANIC_COND(!expert, "LRed", "Failed to get AppleACPIPlatformExpert");
 
         auto *vfctData = expert->getACPITableData("VFCT", 0);
         if (!vfctData) {
-            DBGLOG("lred", "No VFCT from AppleACPIPlatformExpert");
+            DBGLOG("LRed", "No VFCT from AppleACPIPlatformExpert");
             return false;
         }
 
         auto *vfct = static_cast<const VFCT *>(vfctData->getBytesNoCopy());
-        PANIC_COND(!vfct, "lred", "VFCT OSData::getBytesNoCopy returned null");
+        PANIC_COND(!vfct, "LRed", "VFCT OSData::getBytesNoCopy returned null");
 
         auto offset = vfct->vbiosImageOffset;
 
@@ -126,14 +125,14 @@ class LRed {
             auto *vHdr =
                 static_cast<const GOPVideoBIOSHeader *>(vfctData->getBytesNoCopy(offset, sizeof(GOPVideoBIOSHeader)));
             if (!vHdr) {
-                DBGLOG("lred", "VFCT header out of bounds");
+                DBGLOG("LRed", "VFCT header out of bounds");
                 return false;
             }
 
             auto *vContent = static_cast<const uint8_t *>(
                 vfctData->getBytesNoCopy(offset + sizeof(GOPVideoBIOSHeader), vHdr->imageLength));
             if (!vContent) {
-                DBGLOG("lred", "VFCT VBIOS image out of bounds");
+                DBGLOG("LRed", "VFCT VBIOS image out of bounds");
                 return false;
             }
 
@@ -144,11 +143,11 @@ class LRed {
                 vHdr->vendorID == obj->configRead16(kIOPCIConfigVendorID) &&
                 vHdr->deviceID == obj->configRead16(kIOPCIConfigDeviceID)) {
                 if (!checkAtomBios(vContent, vHdr->imageLength)) {
-                    DBGLOG("lred", "VFCT VBIOS is not an ATOMBIOS");
+                    DBGLOG("LRed", "VFCT VBIOS is not an ATOMBIOS");
                     return false;
                 }
                 this->vbiosData = OSData::withBytes(vContent, vHdr->imageLength);
-                PANIC_COND(!this->vbiosData, "lred", "VFCT OSData::withBytes failed");
+                PANIC_COND(!this->vbiosData, "LRed", "VFCT OSData::withBytes failed");
                 obj->setProperty("ATY,bin_image", this->vbiosData);
                 return true;
             }
@@ -160,26 +159,26 @@ class LRed {
     bool getVBIOSFromVRAM(IOPCIDevice *provider) {
         auto *bar0 = provider->mapDeviceMemoryWithRegister(kIOPCIConfigBaseAddress0);
         if (!bar0 || !bar0->getLength()) {
-            DBGLOG("lred", "FB BAR not enabled");
+            DBGLOG("LRed", "FB BAR not enabled");
             OSSafeReleaseNULL(bar0);
             return false;
         }
         auto *fb = reinterpret_cast<const uint8_t *>(bar0->getVirtualAddress());
         UInt32 size = 256 * 1024;    //! ???
         if (!checkAtomBios(fb, size)) {
-            DBGLOG("lred", "VRAM VBIOS is not an ATOMBIOS");
+            DBGLOG("LRed", "VRAM VBIOS is not an ATOMBIOS");
             OSSafeReleaseNULL(bar0);
             return false;
         }
         this->vbiosData = OSData::withBytes(fb, size);
-        PANIC_COND(!this->vbiosData, "lred", "VRAM OSData::withBytes failed");
+        PANIC_COND(!this->vbiosData, "LRed", "VRAM OSData::withBytes failed");
         provider->setProperty("ATY,bin_image", this->vbiosData);
         OSSafeReleaseNULL(bar0);
         return true;
     }
 
     UInt32 readReg32(UInt32 reg) {
-        if (reg * 4 < this->rmmio->getLength()) {
+        if ((reg * 4) < this->rmmio->getLength()) {
             return this->rmmioPtr[reg];
         } else {
             this->rmmioPtr[mmPCIE_INDEX2] = reg;
@@ -188,7 +187,7 @@ class LRed {
     }
 
     void writeReg32(UInt32 reg, UInt32 val) {
-        if (reg * 4 < this->rmmio->getLength()) {
+        if ((reg * 4) < this->rmmio->getLength()) {
             this->rmmioPtr[reg] = val;
         } else {
             this->rmmioPtr[mmPCIE_INDEX2] = reg;
@@ -230,14 +229,9 @@ class LRed {
     UInt16 enumeratedRevision {0};
     UInt16 revision {0};
     UInt32 pciRevision {0};
-    UInt32 currentFamilyId {0};
+    UInt32 chipFamilyId {0};
     UInt32 currentEmulatedRevisionId {0};
     IOPCIDevice *iGPU {nullptr};
-
-    OSMetaClass *metaClassMap[4][2] = {{nullptr}};
-
-    mach_vm_address_t orgSafeMetaCast {0};
-    static OSMetaClassBase *wrapSafeMetaCast(const OSMetaClassBase *anObject, const OSMetaClass *toMeta);
 
     mach_vm_address_t orgApplePanelSetDisplay {0};
 
@@ -258,5 +252,3 @@ static const UInt8 kAGDPFBCountCheckVenturaPatched[] = {0x41, 0x83, 0xBE, 0x14, 
 //! Neutralise access to AGDP configuration by board identifier.
 static const UInt8 kAGDPBoardIDKeyOriginal[] = "board-id";
 static const UInt8 kAGDPBoardIDKeyPatched[] = "applehax";
-
-#endif /* kern_lred_hpp */

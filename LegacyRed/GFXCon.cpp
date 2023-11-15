@@ -1,5 +1,5 @@
-//!  Copyright © 2023 ChefKiss Inc. Licensed under the Thou Shalt Not Profit License version 1.5.
-//!  See LICENSE for details.
+//! Copyright © 2023 ChefKiss Inc. Licensed under the Thou Shalt Not Profit License version 1.5.
+//! See LICENSE for details.
 
 #include "GFXCon.hpp"
 #include "LRed.hpp"
@@ -50,7 +50,7 @@ bool GFXCon::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
         RouteRequestPlus requests[] = {
             {"__ZNK18VISharedController11getFamilyIdEv", wrapGetFamilyId, this->orgGetFamilyId},
             {"__ZN13ASIC_INFO__VI18populateDeviceInfoEv", wrapPopulateDeviceInfo, this->orgPopulateDeviceInfo},
-            {"__ZN17AMD9000Controller11getPllClockEhP11ClockParams", wrapGetPllClock, orgGetPllClock},
+            {"__ZN17AMD9000Controller11getPllClockEhP11ClockParams", wrapGetPllClock, this->orgGetPllClock},
         };
         PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "GFXCon",
             "Failed to route symbols");
@@ -61,7 +61,7 @@ bool GFXCon::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
         RouteRequestPlus requests[] = {
             {"__ZNK22BaffinSharedController11getFamilyIdEv", wrapGetFamilyId, this->orgGetFamilyId},
             {"__ZN17ASIC_INFO__BAFFIN18populateDeviceInfoEv", wrapPopulateDeviceInfo, this->orgPopulateDeviceInfo},
-            {"__ZN17AMD9500Controller11getPllClockEhP11ClockParams", wrapGetPllClock, orgGetPllClock},
+            {"__ZN17AMD9500Controller11getPllClockEhP11ClockParams", wrapGetPllClock, this->orgGetPllClock},
         };
         PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "GFXCon",
             "Failed to route symbols");
@@ -71,11 +71,11 @@ bool GFXCon::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
     return false;
 }
 
-uint16_t GFXCon::wrapGetFamilyId(void) { return LRed::callback->currentFamilyId; }
+uint16_t GFXCon::wrapGetFamilyId(void) { return LRed::callback->chipFamilyId; }
 
 IOReturn GFXCon::wrapPopulateDeviceInfo(void *that) {
     auto ret = FunctionCast(wrapPopulateDeviceInfo, callback->orgPopulateDeviceInfo)(that);
-    getMember<uint32_t>(that, 0x40) = LRed::callback->currentFamilyId;
+    getMember<uint32_t>(that, 0x40) = LRed::callback->chipFamilyId;
     getMember<uint32_t>(that, 0x4C) = LRed::callback->currentEmulatedRevisionId;
     return ret;
 }

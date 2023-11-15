@@ -1,8 +1,7 @@
-//!  Copyright © 2022-2023 ChefKiss Inc. Licensed under the Thou Shalt Not Profit License version 1.5. See LICENSE for
-//!  details.
+//! Copyright © 2023 ChefKiss Inc. Licensed under the Thou Shalt Not Profit License version 1.5.
+//! See LICENSE for details.
 
-#ifndef HWLibs_hpp
-#define HWLibs_hpp
+#pragma once
 #include "AMDCommon.hpp"
 #include "LRed.hpp"
 #include "PatcherPlus.hpp"
@@ -20,35 +19,14 @@ class HWLibs {
     private:
     t_XPowerTuneConstructor orgPowerTuneConstructor {nullptr};
     mach_vm_address_t orgAmdCailServicesConstructor {0};
-    mach_vm_address_t orgCAILQueryEngineRunningState {0};
-    mach_vm_address_t orgCailMonitorEngineInternalState {0};
-    mach_vm_address_t orgCailMonitorPerformanceCounter {0};
-    mach_vm_address_t orgSMUMInitialize {0};
-    mach_vm_address_t orgMCILDebugPrint {0};
-    mach_vm_address_t orgCailBonaireLoadUcode {0};
-    mach_vm_address_t orgBonaireLoadUcodeViaPortRegister {0};
-    mach_vm_address_t orgBonaireProgramAspm {0};
     mach_vm_address_t orgBonairePerformSrbmReset {0};
-    mach_vm_address_t orgCailCapsEnabled = {0};
-    CAILUcodeInfo *orgCailUcodeInfo {0};
+    CAILUcodeInfo *orgCailUcodeInfo {nullptr};
+
+    static const char *forceX4000HWLibs();
 
     static void wrapAmdCailServicesConstructor(void *that, IOPCIDevice *provider);
-    static UInt64 wrapCAILQueryEngineRunningState(void *param1, UInt32 *param2, UInt64 param3);
-    static UInt64 wrapCailMonitorEngineInternalState(void *that, UInt32 param1, UInt32 *param2);
-    static UInt64 wrapCailMonitorPerformanceCounter(void *that, UInt32 *param1);
     static void *wrapCreatePowerTuneServices(void *that, void *param2);
-    static UInt64 wrapSMUMInitialize(UInt64 param1, UInt32 *param2, UInt64 param3);
-    static void wrapMCILDebugPrint(UInt32 level_max, char *fmt, UInt64 param3, UInt64 param4, UInt64 param5,
-        uint level);
-    static void wrapCailBonaireLoadUcode(void *param1, UInt64 ucodeId, UInt8 *ucodeData, void *param4, UInt64 param5,
-        UInt64 param6);
-    static void wrapBonaireLoadUcodeViaPortRegister(UInt64 param1, UInt64 param2, void *param3, UInt32 param4,
-        UInt32 param5);
-    static UInt64 wrapBonaireProgramAspm(UInt64 param1);
     static void wrapBonairePerformSrbmReset(void *param1, UInt32 bit);
-    static UInt32 wrapCailCapsEnabled(UInt64 caps, UInt32 cap);
-
-    bool isRunningLoaderTask = false;
 };
 
 /* ---- Patterns ---- */
@@ -64,16 +42,3 @@ static const UInt8 kCailBonaireLoadUcodeMontereyPattern[] = {0x55, 0x48, 0x89, 0
 //! Force allow all log levels.
 static const UInt8 AtiPowerPlayServicesCOriginal[] = {0x8B, 0x40, 0x60, 0x48, 0x8D};
 static const UInt8 AtiPowerPlayServicesCPatched[] = {0x6A, 0xFF, 0x58, 0x48, 0x8D};
-//! _bonaire_load_ucode_via_port_register doesn't seem to trigger on pre-Carrizo ASICs?
-static const UInt8 kCAILBonaireLoadUcode1Original[] = {0xBE, 0x53, 0x00, 0x00, 0x00, 0xE8, 0xD9, 0xC2, 0xFD, 0xFF, 0x85,
-    0xC0, 0x74, 0x4F};
-static const UInt8 kCAILBonaireLoadUcode1Patched[] = {0xBE, 0x53, 0x00, 0x00, 0x00, 0xE8, 0xD9, 0xC2, 0xFD, 0xFF, 0x85,
-    0xC0, 0xEB, 0x4F};
-
-//! Forces _bonaire_init_rlc to load the RLC firmware, tested on macOS Big Sur
-static const UInt8 kBonaireInitRlcOriginal[] = {0xBE, 0x53, 0x00, 0x00, 0x00, 0xE8, 0x91, 0x62, 0xFD, 0xFF, 0x4C, 0x89,
-    0xE7, 0x85, 0xC0, 0x74, 0x09};
-static const UInt8 kBonaireInitRlcPatched[] = {0xBE, 0x53, 0x00, 0x00, 0x00, 0xE8, 0x91, 0x62, 0xFD, 0xFF, 0x4C, 0x89,
-    0xE7, 0x85, 0xC0, 0xEB, 0x09};
-
-#endif /* HWLibs_hpp */

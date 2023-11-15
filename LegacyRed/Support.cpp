@@ -1,5 +1,5 @@
-//!  Copyright © 2022-2023 ChefKiss Inc. Licensed under the Thou Shalt Not Profit License version 1.5. See LICENSE for
-//!  details.
+//! Copyright © 2023 ChefKiss Inc. Licensed under the Thou Shalt Not Profit License version 1.5.
+//! See LICENSE for details.
 
 #include "Support.hpp"
 #include "ATOMBIOS.hpp"
@@ -22,46 +22,50 @@ void Support::init() {
 bool Support::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t address, size_t size) {
     if (kextRadeonSupport.loadIndex == index) {
         LRed::callback->setRMMIOIfNecessary();
-        auto vbiosdbg = checkKernelArgument("-lredvbiosdbg");
-        auto adcpatch = checkKernelArgument("-lredadcpatch");
-        auto agdcon = checkKernelArgument("-lredagdcon");
 
+        bool agdcon = checkKernelArgument("-lredagdcon");
         if (agdcon) {
             RouteRequestPlus request {"__ZN16AtiDeviceControl5startEP9IOService", wrapADCStart, this->orgADCStart};
             PANIC_COND(!request.route(patcher, index, address, size), "Support", "Failed to route symbols");
         }
 
-        if (vbiosdbg) {
+        if (checkKernelArgument("-lredvbiosdbg")) {
             RouteRequestPlus request {
                 "__ZN24AtiAtomFirmwareInterface16createAtomParserEP18BiosParserServicesPh11DCE_Version",
-                wrapCreateAtomBiosParser, orgCreateAtomBiosParser};
+                wrapCreateAtomBiosParser, this->orgCreateAtomBiosParser};
         }
 
         RouteRequestPlus requests[] = {
             {"__ZN13ATIController20populateDeviceMemoryE13PCI_REG_INDEX", wrapPopulateDeviceMemory,
-                orgPopulateDeviceMemory},
+                this->orgPopulateDeviceMemory},
             {"__ZN16AtiDeviceControl16notifyLinkChangeE31kAGDCRegisterLinkControlEvent_tmj", wrapNotifyLinkChange,
-                orgNotifyLinkChange},
+                this->orgNotifyLinkChange},
             {"__ZN13ATIController8TestVRAME13PCI_REG_INDEXb", doNotTestVram},
             {"__ZN13ATIController10doGPUPanicEPKcz", wrapDoGPUPanic},
-            {"__ZN14AtiVBiosHelper8getImageEjj", wrapGetImage, orgGetImage},
+            {"__ZN14AtiVBiosHelper8getImageEjj", wrapGetImage, this->orgGetImage},
             {"__ZN30AtiObjectInfoTableInterface_V14initERN21AtiDataTableBaseClass17DataTableInitInfoE",
-                wrapObjectInfoTableInit, orgObjectInfoTableInit},
+                wrapObjectInfoTableInit, this->orgObjectInfoTableInit},
             {"__ZN30AtiObjectInfoTableInterface_V121createObjectInfoTableEP14AtiVBiosHelperj",
-                wrapCreateObjectInfoTable, orgCreateObjectInfoTable},
+                wrapCreateObjectInfoTable, this->orgCreateObjectInfoTable},
         };
         PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "Support",
             "Failed to route symbols");
 
-        LookupPatchPlus const patches[] = {
-            {&kextRadeonSupport, kAtiDeviceControlGetVendorInfoOriginal, kAtiDeviceControlGetVendorInfoMask,
-                kAtiDeviceControlGetVendorInfoPatched, kAtiDeviceControlGetVendorInfoMask,
-                arrsize(kAtiDeviceControlGetVendorInfoOriginal), 1, adcpatch},
-            {&kextRadeonSupport, kATIControllerStartAGDCCheckOriginal, kATIControllerStartAGDCCheckMask,
-                kATIControllerStartAGDCCheckPatched, kATIControllerStartAGDCCheckMask, 1, agdcon},
-        };
-        PANIC_COND(!LookupPatchPlus::applyAll(patcher, patches, address, size), "Support",
-            "Failed to apply patches: %d", patcher.getError());
+        if (checkKernelArgument("-lredadcpatch")) {
+            LookupPatchPlus const patch {&kextRadeonSupport, kAtiDeviceControlGetVendorInfoOriginal,
+                kAtiDeviceControlGetVendorInfoMask, kAtiDeviceControlGetVendorInfoPatched,
+                kAtiDeviceControlGetVendorInfoMask, 1};
+            PANIC_COND(!patch.apply(patcher, address, size), "Support", "Failed to apply getVendorInfo patch");
+        }
+
+        if (agdcon) {
+            LookupPatchPlus const patch {&kextRadeonSupport, kATIControllerStartAGDCCheckOriginal,
+                kATIControllerStartAGDCCheckMask, kATIControllerStartAGDCCheckPatched, kATIControllerStartAGDCCheckMask,
+                1};
+            PANIC_COND(!patch.apply(patcher, address, size), "Support",
+                "Failed to apply ATIController::start AGDC Check patch");
+        }
+
         DBGLOG("Support", "Applied patches.");
 
         return true;
@@ -71,10 +75,7 @@ bool Support::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_
 }
 
 IOReturn Support::wrapPopulateDeviceMemory(void *that, UInt32 reg) {
-    DBGLOG("Support", "populateDeviceMemory: this = %p reg = 0x%X", that, reg);
-    auto ret = FunctionCast(wrapPopulateDeviceMemory, callback->orgPopulateDeviceMemory)(that, reg);
-    DBGLOG("Support", "populateDeviceMemory returned 0x%X", ret);
-    (void)ret;
+    FunctionCast(wrapPopulateDeviceMemory, callback->orgPopulateDeviceMemory)(that, reg);
     return kIOReturnSuccess;
 }
 

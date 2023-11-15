@@ -1,8 +1,7 @@
-//!  Copyright © 2022-2023 ChefKiss Inc. Licensed under the Thou Shalt Not Profit License version 1.5. See LICENSE for
-//!  details.
+//! Copyright © 2023 ChefKiss Inc. Licensed under the Thou Shalt Not Profit License version 1.5.
+//! See LICENSE for details.
 
-#ifndef ATOMBIOS_hpp
-#define ATOMBIOS_hpp
+#pragma once
 #include <Headers/kern_util.hpp>
 
 struct VFCT {
@@ -193,5 +192,3 @@ enum {
 
 static constexpr UInt16 OBJECT_TYPE_MASK = 0x7000;
 static constexpr UInt16 OBJECT_TYPE_SHIFT = 0x0C;
-
-#endif /* ATOMBIOS_hpp */

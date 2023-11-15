@@ -1,5 +1,5 @@
-//!  Copyright © 2022-2023 ChefKiss Inc. Licensed under the Thou Shalt Not Profit License version 1.5. See LICENSE for
-//!  details.
+//! Copyright © 2023 ChefKiss Inc. Licensed under the Thou Shalt Not Profit License version 1.5.
+//! See LICENSE for details.
 
 #ifndef kern_model_hpp
 #define kern_model_hpp
@@ -212,15 +212,33 @@ static constexpr Model dev9874[] = {
 
 //! Stoney
 
-static constexpr Model dev98E4[] = {{0x80, "AMD Radeon R5E Graphics"}, {0x81, "AMD Radeon R4E Graphics"},
-    {0x83, "AMD Radeon R2E Graphics"}, {0x84, "AMD Radeon R2E Graphics"}, {0x86, "AMD Radeon R1E Graphics"},
-    {0xC0, "AMD Radeon R4 Graphics"}, {0xC1, "AMD Radeon R5 Graphics"}, {0xC2, "AMD Radeon R4 Graphics"},
-    {0xC4, "AMD Radeon R5 Graphics"}, {0xC6, "AMD Radeon R5 Graphics"}, {0xC8, "AMD Radeon R4 Graphics"},
-    {0xC9, "AMD Radeon R4 Graphics"}, {0xCA, "AMD Radeon R5 Graphics"}, {0xD0, "AMD Radeon R2 Graphics"},
-    {0xD1, "AMD Radeon R2 Graphics"}, {0xD2, "AMD Radeon R2 Graphics"}, {0xD4, "AMD Radeon R2 Graphics"},
-    {0xD9, "AMD Radeon R5 Graphics"}, {0xDA, "AMD Radeon R5 Graphics"}, {0xDB, "AMD Radeon R3 Graphics"},
-    {0xE1, "AMD Radeon R3 Graphics"}, {0xE2, "AMD Radeon R3 Graphics"}, {0xE9, "AMD Radeon R4 Graphics"},
-    {0xEA, "AMD Radeon R4 Graphics"}, {0xEB, "AMD Radeon R4/R3 Graphics"}};
+static constexpr Model dev98E4[] = {
+    {0x80, "AMD Radeon R5E Graphics"},
+    {0x81, "AMD Radeon R4E Graphics"},
+    {0x83, "AMD Radeon R2E Graphics"},
+    {0x84, "AMD Radeon R2E Graphics"},
+    {0x86, "AMD Radeon R1E Graphics"},
+    {0xC0, "AMD Radeon R4 Graphics"},
+    {0xC1, "AMD Radeon R5 Graphics"},
+    {0xC2, "AMD Radeon R4 Graphics"},
+    {0xC4, "AMD Radeon R5 Graphics"},
+    {0xC6, "AMD Radeon R5 Graphics"},
+    {0xC8, "AMD Radeon R4 Graphics"},
+    {0xC9, "AMD Radeon R4 Graphics"},
+    {0xCA, "AMD Radeon R5 Graphics"},
+    {0xD0, "AMD Radeon R2 Graphics"},
+    {0xD1, "AMD Radeon R2 Graphics"},
+    {0xD2, "AMD Radeon R2 Graphics"},
+    {0xD4, "AMD Radeon R2 Graphics"},
+    {0xD9, "AMD Radeon R5 Graphics"},
+    {0xDA, "AMD Radeon R5 Graphics"},
+    {0xDB, "AMD Radeon R3 Graphics"},
+    {0xE1, "AMD Radeon R3 Graphics"},
+    {0xE2, "AMD Radeon R3 Graphics"},
+    {0xE9, "AMD Radeon R4 Graphics"},
+    {0xEA, "AMD Radeon R4 Graphics"},
+    {0xEB, "AMD Radeon R4/R3 Graphics"},
+};
 
 static constexpr DevicePair devices[] = {
     {0x1309, dev1309, arrsize(dev1309)},
@@ -269,25 +287,7 @@ inline const char *getBranding(UInt16 dev, UInt16 rev) {
     }
 
     switch (dev) {
-        case 0x9830:
-            [[fallthrough]];
-        case 0x9831:
-            [[fallthrough]];
-        case 0x9832:
-            [[fallthrough]];
-        case 0x9833:
-            [[fallthrough]];
-        case 0x9834:
-            [[fallthrough]];
-        case 0x9835:
-            [[fallthrough]];
-        case 0x9836:
-            [[fallthrough]];
-        case 0x9837:
-            [[fallthrough]];
-        case 0x9838:
-            [[fallthrough]];
-        case 0x9839:
+        case 0x9830 ... 0x9839:
             [[fallthrough]];
         case 0x983D:
             return "AMD Radeon HD 8XXX";

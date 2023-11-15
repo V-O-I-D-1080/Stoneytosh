@@ -1,5 +1,5 @@
-//!  Copyright © 2022-2023 ChefKiss Inc. Licensed under the Thou Shalt Not Profit License version 1.5. See LICENSE for
-//!  details.
+//! Copyright © 2022-2023 ChefKiss Inc. Licensed under the Thou Shalt Not Profit License version 1.5.
+//! See LICENSE for details.
 
 #ifndef AMDCommon_hpp
 #define AMDCommon_hpp
@@ -15,7 +15,7 @@ constexpr UInt32 AMDGPU_FAMILY_KV = 0x7D;
 constexpr UInt32 PPSMC_MSG_GetSmuVersion = 0x2;
 constexpr UInt32 PPSMC_MSG_PowerUpSdma = 0xE;
 constexpr UInt32 PPSMC_MSG_PowerGateMmHub = 0x35;
-// applies to Carrizo
+//! applies to Carrizo
 constexpr UInt16 PPSMC_MSG_UVDPowerOff = 0x7;
 constexpr UInt16 PPSMC_MSG_UVDPowerOn = 0x8;
 constexpr UInt16 PPSMC_MSG_VCEPowerOff = 0x9;

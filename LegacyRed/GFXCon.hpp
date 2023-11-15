@@ -1,8 +1,7 @@
-//!  Copyright © 2023 ChefKiss Inc. Licensed under the Thou Shalt Not Profit License version 1.5.
-//!  See LICENSE for details.
+//! Copyright © 2023 ChefKiss Inc. Licensed under the Thou Shalt Not Profit License version 1.5.
+//! See LICENSE for details.
 
-#ifndef kern_gfxcon_hpp
-#define kern_gfxcon_hpp
+#pragma once
 #include "AMDCommon.hpp"
 #include "PatcherPlus.hpp"
 #include <Headers/kern_util.hpp>
@@ -22,5 +21,3 @@ class GFXCon {
     static uint16_t wrapGetFamilyId(void);
     static UInt32 wrapGetPllClock(void *that, uint8_t pll, void *clockparams);
 };
-
-#endif /* kern_gfxcon_hpp */
