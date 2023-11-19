@@ -28,6 +28,8 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
         UInt32 *orgChannelTypes = nullptr;
         mach_vm_address_t startHWEngines = 0;
 
+        const bool sml = checkKernelArgument("-CKSMLFirmwareInjection");
+
         if (stoney) {
             SolveRequestPlus solveRequests[] = {
                 {"__ZN28AMDRadeonX4000_AMDVIHardware32setupAndInitializeHWCapabilitiesEv",
@@ -57,6 +59,14 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
             };
             PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "X4000",
                 "Failed to route symbols");
+            if (sml) {
+                RouteRequestPlus requests[] = {
+                    {nullptr, wrapAMDSMLUVDInit, this->orgAMDSMLUVDInit, kAMDUVD6v3InitBigSur},
+                    {nullptr, wrapAMDSMLVCEInit, this->orgAMDSMLVCEInit, kAMDVCE3v4InitBigSur},
+                };
+                PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "X4000",
+                           "Failed to route symbols");
+            }
         } else if (carrizo) {
             RouteRequestPlus requests[] = {
                 {"__ZN30AMDRadeonX4000_AMDFijiHardware32setupAndInitializeHWCapabilitiesEv",
@@ -65,6 +75,14 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
             };
             PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "X4000",
                 "Failed to route symbols");
+            if (sml) {
+                RouteRequestPlus requests[] = {
+                    {nullptr, wrapAMDSMLUVDInit, this->orgAMDSMLUVDInit, kAMDUVD6v3InitBigSur},
+                    {nullptr, wrapAMDSMLVCEInit, this->orgAMDSMLVCEInit, kAMDVCE3v4InitBigSur},
+                };
+                PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "X4000",
+                           "Failed to route symbols");
+            }
         } else {
             RouteRequestPlus requests[] = {
                 {"__ZN33AMDRadeonX4000_AMDBonaireHardware32setupAndInitializeHWCapabilitiesEv",
@@ -195,5 +213,29 @@ int X4000::wrapHwlInitGlobalParams(void *that, const void *creationInfo) {
 IOReturn X4000::wrapGetHWInfo(void *ctx, void *hwInfo) {
     auto ret = FunctionCast(wrapGetHWInfo, callback->orgGetHWInfo)(ctx, hwInfo);
     getMember<UInt32>(hwInfo, 0x4) = LRed::callback->gcn3 ? (LRed::callback->stoney ? 0x67DF : 0x7300) : 0x6640;
+    return ret;
+}
+
+bool X4000::wrapAMDSMLUVDInit(void *that) {
+    auto ret = FunctionCast(wrapAMDSMLUVDInit, callback->orgAMDSMLUVDInit)(that);
+    DBGLOG("X4000", "SML UVD: init >>");
+    char filename[128];
+    const char *prefix = LRed::getUVDPrefix();
+    snprintf(filename, 128, "%s_nd.dat", prefix);
+    auto &fwDesc = getFWDescByName(filename);
+    getMember<UInt32>(that, 0x2C) = fwDesc.size;
+    getMember<const UInt8 *>(that, 0x30) = fwDesc.data;
+    return ret;
+}
+
+bool X4000::wrapAMDSMLVCEInit(void *that) {
+    auto ret = FunctionCast(wrapAMDSMLVCEInit, callback->orgAMDSMLVCEInit)(that);
+    DBGLOG("X4000", "SML VCE: init >>");
+    char filename[128];
+    const char *prefix = LRed::getVCEPrefix();
+    snprintf(filename, 128, "%s.dat", prefix);
+    auto &fwDesc = getFWDescByName(filename);
+    getMember<UInt32>(that, 0x14) = fwDesc.size;
+    getMember<const UInt8 *>(that, 0x18) = fwDesc.data;
     return ret;
 }
