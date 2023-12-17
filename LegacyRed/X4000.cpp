@@ -65,7 +65,7 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
                     {nullptr, wrapAMDSMLVCEInit, this->orgAMDSMLVCEInit, kAMDVCE3v4InitBigSur},
                 };
                 PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "X4000",
-                           "Failed to route symbols");
+                    "Failed to route symbols");
             }
         } else if (carrizo) {
             RouteRequestPlus requests[] = {
@@ -81,7 +81,7 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
                     {nullptr, wrapAMDSMLVCEInit, this->orgAMDSMLVCEInit, kAMDVCE3v4InitBigSur},
                 };
                 PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "X4000",
-                           "Failed to route symbols");
+                    "Failed to route symbols");
             }
         } else {
             RouteRequestPlus requests[] = {
@@ -105,6 +105,7 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
             {"__ZN4Addr2V15CiLib19HwlInitGlobalParamsEPK18_ADDR_CREATE_INPUT", wrapHwlInitGlobalParams,
                 orgHwlInitGlobalParams},
             {"__ZN35AMDRadeonX4000_AMDAccelVideoContext9getHWInfoEP13sHardwareInfo", wrapGetHWInfo, this->orgGetHWInfo},
+            {"__ZN29AMDRadeonX4000_AMDHWRegisters5writeEjj", wrapAMDHWRegsWrite, this->orgAMDHWRegsWrite},
         };
         PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "X4000",
             "Failed to route symbols");
@@ -238,4 +239,13 @@ bool X4000::wrapAMDSMLVCEInit(void *that) {
     getMember<UInt32>(that, 0x14) = fwDesc.size;
     getMember<const UInt8 *>(that, 0x18) = fwDesc.data;
     return ret;
+}
+
+void X4000::wrapAMDHWRegsWrite(void *that, UInt32 addr, UInt32 val) {
+    //! DBGLOG("X4000", "write >> addr: 0x%x, val: 0x%x", addr, val);
+    if (addr == mmSRBM_SOFT_RESET) {
+        val &= ~SRBM_SOFT_RESET__SOFT_RESET_MC_MASK;
+        DBGLOG("X4000", "Stripping SRBM_SOFT_RESET__SOFT_RESET_MC_MASK bit");
+    }
+    FunctionCast(wrapAMDHWRegsWrite, callback->orgAMDHWRegsWrite)(that, addr, val);
 }

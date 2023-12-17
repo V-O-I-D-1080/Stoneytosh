@@ -49,6 +49,10 @@ constexpr UInt32 SRBM_STATUS__MCB_NON_DISPLAY_BUSY_MASK = 0x400;
 constexpr UInt32 SRBM_STATUS__MCC_BUSY_MASK = 0x800;
 constexpr UInt32 SRBM_STATUS__MCD_BUSY_MASK = 0x1000;
 
+constexpr UInt32 mmSRBM_SOFT_RESET = 0x398;
+
+constexpr UInt32 SRBM_SOFT_RESET__SOFT_RESET_MC_MASK = 0x800;
+
 struct CAILFirmwareBlob {
     void *unknown, *unknown0, *unknown2;
     UInt32 *rawData;

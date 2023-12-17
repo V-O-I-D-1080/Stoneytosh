@@ -112,11 +112,7 @@ void *HWLibs::wrapCreatePowerTuneServices(void *that, void *param2) {
 void HWLibs::wrapBonairePerformSrbmReset(void *param1, UInt32 bit) {
     UInt32 tmp = LRed::callback->readReg32(mmSRBM_STATUS);
     DBGLOG("HWLibs", "_bonaire_perform_srbm_reset >>");
-    //! According to AMDGPU's source, it shouldnt be reset if it matches this
-    if (tmp & (SRBM_STATUS__MCB_BUSY_MASK | SRBM_STATUS__MCB_NON_DISPLAY_BUSY_MASK | SRBM_STATUS__MCC_BUSY_MASK |
-                  SRBM_STATUS__MCD_BUSY_MASK)) {
-        DBGLOG("HWLibs", "Skipping reset");
-        return;
-    }
+    bit &= ~SRBM_SOFT_RESET__SOFT_RESET_MC_MASK;
+    DBGLOG("HWLibs", "Stripping SRBM_SOFT_RESET__SOFT_RESET_MC_MASK bit");
     FunctionCast(wrapBonairePerformSrbmReset, callback->orgBonairePerformSrbmReset)(param1, bit);
 }
