@@ -101,20 +101,5 @@
 		<string>0.0.0.0.0</string>
 		<key>IOVARendererID</key>
 		<integer>16908288</integer>
-		<key>cail_properties</key>
-		<dict>
-			<key>CAIL_DisableAcpPowerGating</key>
-			<integer>0</integer>
-			<key>CAIL_DisableJpegEngine</key>
-			<integer>1</integer>
-			<key>CAIL_DisableSAMUPowerGating</key>
-			<integer>1</integer>
-			<key>CAIL_DisableSysClockGating</key>
-			<integer>1</integer>
-			<key>CAIL_DisableUVDPowerGating</key>
-			<integer>0</integer>
-			<key>CAIL_DisableVCEPowerGating</key>
-			<integer>0</integer>
-		</dict>
 	</dict>
 </array>
