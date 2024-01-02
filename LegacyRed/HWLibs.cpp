@@ -110,7 +110,6 @@ void *HWLibs::wrapCreatePowerTuneServices(void *that, void *param2) {
 }
 
 void HWLibs::wrapBonairePerformSrbmReset(void *param1, UInt32 bit) {
-    UInt32 tmp = LRed::callback->readReg32(mmSRBM_STATUS);
     DBGLOG("HWLibs", "_bonaire_perform_srbm_reset >>");
     bit &= ~SRBM_SOFT_RESET__SOFT_RESET_MC_MASK;
     DBGLOG("HWLibs", "Stripping SRBM_SOFT_RESET__SOFT_RESET_MC_MASK bit");
