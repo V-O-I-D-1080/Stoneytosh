@@ -33,6 +33,7 @@ static X4000 x4000;
 
 void LRed::init() {
     SYSLOG("LRed", "Copyright © 2023 ChefKiss Inc. If you've paid for this, you've been scammed.");
+    SYSLOG("LRed", "This build was built on %s at %s", __DATE__, __TIME__);
     callback = this;
 
     lilu.onPatcherLoadForce(
