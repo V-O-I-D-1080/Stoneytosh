@@ -4,7 +4,6 @@
 #include "Support.hpp"
 #include "ATOMBIOS.hpp"
 #include "LRed.hpp"
-#include "Model.hpp"
 #include <Headers/kern_api.hpp>
 
 static const char *pathRadeonSupport = "/System/Library/Extensions/AMDSupport.kext/Contents/MacOS/AMDSupport";
@@ -23,14 +22,14 @@ bool Support::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_
     if (kextRadeonSupport.loadIndex == index) {
         LRed::callback->setRMMIOIfNecessary();
 
-        const bool agdcon = checkKernelArgument("-lredagdcon");
+        const bool agdcon = checkKernelArgument("-LRedAGDCEnable");
         if (agdcon) {
             RouteRequestPlus request {"__ZN16AtiDeviceControl5startEP9IOService", wrapADCStart, this->orgADCStart};
             PANIC_COND(!request.route(patcher, index, address, size), "Support",
                 "Failed to route AtiDeviceControl::start");
         }
 
-        if (checkKernelArgument("-lredvbiosdbg")) {
+        if (checkKernelArgument("-LRedVBIOSDebug")) {
             RouteRequestPlus request {
                 "__ZN24AtiAtomFirmwareInterface16createAtomParserEP18BiosParserServicesPh11DCE_Version",
                 wrapCreateAtomBiosParser, this->orgCreateAtomBiosParser};
@@ -53,7 +52,7 @@ bool Support::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_
         PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "Support",
             "Failed to route symbols");
 
-        if (checkKernelArgument("-lredadcpatch")) {
+        if (checkKernelArgument("-LRedAGDCPatch")) {
             const LookupPatchPlus patch {&kextRadeonSupport, kAtiDeviceControlGetVendorInfoOriginal,
                 kAtiDeviceControlGetVendorInfoMask, kAtiDeviceControlGetVendorInfoPatched,
                 kAtiDeviceControlGetVendorInfoMask, 1};
@@ -99,16 +98,6 @@ bool Support::wrapNotifyLinkChange(void *atiDeviceControl, kAGDCRegisterLinkCont
 bool Support::doNotTestVram([[maybe_unused]] IOService *ctrl, [[maybe_unused]] UInt32 reg,
     [[maybe_unused]] bool retryOnFail) {
     DBGLOG("Support", "TestVRAM called! Returning true");
-    auto *model = getBranding(LRed::callback->deviceId, LRed::callback->pciRevision);
-    //! Why do we set it here?
-    //! Our controller kexts override it, and since TestVRAM is later on after the controllers have started up, it's
-    //! desirable to do it here rather than later
-    if (model) {
-        auto len = static_cast<UInt32>(strlen(model) + 1);
-        LRed::callback->iGPU->setProperty("model", const_cast<char *>(model), len);
-        LRed::callback->iGPU->setProperty("ATY,FamilyName", const_cast<char *>("Radeon"), 7);
-        LRed::callback->iGPU->setProperty("ATY,DeviceName", const_cast<char *>(model) + 11, len - 11);
-    }
     return true;
 }
 
@@ -134,10 +123,9 @@ void Support::wrapDoGPUPanic() {
     while (true) { IOSleep(3600000); }
 }
 
+//! do we even need the display object path table?
 void *Support::wrapGetImage(void *that, UInt32 offset, UInt32 length) {
-    DBGLOG("Support", "getImage: offset: %x, length %x", offset, length);
     auto ret = FunctionCast(wrapGetImage, callback->orgGetImage)(that, offset, length);
-    DBGLOG("Support", "getImage: returned %llX", ret);
     return ret;
 }
 
@@ -189,8 +177,8 @@ bool Support::wrapObjectInfoTableInit(void *that, void *initdata) {
     DBGLOG("Support", "Results: numOfDispPath: 0x%x, numberOfObjects: 0x%x", dispPathTable->numOfDispPath,
         conInfoTbl->numberOfObjects);
     LRed::callback->iGPU->setProperty("CFG_FB_LIMIT", conInfoTbl->numberOfObjects, sizeof(conInfoTbl->numberOfObjects));
-    // WEG sets this property to the number of connectors used in AtiBiosParserX::getConnectorInfo, so we use
-    // numberOfObjects instead
+    //! WEG sets this property to the number of connectors used in AtiBiosParserX::getConnectorInfo, so we use
+    //! numberOfObjects instead
     return ret;
 }
 

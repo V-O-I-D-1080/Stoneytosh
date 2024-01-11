@@ -178,16 +178,16 @@ class LRed {
     UInt32 readReg32(UInt32 reg) {
         if ((reg * 4) < this->rmmio->getLength()) { return this->rmmioPtr[reg]; }
 
-        this->rmmioPtr[mmPCIE_INDEX2] = reg;
-        return this->rmmioPtr[mmPCIE_DATA2];
+        this->rmmioPtr[mmPCIE_INDEX_2] = reg;
+        return this->rmmioPtr[mmPCIE_DATA_2];
     }
 
     void writeReg32(UInt32 reg, UInt32 val) {
         if ((reg * 4) < this->rmmio->getLength()) {
             this->rmmioPtr[reg] = val;
         } else {
-            this->rmmioPtr[mmPCIE_INDEX2] = reg;
-            this->rmmioPtr[mmPCIE_DATA2] = val;
+            this->rmmioPtr[mmPCIE_INDEX_2] = reg;
+            this->rmmioPtr[mmPCIE_DATA_2] = val;
         }
     }
 

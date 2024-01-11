@@ -33,7 +33,7 @@ static X4000 x4000;
 
 void LRed::init() {
     SYSLOG("LRed", "Copyright © 2023 ChefKiss Inc. If you've paid for this, you've been scammed.");
-    SYSLOG("LRed", "This build was built on %s at %s", __DATE__, __TIME__);
+    SYSLOG("LRed", "This build was compiled on %s", __TIMESTAMP__);
     callback = this;
 
     lilu.onPatcherLoadForce(
@@ -173,7 +173,8 @@ void LRed::setRMMIOIfNecessary() {
         this->rmmio = this->iGPU->mapDeviceMemoryWithRegister(kIOPCIConfigBaseAddress5);
         PANIC_COND(!this->rmmio || !this->rmmio->getLength(), "LRed", "Failed to map RMMIO");
         this->rmmioPtr = reinterpret_cast<volatile uint32_t *>(this->rmmio->getVirtualAddress());
-        this->fbOffset = static_cast<uint64_t>(this->readReg32(0x81A)) << 22;
+
+        this->fbOffset = static_cast<UInt64>(this->readReg32(mmMC_VM_FB_OFFSET)) << 22;
         SYSLOG("LRed", "Framebuffer offset: 0x%llX", this->fbOffset);
 
         //! Who thought it would be a good idea to use this many Device IDs and Revisions?
@@ -266,6 +267,13 @@ void LRed::setRMMIOIfNecessary() {
             (LRed::callback->chipType == ChipType::Kalindi) ?
                 static_cast<uint32_t>(LRed::callback->enumeratedRevision) :
                 static_cast<uint32_t>(LRed::callback->enumeratedRevision) + LRed::callback->revision;
+        OSData *prop = OSData::withBytesNoCopy(&LRed::callback->fbOffset, 8);    //! UInt64 is 8 bytes long???
+        if (prop == nullptr) {
+            DBGLOG("LRed", "wtf? failed to make ATY,fb_offset property");
+        } else {
+            this->iGPU->setProperty("ATY,fb_offset",
+                prop);    //! `AMDRadeonX4000_AMDHWDisplay::getDisplayInfo` attempts to read something with this name
+        }
     }
 }
 

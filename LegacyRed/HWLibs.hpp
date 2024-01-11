@@ -20,7 +20,6 @@ class HWLibs {
     t_XPowerTuneConstructor orgPowerTuneConstructor {nullptr};
     mach_vm_address_t orgAmdCailServicesConstructor {0};
     mach_vm_address_t orgBonairePerformSrbmReset {0};
-    CAILUcodeInfo *orgCailUcodeInfo {nullptr};
 
     static const char *forceX4000HWLibs();
 

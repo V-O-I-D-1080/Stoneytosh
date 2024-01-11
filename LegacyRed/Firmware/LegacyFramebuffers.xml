@@ -77,8 +77,6 @@
 			<true/>
 			<key>CFG_USE_STUTTER</key>
 			<false/>
-			<key>CFG_NON_ZERO_MC_LOC</key>
-			<integer>1</integer>
 			<key>DALReadDelayStutterOff</key>
 			<integer>4</integer>
 			<key>DALUseUrgencyWaterMarkOffset</key>

@@ -3,6 +3,7 @@
 
 #include "X4000.hpp"
 #include "LRed.hpp"
+#include "Model.hpp"
 #include <Headers/kern_api.hpp>
 
 static const char *pathRadeonX4000 = "/System/Library/Extensions/AMDRadeonX4000.kext/Contents/MacOS/AMDRadeonX4000";
@@ -170,6 +171,15 @@ void X4000::wrapSetupAndInitializeHWCapabilities(void *that) {
 void X4000::wrapInitializeFamilyType(void *that) {
     DBGLOG("X4000", "initializeFamilyType << %x", LRed::callback->familyId);
     getMember<UInt32>(that, 0x308) = LRed::callback->familyId;
+    auto *model = getBranding(LRed::callback->deviceId, LRed::callback->pciRevision);
+    //! Why do we set it here?
+    //! Our controller kexts override it if done @ processPatcher
+    if (model) {
+        auto len = static_cast<UInt32>(strlen(model) + 1);
+        LRed::callback->iGPU->setProperty("model", const_cast<char *>(model), len);
+        LRed::callback->iGPU->setProperty("ATY,FamilyName", const_cast<char *>("Radeon"), 7);
+        LRed::callback->iGPU->setProperty("ATY,DeviceName", const_cast<char *>(model) + 11, len - 11);
+    }
 }
 
 void *X4000::wrapGetHWChannel(void *that, UInt32 engineType, UInt32 ringId) {
