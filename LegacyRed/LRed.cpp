@@ -273,6 +273,7 @@ void LRed::setRMMIOIfNecessary() {
         } else {
             this->iGPU->setProperty("ATY,fb_offset",
                 prop);    //! `AMDRadeonX4000_AMDHWDisplay::getDisplayInfo` attempts to read something with this name
+            OSSafeReleaseNULL(prop);
         }
     }
 }
