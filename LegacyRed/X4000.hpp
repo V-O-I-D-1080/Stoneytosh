@@ -40,7 +40,8 @@ class X4000 {
     static int wrapHwlInitGlobalParams(void *that, const void *creationInfo);
     static IOReturn wrapGetHWInfo(void *ctx, void *hwInfo);
     static void wrapAMDHWRegsWrite(void *that, UInt32 addr, UInt32 val);
-
+	static void wrapInitVRAMInfo(void *that);
+	
     static bool wrapAMDSMLUVDInit(void *that);
     static bool wrapAMDSMLVCEInit(void *that);
 };
@@ -82,3 +83,13 @@ static const UInt8 kAMDUVDVIInitBigSur[] = {0x55, 0x48, 0x89, 0xe5, 0x53, 0x50, 
     0x04, 0x00, 0x48, 0x8d, 0x05, 0x52, 0xc9, 0x0e, 0x00, 0x48, 0x89, 0x43, 0x30, 0xc6, 0x43, 0x28, 0x01, 0xc6, 0x43,
     0x40, 0x00, 0xc7, 0x43, 0x44, 0x01, 0x00, 0x00, 0x00, 0xb0, 0x01, 0xeb, 0x02, 0x31, 0xc0, 0x48, 0x83, 0xc4, 0x08,
     0x5b, 0x5d, 0xc3};
+
+// ---- Data Types ---- //
+
+// something something TongaGraphicsAccel::getDeviceType - does SOMETHING, but does nothing for non-apple cards?
+struct X4000DeviceTypeEntry {
+	UInt16 vendorId;
+	UInt16 deviceId;
+	UInt16 subsystemVendorId;
+	UInt32 deviceType;
+};

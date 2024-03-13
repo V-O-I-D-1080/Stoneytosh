@@ -27,6 +27,7 @@ constexpr UInt32 mmPCIE_INDEX_2 = 0xC;
 constexpr UInt32 mmPCIE_DATA_2 = 0xD;
 
 constexpr UInt32 mmCONFIG_MEMSIZE = 0x150A;
+constexpr UInt32 mmCONFIG_APER_SIZE = 0x150C;
 
 //-------- GFX 7/GFX 8 Registers --------//
 

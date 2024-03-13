@@ -133,30 +133,16 @@
 				<true/>
 				<key>MM_EnableHEVCEncode</key>
 				<false/>
-				<key>PP_DisableCAC</key>
+				<key>PP_Apu_DisableGfxPowerGatingInUvd</key>
 				<integer>0</integer>
-				<key>PP_DisableDIDT</key>
-				<integer>0</integer>
-				<key>PP_DisableFFC</key>
-				<integer>1</integer>
-				<key>PP_DisablePowerContainment</key>
-				<integer>0</integer>
-				<key>PP_DisableULV</key>
-				<integer>0</integer>
+				<key>PP_SclkDeepSleepDisable</key>
+				<string></string>
 				<key>PP_DisableVoltageIsland</key>
 				<integer>1</integer>
-				<key>PP_EnableBAPM</key>
-				<integer>0</integer>
-				<key>PP_EnableLoadFalconSmcFirmware</key>
-				<integer>0</integer>
-				<key>PP_EnablePerDPM</key>
+				<key>PP_DriverEnableNBDPM</key>
 				<integer>1</integer>
-				<key>PP_Falcon_QuickTransition_Enable</key>
+				<key>PP_ThermalAutoThrottlingEnable</key>
 				<integer>1</integer>
-				<key>PP_MclkActivityTarget</key>
-				<integer>5</integer>
-				<key>PP_MclkDpmDisabled</key>
-				<integer>0</integer>
 			</dict>
 		</dict>
 		<key>com.ChefKissInc.LegacyRed</key>

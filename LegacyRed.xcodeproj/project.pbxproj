@@ -12,6 +12,8 @@
 		CE8DA0832517C41A008C44E8 /* libkmod.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE8DA0822517C41A008C44E8 /* libkmod.a */; };
 		F011C00A2A7A4C7F007E8F8C /* DYLDPatches.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F011C0082A7A4C7F007E8F8C /* DYLDPatches.cpp */; };
 		F011C00B2A7A4C7F007E8F8C /* DYLDPatches.hpp in Headers */ = {isa = PBXBuildFile; fileRef = F011C0092A7A4C7F007E8F8C /* DYLDPatches.hpp */; };
+		F0676F032B67A82100631CCC /* Framebuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F0676F012B67A82100631CCC /* Framebuffer.cpp */; };
+		F0676F042B67A82100631CCC /* Framebuffer.hpp in Headers */ = {isa = PBXBuildFile; fileRef = F0676F022B67A82100631CCC /* Framebuffer.hpp */; };
 		F067C21329D82E58004BB52E /* GFXCon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F067C20329D82E57004BB52E /* GFXCon.cpp */; };
 		F067C21529D82E58004BB52E /* X4000.hpp in Headers */ = {isa = PBXBuildFile; fileRef = F067C20529D82E57004BB52E /* X4000.hpp */; };
 		F067C21629D82E58004BB52E /* LRed.hpp in Headers */ = {isa = PBXBuildFile; fileRef = F067C20629D82E57004BB52E /* LRed.hpp */; };
@@ -64,6 +66,8 @@
 		CE8DA0822517C41A008C44E8 /* libkmod.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libkmod.a; path = ../Lilu/MacKernelSDK/Library/x86_64/libkmod.a; sourceTree = "<group>"; };
 		F011C0082A7A4C7F007E8F8C /* DYLDPatches.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DYLDPatches.cpp; sourceTree = "<group>"; };
 		F011C0092A7A4C7F007E8F8C /* DYLDPatches.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = DYLDPatches.hpp; sourceTree = "<group>"; };
+		F0676F012B67A82100631CCC /* Framebuffer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Framebuffer.cpp; sourceTree = "<group>"; };
+		F0676F022B67A82100631CCC /* Framebuffer.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Framebuffer.hpp; sourceTree = "<group>"; };
 		F067C20329D82E57004BB52E /* GFXCon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GFXCon.cpp; sourceTree = "<group>"; };
 		F067C20529D82E57004BB52E /* X4000.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = X4000.hpp; sourceTree = "<group>"; };
 		F067C20629D82E57004BB52E /* LRed.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = LRed.hpp; sourceTree = "<group>"; };
@@ -131,6 +135,8 @@
 				408F201A288AC068002EEC15 /* Firmware */,
 				408F201F288ACBE6002EEC15 /* Firmware.cpp */,
 				F067C20C29D82E58004BB52E /* Firmware.hpp */,
+				F0676F012B67A82100631CCC /* Framebuffer.cpp */,
+				F0676F022B67A82100631CCC /* Framebuffer.hpp */,
 				F067C20329D82E57004BB52E /* GFXCon.cpp */,
 				F067C20A29D82E58004BB52E /* GFXCon.hpp */,
 				F067C20E29D82E58004BB52E /* HWLibs.cpp */,
@@ -227,6 +233,7 @@
 				F0D396B82A3EE76200424389 /* PatcherPlus.hpp in Headers */,
 				F067C21729D82E59004BB52E /* ATOMBIOS.hpp in Headers */,
 				F011C00B2A7A4C7F007E8F8C /* DYLDPatches.hpp in Headers */,
+				F0676F042B67A82100631CCC /* Framebuffer.hpp in Headers */,
 				F067C21529D82E58004BB52E /* X4000.hpp in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -336,6 +343,7 @@
 				CE405ED91E4A080700AA0B3D /* plugin_start.cpp in Sources */,
 				F067C21329D82E58004BB52E /* GFXCon.cpp in Sources */,
 				F011C00A2A7A4C7F007E8F8C /* DYLDPatches.cpp in Sources */,
+				F0676F032B67A82100631CCC /* Framebuffer.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

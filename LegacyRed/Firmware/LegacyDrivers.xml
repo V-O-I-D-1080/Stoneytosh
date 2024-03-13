@@ -55,7 +55,7 @@
 		<key>IOMatchCategory</key>
 		<string>IOAccelerator</string>
 		<key>IOPCIMatch</key>
-		<string>0x13091002 0x130A1002 0x130B1002 0x130C1002 0x130D1002 0x130E1002 0x130F1002 0x13131002 0x13151002 0x13161002 0x13181002 0x131B1002 0x98301002 0x98311002 0x98321002 0x98331002 0x98341002 0x98351002 0x98361002 0x98371002 0x98381002 0x98391002 0x983D1002 0x98501002 0x98511002 0x98521002 0x98531002 0x98541002 0x98551002 0x98561002</string>
+		<string>0x13091002 0x130A1002 0x130B1002 0x130C1002 0x130D1002 0x130E1002 0x130F1002 0x13131002 0x13151002 0x13161002 0x13181002 0x131B1002</string>
 		<key>IOPropertyMatch</key>
 		<dict>
 			<key>LoadAccelerator</key>
@@ -69,10 +69,16 @@
 		<integer>16908288</integer>
 		<key>cail_properties</key>
 		<dict>
-			<key>CAIL_DisableMcLightSleep</key>
+			<key>CAIL_DisableSAMUPowerGating</key>
+			<integer>0</integer>
+			<key>CAIL_DisablePowerGating</key>
+			<integer>0</integer>
+			<key>CAIL_DisableDynamicGfxMGPowerGating</key>
 			<integer>1</integer>
-			<key>CAIL_DisableMcMGCG</key>
-			<integer>1</integer>
+			<key>CAIL_EnableLBPWSupport</key>
+			<integer>0</integer>
+			<key>CAIL_DisableFBCSupport</key>
+			<integer>0</integer>
 		</dict>
 	</dict>
 	<dict>
@@ -81,7 +87,101 @@
 		<key>GpuDebugPolicy</key>
 		<integer>3</integer>
 		<key>IOClass</key>
-		<string>AMDRadeonX4000_AMDFijiGraphicsAccelerator</string>
+		<string>AMDRadeonX4000_AMDBonaireGraphicsAccelerator</string>
+		<key>IODVDBundleName</key>
+		<string>AMDRadeonVADriver</string>
+		<key>IOKitDebug</key>
+		<integer>0</integer>
+		<key>IOMatchCategory</key>
+		<string>IOAccelerator</string>
+		<key>IOPCIMatch</key>
+		<string>0x98301002 0x98311002 0x98321002 0x98331002 0x98341002 0x98351002 0x98361002 0x98371002 0x98381002 0x98391002 0x983D1002</string>
+		<key>IOPropertyMatch</key>
+		<dict>
+			<key>LoadAccelerator</key>
+			<true/>
+		</dict>
+		<key>IOProviderClass</key>
+		<string>IOPCIDevice</string>
+		<key>IOSourceVersion</key>
+		<string>0.0.0.0.0</string>
+		<key>IOVARendererID</key>
+		<integer>16908288</integer>
+		<key>cail_properties</key>
+		<dict>
+			<key>CAIL_DisableSAMUPowerGating</key>
+			<integer>1</integer>
+			<key>CAIL_DisableGfxCGPowerGating</key>
+			<integer>0</integer>
+			<key>CAIL_DisablePowerGating</key>
+			<integer>0</integer>
+			<key>CAIL_DisablePCIConfigAsicReset</key>
+			<integer>0</integer>
+			<key>CAIL_DisableSamuBypassMode</key>
+			<integer>0</integer>
+			<key>CAIL_DisableVceBypassMode</key>
+			<integer>0</integer>
+			<key>CAIL_DisableUvdBypassMode</key>
+			<integer>0</integer>
+			<key>CAIL_DisableRlcSmuPGHandshake</key>
+			<integer>0</integer>
+		</dict>
+	</dict>
+	<dict>
+		<key>CFBundleIdentifier</key>
+		<string>com.apple.kext.AMDRadeonX4000</string>
+		<key>GpuDebugPolicy</key>
+		<integer>3</integer>
+		<key>IOClass</key>
+		<string>AMDRadeonX4000_AMDBonaireGraphicsAccelerator</string>
+		<key>IODVDBundleName</key>
+		<string>AMDRadeonVADriver</string>
+		<key>IOKitDebug</key>
+		<integer>0</integer>
+		<key>IOMatchCategory</key>
+		<string>IOAccelerator</string>
+		<key>IOPCIMatch</key>
+		<string>0x98501002 0x98511002 0x98521002 0x98531002 0x98541002 0x98551002 0x98561002</string>
+		<key>IOPropertyMatch</key>
+		<dict>
+			<key>LoadAccelerator</key>
+			<true/>
+		</dict>
+		<key>IOProviderClass</key>
+		<string>IOPCIDevice</string>
+		<key>IOSourceVersion</key>
+		<string>0.0.0.0.0</string>
+		<key>IOVARendererID</key>
+		<integer>16908288</integer>
+		<key>cail_properties</key>
+		<dict>
+			<key>CAIL_DisableSAMUPowerGating</key>
+			<integer>1</integer>
+			<key>CAIL_DisableGfxCGPowerGating</key>
+			<integer>0</integer>
+			<key>CAIL_DisablePowerGating</key>
+			<integer>0</integer>
+			<key>CAIL_DisablePCIConfigAsicReset</key>
+			<integer>1</integer>
+			<key>CAIL_DisableSamuBypassMode</key>
+			<integer>0</integer>
+			<key>CAIL_DisableVceBypassMode</key>
+			<integer>0</integer>
+			<key>CAIL_DisableUvdBypassMode</key>
+			<integer>0</integer>
+			<key>CAIL_DisableRlcSmuPGHandshake</key>
+			<integer>0</integer>
+			<key>CAIL_DisableFBCSupport</key>
+			<integer>0</integer>
+		</dict>
+	</dict>
+	<dict>
+		<key>CFBundleIdentifier</key>
+		<string>com.apple.kext.AMDRadeonX4000</string>
+		<key>GpuDebugPolicy</key>
+		<integer>3</integer>
+		<key>IOClass</key>
+		<string>AMDRadeonX4000_AMDTongaGraphicsAccelerator</string>
 		<key>IODVDBundleName</key>
 		<string>AMDRadeonVADriver</string>
 		<key>IOKitDebug</key>
@@ -101,5 +201,24 @@
 		<string>0.0.0.0.0</string>
 		<key>IOVARendererID</key>
 		<integer>16908288</integer>
+		<key>cail_properties</key>
+		<dict>
+			<key>CAIL_DisableStaticGfxMGPowerGating</key>
+			<integer>0</integer>
+			<key>CAIL_DisableCailLoadUcode</key>
+			<integer>0</integer>
+			<key>CAIL_DisableSAMUPowerGating</key>
+			<integer>0</integer>
+			<key>CAIL_DisablePowerGating</key>
+			<integer>0</integer>
+			<key>CAIL_DisablePCIConfigAsicReset</key>
+			<integer>0</integer>
+			<key>CAIL_DisableDynamicGfxMGPowerGating</key>
+			<integer>1</integer>
+			<key>CAIL_DisableRlcSmuPGHandshake</key>
+			<integer>1</integer>
+			<key>CAIL_DisableFBCSupport</key>
+			<integer>0</integer>
+		</dict>
 	</dict>
 </array>

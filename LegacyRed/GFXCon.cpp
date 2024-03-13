@@ -40,8 +40,8 @@ bool GFXCon::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
         RouteRequestPlus requests[] = {
             {"__ZNK18CISharedController11getFamilyIdEv", wrapGetFamilyId, this->orgGetFamilyId},
             {"__ZN13ASIC_INFO__CI18populateDeviceInfoEv", wrapPopulateDeviceInfo, this->orgPopulateDeviceInfo},
-            {"__ZN13ASIC_INFO__CI18populateFbLocationEv", wrapPopulateFbLocation},
-            {"__ZN17AMD8000Controller17getVramBaseOffsetEv", wrapGetVRAMBaseOffset, this->orgGetVRAMBaseOffset},
+            //{"__ZN13ASIC_INFO__CI18populateFbLocationEv", wrapPopulateFbLocation},
+            //{"__ZN17AMD8000Controller17getVramBaseOffsetEv", wrapGetVRAMBaseOffset, this->orgGetVRAMBaseOffset},
         };
         PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "GFXCon",
             "Failed to route symbols");

@@ -7,6 +7,7 @@
 #include "Model.hpp"
 #include "Support.hpp"
 #include "X4000.hpp"
+#include "Framebuffer.hpp"
 #include <Headers/kern_api.hpp>
 #include <Headers/kern_devinfo.hpp>
 #include <IOKit/IOCatalogue.h>
@@ -26,6 +27,7 @@ static KernelPatcher::KextInfo kextMCCSControl {"com.apple.driver.AppleMCCSContr
 
 LRed *LRed::callback = nullptr;
 
+static Framebuffer fb;
 static GFXCon gfxcon;
 static Support support;
 static HWLibs hwlibs;
@@ -51,6 +53,7 @@ void LRed::init() {
     gfxcon.init();
     x4000.init();
     support.init();
+	fb.init();
 }
 
 void LRed::processPatcher(KernelPatcher &patcher) {
@@ -267,14 +270,6 @@ void LRed::setRMMIOIfNecessary() {
             (LRed::callback->chipType == ChipType::Kalindi) ?
                 static_cast<uint32_t>(LRed::callback->enumeratedRevision) :
                 static_cast<uint32_t>(LRed::callback->enumeratedRevision) + LRed::callback->revision;
-        OSData *prop = OSData::withBytesNoCopy(&LRed::callback->fbOffset, 8);    //! UInt64 is 8 bytes long???
-        if (prop == nullptr) {
-            DBGLOG("LRed", "wtf? failed to make ATY,fb_offset property");
-        } else {
-            this->iGPU->setProperty("ATY,fb_offset",
-                prop);    //! `AMDRadeonX4000_AMDHWDisplay::getDisplayInfo` attempts to read something with this name
-            OSSafeReleaseNULL(prop);
-        }
     }
 }
 
@@ -296,13 +291,15 @@ void LRed::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t a
         };
         patcher.routeMultiple(index, request, address, size);
     } else if (support.processKext(patcher, index, address, size)) {
-        DBGLOG("LRed", "Processed support");
+        DBGLOG("LRed", "Processed Support");
     } else if (hwlibs.processKext(patcher, index, address, size)) {
-        DBGLOG("LRed", "Processed hwlibs");
+        DBGLOG("LRed", "Processed HWLibs");
     } else if (gfxcon.processKext(patcher, index, address, size)) {
-        DBGLOG("LRed", "Processed gfxcon");
+        DBGLOG("LRed", "Processed GFXCon");
+	} else if (fb.processKext(patcher, index, address, size)) {
+        DBGLOG("LRed", "Processed Framebuffer");
     } else if (x4000.processKext(patcher, index, address, size)) {
-        DBGLOG("LRed", "Processed x4000");
+        DBGLOG("LRed", "Processed X4000");
     }
 }
 
@@ -369,4 +366,8 @@ bool LRed::wrapApplePanelSetDisplay(IOService *that, IODisplay *display) {
     DBGLOG("LRed", "Panel display set returned %d", result);
 
     return result;
+}
+
+void LRed::signalFBDumpDeviceInfo() {
+	fb.fbDumpDevProps();
 }
