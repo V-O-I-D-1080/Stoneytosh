@@ -88,9 +88,10 @@ static const UInt8 kCoreLSKDPatched[] = {0xC7, 0xC0, 0xC3, 0x06, 0x03, 0x00, 0x6
 static const char kHEVCEncBoardIdOriginal[] = "vendor8bit\0IOService\0board-id";
 static const char kHEVCEncBoardIdPatched[] = "vendor8bit\0IOService\0hwgva-id";
 
-//! Replaces a whole chunk of amdMtl_Bronze_asicIDToFamilyInfo
-//! The Spectre & Spooky problem is untested, actually all of this is untested, since KIQ is still broken
-//! Anyways, hopefully it should fix up any MTLBronzeDriver problems, atleast in the early init for it anyways.
+//! replaces some checks with NOOPs and jumps, hopefully should be able to
+//! catch the iGPU Device IDs and select the right enumerator for CI & VI
+//! 0x2 -> CI
+//! 0x3 -> VI
 static const UInt8 kAMDMTLBronzeAsicIDToFamilyInfoOriginal[] = {0x81, 0xFF, 0xDF, 0x6F, 0x00, 0x00, 0x74, 0x00, 0x81,
     0xFF, 0x00, 0x73, 0x00, 0x00, 0x74, 0x00, 0x81, 0xFF, 0x0F, 0x73, 0x00, 0x00, 0x74, 0x00, 0xEB, 0x00, 0x81, 0xFF,
     0xA0, 0x66, 0x00, 0x00, 0x74, 0xBD};

@@ -52,13 +52,13 @@ class X4000 {
 
 // ---- Patches ---- //
 
-//! makes a loop run once in startHWEngines
+//! prevents the SDMA1 engine being started when it has been removed
 static const UInt8 kStartHWEnginesOriginal[] = {0x40, 0x83, 0xF0, 0x02};
 static const UInt8 kStartHWEnginesMask[] = {0xF0, 0xFF, 0xF0, 0xFF};
 static const UInt8 kStartHWEnginesPatched[] = {0x40, 0x83, 0xF0, 0x01};
 
-//! erase the 2nd SDMA engine. this is a viable method for us since we don't have VCN or any other component found in
-//! the other kexts
+//! erase the 2nd SDMA engine on the Ellesmere accelerator for Stoney.
+//! viable method, as we have no extra components to hacksaw into the drivers
 static const UInt8 kAMDEllesmereHWallocHWEnginesOriginal[] = {0xE8, 0xAA, 0xF3, 0xFE, 0xFF, 0x48, 0x89, 0xC3, 0x48,
     0x89, 0xC7, 0xE8, 0xA9, 0xF3, 0xFE, 0xFF, 0x49, 0x89, 0x9E, 0xC0, 0x03, 0x00, 0x00};
 static const UInt8 kAMDEllesmereHWallocHWEnginesPatched[] = {0x66, 0x90, 0x66, 0x90, 0x66, 0x90, 0x66, 0x90, 0x66, 0x90,
@@ -66,6 +66,9 @@ static const UInt8 kAMDEllesmereHWallocHWEnginesPatched[] = {0x66, 0x90, 0x66, 0
 
 // ---- Patterns ---- //
 
+//! AMD SML classes
+//! research into the VCE/UVD firmware led me to find the SML classes,
+//! said classes load the VCE & UVD firmware blobs.
 //! Due to how generic the function is, it's almost impossible to use a mask without hitting some other SML VCE/UVD
 //! class, also this is literally the whole function
 static const UInt8 kAMDVCE3v4InitBigSur[] = {0x55, 0x48, 0x89, 0xe5, 0x53, 0x50, 0x48, 0x89, 0xfb, 0x48, 0x8d, 0x05,
