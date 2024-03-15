@@ -26,8 +26,8 @@ class X4000 {
     mach_vm_address_t orgAMDSMLUVDInit = {0};
     mach_vm_address_t orgAMDSMLVCEInit = {0};
     mach_vm_address_t orgAMDHWRegsWrite {0};
-	mach_vm_address_t orgWriteData {0};
-	mach_vm_address_t orgHWRingWrite {0};
+    mach_vm_address_t orgWriteData {0};
+    mach_vm_address_t orgHWRingWrite {0};
 
     void *callbackAccelerator = nullptr;
 
@@ -42,10 +42,10 @@ class X4000 {
     static int wrapHwlInitGlobalParams(void *that, const void *creationInfo);
     static IOReturn wrapGetHWInfo(void *ctx, void *hwInfo);
     static void wrapAMDHWRegsWrite(void *that, UInt32 addr, UInt32 val);
-	static void wrapInitVRAMInfo(void *that);
-	static uint64_t wrapWriteData(void *that, const UInt32 *data, UInt32 size);
-	static bool wrapHWRingWrite(void *that, UInt32 data);
-	
+    static void wrapInitVRAMInfo(void *that);
+    static uint64_t wrapWriteData(void *that, const UInt32 *data, UInt32 size);
+    static bool wrapHWRingWrite(void *that, UInt32 data);
+
     static bool wrapAMDSMLUVDInit(void *that);
     static bool wrapAMDSMLVCEInit(void *that);
 };
@@ -92,8 +92,8 @@ static const UInt8 kAMDUVDVIInitBigSur[] = {0x55, 0x48, 0x89, 0xe5, 0x53, 0x50, 
 
 // something something TongaGraphicsAccel::getDeviceType - does SOMETHING, but does nothing for non-apple cards?
 struct X4000DeviceTypeEntry {
-	UInt16 vendorId;
-	UInt16 deviceId;
-	UInt16 subsystemVendorId;
-	UInt32 deviceType;
+    UInt16 vendorId;
+    UInt16 deviceId;
+    UInt16 subsystemVendorId;
+    UInt32 deviceType;
 };

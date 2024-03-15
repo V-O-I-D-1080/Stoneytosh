@@ -2,12 +2,12 @@
 //! See LICENSE for details.
 
 #include "LRed.hpp"
+#include "Framebuffer.hpp"
 #include "GFXCon.hpp"
 #include "HWLibs.hpp"
 #include "Model.hpp"
 #include "Support.hpp"
 #include "X4000.hpp"
-#include "Framebuffer.hpp"
 #include <Headers/kern_api.hpp>
 #include <Headers/kern_devinfo.hpp>
 #include <IOKit/IOCatalogue.h>
@@ -53,7 +53,7 @@ void LRed::init() {
     gfxcon.init();
     x4000.init();
     support.init();
-	fb.init();
+    fb.init();
 }
 
 void LRed::processPatcher(KernelPatcher &patcher) {
@@ -296,7 +296,7 @@ void LRed::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t a
         DBGLOG("LRed", "Processed HWLibs");
     } else if (gfxcon.processKext(patcher, index, address, size)) {
         DBGLOG("LRed", "Processed GFXCon");
-	} else if (fb.processKext(patcher, index, address, size)) {
+    } else if (fb.processKext(patcher, index, address, size)) {
         DBGLOG("LRed", "Processed Framebuffer");
     } else if (x4000.processKext(patcher, index, address, size)) {
         DBGLOG("LRed", "Processed X4000");
@@ -368,6 +368,4 @@ bool LRed::wrapApplePanelSetDisplay(IOService *that, IODisplay *display) {
     return result;
 }
 
-void LRed::signalFBDumpDeviceInfo() {
-	fb.fbDumpDevProps();
-}
+void LRed::signalFBDumpDeviceInfo() { fb.fbDumpDevProps(); }

@@ -80,11 +80,11 @@ IOReturn Support::wrapPopulateDeviceMemory(void *that, UInt32 reg) {
 
 bool Support::wrapNotifyLinkChange(void *atiDeviceControl, kAGDCRegisterLinkControlEvent_t event, void *eventData,
     UInt32 eventFlags) {
-	LRed::callback->signalFBDumpDeviceInfo();
+    LRed::callback->signalFBDumpDeviceInfo();
     auto ret = FunctionCast(wrapNotifyLinkChange, callback->orgNotifyLinkChange)(atiDeviceControl, event, eventData,
         eventFlags);
-	
-	DBGLOG("Support", "FB Link has changed! Event: %d, Data: %p, Flags: 0x%x", event, eventData, eventFlags);
+
+    DBGLOG("Support", "FB Link has changed! Event: %d, Data: %p, Flags: 0x%x", event, eventData, eventFlags);
 
     if (event == kAGDCValidateDetailedTiming) {
         auto cmd = static_cast<AGDCValidateDetailedTiming_t *>(eventData);

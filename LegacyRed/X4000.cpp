@@ -70,7 +70,7 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
             }
         } else if (carrizo) {
             RouteRequestPlus requests[] = {
-				// replace with Tonga PM4 instead? or did that HW cap in Tonga specifiy something?
+                // replace with Tonga PM4 instead? or did that HW cap in Tonga specifiy something?
                 {"__ZN30AMDRadeonX4000_AMDTongaHardware32setupAndInitializeHWCapabilitiesEv",
                     wrapSetupAndInitializeHWCapabilities},
                 {"__ZN28AMDRadeonX4000_AMDVIHardware20initializeFamilyTypeEv", wrapInitializeFamilyType},
@@ -100,7 +100,8 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
         }
 
         RouteRequestPlus requests[] = {
-			//{"__ZN26AMDRadeonX4000_AMDHWMemory21getVRAMPhysicalOffsetEv", wrapInitVRAMInfo}, - did this even do anything?
+            //{"__ZN26AMDRadeonX4000_AMDHWMemory21getVRAMPhysicalOffsetEv", wrapInitVRAMInfo}, - did this even do
+            //anything?
             {"__ZN37AMDRadeonX4000_AMDGraphicsAccelerator5startEP9IOService", wrapAccelStart, orgAccelStart},
             {"__ZN26AMDRadeonX4000_AMDHardware17dumpASICHangStateEb.cold.1", wrapDumpASICHangState},
             {"__ZN26AMDRadeonX4000_AMDHWMemory17adjustVRAMAddressEy", wrapAdjustVRAMAddress,
@@ -109,8 +110,8 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
                 orgHwlInitGlobalParams},
             {"__ZN35AMDRadeonX4000_AMDAccelVideoContext9getHWInfoEP13sHardwareInfo", wrapGetHWInfo, this->orgGetHWInfo},
             {"__ZN29AMDRadeonX4000_AMDHWRegisters5writeEjj", wrapAMDHWRegsWrite, this->orgAMDHWRegsWrite},
-			{"__ZN29AMDRadeonX4000_AMDCommandRing9writeDataEPKjj", wrapWriteData, this->orgWriteData},
-			{"__ZN25AMDRadeonX4000_IAMDHWRing5writeEj", wrapHWRingWrite, this->orgHWRingWrite},
+            {"__ZN29AMDRadeonX4000_AMDCommandRing9writeDataEPKjj", wrapWriteData, this->orgWriteData},
+            {"__ZN25AMDRadeonX4000_IAMDHWRing5writeEj", wrapHWRingWrite, this->orgHWRingWrite},
         };
         PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "X4000",
             "Failed to route symbols");
@@ -265,26 +266,26 @@ void X4000::wrapAMDHWRegsWrite(void *that, UInt32 addr, UInt32 val) {
 }
 
 void X4000::wrapInitVRAMInfo(void *that) {
-	//! Expects the count in bytes?
-	UInt32 reg = LRed::callback->readReg32(mmCONFIG_MEMSIZE);
-	getMember<UInt64>(that, 0x40) = (reg << 0x14);
-	
-	reg = LRed::callback->readReg32(mmCONFIG_APER_SIZE);
-	getMember<UInt64>(that, 0x48) = (reg << 0x14);
-	
-	//! VRAMSharedApertureBaseAddr
-	reg = LRed::callback->readReg32(mmMC_VM_FB_OFFSET);
-	getMember<UInt64>(that, 0x60) = (reg << 22);
-	getMember<UInt64>(that, 0x58) = (reg << 22);
-	return;
+    //! Expects the count in bytes?
+    UInt32 reg = LRed::callback->readReg32(mmCONFIG_MEMSIZE);
+    getMember<UInt64>(that, 0x40) = (reg << 0x14);
+
+    reg = LRed::callback->readReg32(mmCONFIG_APER_SIZE);
+    getMember<UInt64>(that, 0x48) = (reg << 0x14);
+
+    //! VRAMSharedApertureBaseAddr
+    reg = LRed::callback->readReg32(mmMC_VM_FB_OFFSET);
+    getMember<UInt64>(that, 0x60) = (reg << 22);
+    getMember<UInt64>(that, 0x58) = (reg << 22);
+    return;
 }
 
 uint64_t X4000::wrapWriteData(void *that, const UInt32 *data, UInt32 size) {
-	SYSLOG("X4000", "COMMAND RING WRITE --- DATA: 0x%x --- SIZE: 0x%x", *data, size);
-	return FunctionCast(wrapWriteData, callback->orgWriteData)(that, data, size);
+    SYSLOG("X4000", "COMMAND RING WRITE --- DATA: 0x%x --- SIZE: 0x%x", *data, size);
+    return FunctionCast(wrapWriteData, callback->orgWriteData)(that, data, size);
 }
 
 bool X4000::wrapHWRingWrite(void *that, UInt32 data) {
-	SYSLOG("X4000", "IAMDHWRing WRITE --- DATA: 0x%x", data);
-	return FunctionCast(wrapHWRingWrite, callback->orgHWRingWrite);
+    SYSLOG("X4000", "IAMDHWRing WRITE --- DATA: 0x%x", data);
+    return FunctionCast(wrapHWRingWrite, callback->orgHWRingWrite);
 }
