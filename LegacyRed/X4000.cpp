@@ -109,6 +109,8 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
                 orgHwlInitGlobalParams},
             {"__ZN35AMDRadeonX4000_AMDAccelVideoContext9getHWInfoEP13sHardwareInfo", wrapGetHWInfo, this->orgGetHWInfo},
             {"__ZN29AMDRadeonX4000_AMDHWRegisters5writeEjj", wrapAMDHWRegsWrite, this->orgAMDHWRegsWrite},
+			{"__ZN29AMDRadeonX4000_AMDCommandRing9writeDataEPKjj", wrapWriteData, this->orgWriteData},
+			{"__ZN25AMDRadeonX4000_IAMDHWRing5writeEj", wrapHWRingWrite, this->orgHWRingWrite},
         };
         PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "X4000",
             "Failed to route symbols");
@@ -275,4 +277,14 @@ void X4000::wrapInitVRAMInfo(void *that) {
 	getMember<UInt64>(that, 0x60) = (reg << 22);
 	getMember<UInt64>(that, 0x58) = (reg << 22);
 	return;
+}
+
+uint64_t X4000::wrapWriteData(void *that, const UInt32 *data, UInt32 size) {
+	SYSLOG("X4000", "COMMAND RING WRITE --- DATA: 0x%x --- SIZE: 0x%x", *data, size);
+	return FunctionCast(wrapWriteData, callback->orgWriteData)(that, data, size);
+}
+
+bool X4000::wrapHWRingWrite(void *that, UInt32 data) {
+	SYSLOG("X4000", "IAMDHWRing WRITE --- DATA: 0x%x", data);
+	return FunctionCast(wrapHWRingWrite, callback->orgHWRingWrite);
 }
