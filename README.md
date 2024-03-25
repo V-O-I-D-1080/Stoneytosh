@@ -6,7 +6,7 @@ The LegacyRed derivative work/project is licensed under the `Thou Shalt Not Prof
 
 Thanks to [Acidanthera](https://github.com/acidanthera) for the [WhateverGreen](https://github.com/acidanthera/WhateverGreen) kern_agdc and kern_rad code used in kern_support
 
-You almost certainly need to [add this custom lilu build to your system](https://github.com/Zorm-Industries/Lilu) to avoid kernel panics on 'No iGPU' as for some reason, Lilu's quirk **fails to trigger on older systems**
+You almost certainly need to [add this custom lilu build to your system](https://github.com/Zormeister/Lilu) to avoid kernel panics on 'No iGPU' as for some reason, Lilu's quirk **fails to trigger on older systems**
 
 ## FAQ
 
