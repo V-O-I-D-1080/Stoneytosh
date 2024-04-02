@@ -28,8 +28,14 @@ class X4000 {
     mach_vm_address_t orgAMDHWRegsWrite {0};
     mach_vm_address_t orgWriteData {0};
     mach_vm_address_t orgHWRingWrite {0};
+    mach_vm_address_t orgSubmitCommandBufferInfo {0};
+    mach_vm_address_t orgBuildIBCommand {0};
+    mach_vm_address_t orgPerformClearState {0};
+    mach_vm_address_t orgAMDHWRegsRead {0};
 
     void *callbackAccelerator = nullptr;
+    UInt64 mcLocation;
+    bool dumpIBs {false};
 
     static bool wrapAccelStart(void *that, IOService *provider);
     static void *wrapGetHWChannel(void *that, UInt32 engineType, UInt32 ringId);
@@ -45,6 +51,11 @@ class X4000 {
     static void wrapInitVRAMInfo(void *that);
     static uint64_t wrapWriteData(void *that, const UInt32 *data, UInt32 size);
     static bool wrapHWRingWrite(void *that, UInt32 data);
+    static UInt32 wrapSubmitCommandBufferInfo(void *that, UInt8 *data);
+    static UInt64 wrapBuildIBCommand(void *that, UInt32 *rawPkt, UInt64 param2, UInt32 param3, UInt64 ibType,
+        UInt32 param5, bool param6, UInt32 param7);
+    static bool performClearState(void *that);
+    static UInt32 wrapAMDHWRegsRead(void *that, UInt32 addr);
 
     static bool wrapAMDSMLUVDInit(void *that);
     static bool wrapAMDSMLVCEInit(void *that);

@@ -180,6 +180,11 @@ void LRed::setRMMIOIfNecessary() {
         this->fbOffset = static_cast<UInt64>(this->readReg32(mmMC_VM_FB_OFFSET)) << 22;
         SYSLOG("LRed", "Framebuffer offset: 0x%llX", this->fbOffset);
 
+        IODeviceMemory *tmp = this->iGPU->getDeviceMemoryWithRegister(kIOPCIConfigBaseAddress0);
+        this->realMCLocation = tmp->getPhysicalAddress();
+        SYSLOG("LRed", "BAR0 @ 0x%llx", this->realMCLocation);
+        SYSLOG("LRed", "BAR2 (mapped) @ 0x%llx", this->rmmio->getPhysicalAddress());
+
         //! Who thought it would be a good idea to use this many Device IDs and Revisions?
         switch (this->deviceId) {
             case 0x1309 ... 0x131D:

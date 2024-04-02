@@ -230,6 +230,7 @@ class LRed {
     UInt32 familyId {0};
     UInt32 emulatedRevision {0};
     IOPCIDevice *iGPU {nullptr};
+    UInt64 realMCLocation {0};
 
     mach_vm_address_t orgApplePanelSetDisplay {0};
 

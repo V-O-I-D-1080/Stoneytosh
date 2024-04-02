@@ -26,6 +26,8 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
         const bool stoney = LRed::callback->chipType == ChipType::Stoney;
         const bool carrizo = LRed::callback->chipType == ChipType::Carrizo;
 
+        this->dumpIBs = checkKernelArgument("-X4KDumpAllIBs");
+
         UInt32 *orgChannelTypes = nullptr;
         mach_vm_address_t startHWEngines = 0;
 
@@ -57,6 +59,9 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
                 {"__ZN28AMDRadeonX4000_AMDVIHardware20initializeFamilyTypeEv", wrapInitializeFamilyType},
                 {"__ZN26AMDRadeonX4000_AMDHardware12getHWChannelE20_eAMD_HW_ENGINE_TYPE18_eAMD_HW_RING_TYPE",
                     wrapGetHWChannel, this->orgGetHWChannel},
+                {"__ZN38AMDRadeonX4000_AMDVIPM4CommandsUtility26buildIndirectBufferCommandEPjyj26_eAMD_INDIRECT_BUFFER_"
+                 "TYPEjbj",
+                    wrapBuildIBCommand, this->orgBuildIBCommand},
             };
             PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "X4000",
                 "Failed to route symbols");
@@ -71,9 +76,12 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
         } else if (carrizo) {
             RouteRequestPlus requests[] = {
                 // replace with Tonga PM4 instead? or did that HW cap in Tonga specifiy something?
-                {"__ZN30AMDRadeonX4000_AMDTongaHardware32setupAndInitializeHWCapabilitiesEv",
+                {"__ZN31AMDRadeonX4000_AMDTongaHardware32setupAndInitializeHWCapabilitiesEv",
                     wrapSetupAndInitializeHWCapabilities},
                 {"__ZN28AMDRadeonX4000_AMDVIHardware20initializeFamilyTypeEv", wrapInitializeFamilyType},
+                {"__ZN38AMDRadeonX4000_AMDVIPM4CommandsUtility26buildIndirectBufferCommandEPjyj26_eAMD_INDIRECT_BUFFER_"
+                 "TYPEjbj",
+                    wrapBuildIBCommand, this->orgBuildIBCommand},
             };
             PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "X4000",
                 "Failed to route symbols");
@@ -94,6 +102,9 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
                     this->orgInitializeMicroEngine},
                 {"__ZN28AMDRadeonX4000_AMDCIHardware16initializeVMRegsEv", wrapInitializeVMRegs,
                     this->orgInitializeVMRegs},
+                {"__ZN38AMDRadeonX4000_AMDCIPM4CommandsUtility26buildIndirectBufferCommandEPjyj26_eAMD_INDIRECT_BUFFER_"
+                 "TYPEjbj",
+                    wrapBuildIBCommand, this->orgBuildIBCommand},
             };
             PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "X4000",
                 "Failed to route symbols");
@@ -101,7 +112,7 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
 
         RouteRequestPlus requests[] = {
             //{"__ZN26AMDRadeonX4000_AMDHWMemory21getVRAMPhysicalOffsetEv", wrapInitVRAMInfo}, - did this even do
-            //anything?
+            // anything?
             {"__ZN37AMDRadeonX4000_AMDGraphicsAccelerator5startEP9IOService", wrapAccelStart, orgAccelStart},
             {"__ZN26AMDRadeonX4000_AMDHardware17dumpASICHangStateEb.cold.1", wrapDumpASICHangState},
             {"__ZN26AMDRadeonX4000_AMDHWMemory17adjustVRAMAddressEy", wrapAdjustVRAMAddress,
@@ -112,6 +123,11 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
             {"__ZN29AMDRadeonX4000_AMDHWRegisters5writeEjj", wrapAMDHWRegsWrite, this->orgAMDHWRegsWrite},
             {"__ZN29AMDRadeonX4000_AMDCommandRing9writeDataEPKjj", wrapWriteData, this->orgWriteData},
             {"__ZN25AMDRadeonX4000_IAMDHWRing5writeEj", wrapHWRingWrite, this->orgHWRingWrite},
+            {"__ZN27AMDRadeonX4000_AMDHWChannel19submitCommandBufferEP30AMD_SUBMIT_COMMAND_BUFFER_INFO",
+                wrapSubmitCommandBufferInfo, this->orgSubmitCommandBufferInfo},
+            {"__ZN30AMDRadeonX4000_AMDPM4HWChannel17performClearStateEv", performClearState,
+                this->orgPerformClearState},
+            {"__ZN29AMDRadeonX4000_AMDHWRegisters4readEj", wrapAMDHWRegsRead, this->orgAMDHWRegsRead},
         };
         PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "X4000",
             "Failed to route symbols");
@@ -133,6 +149,10 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
             PANIC_COND(!patch.apply(patcher, startHWEngines, PAGE_SIZE), "X4000", "Failed to patch startHWEngines");
             DBGLOG("X4000", "Applied Singular SDMA lookup patch");
         }
+
+        this->mcLocation = ((LRed::callback->readReg32(mmMC_VM_FB_LOCATION) & 0xFFFF) << 24);
+        DBGLOG("X4000", "mcLocation: 0x%llx", this->mcLocation);
+
         return true;
     }
 
@@ -164,7 +184,6 @@ void X4000::wrapSetupAndInitializeHWCapabilities(void *that) {
     DBGLOG("X4000", "setupAndInitializeHWCapabilities: this = %p", that);
     UInt32 cuPerSh = 2;
     if (LRed::callback->chipType <= ChipType::Spooky || LRed::callback->chipType == ChipType::Carrizo) { cuPerSh = 8; }
-    if (LRed::callback->stoney3CU) { cuPerSh = 3; }
     setHWCapability<UInt32>(that, HWCapability::SECount, 1);
     setHWCapability<UInt32>(that, HWCapability::SHPerSE, 1);
     setHWCapability<UInt32>(that, HWCapability::CUPerSH, cuPerSh);
@@ -188,7 +207,7 @@ void X4000::wrapInitializeFamilyType(void *that) {
 }
 
 void *X4000::wrapGetHWChannel(void *that, UInt32 engineType, UInt32 ringId) {
-    /** Redirect SDMA1 engine type to SDMA0 */
+    //! Redirect SDMA1 engine type to SDMA0
     return FunctionCast(wrapGetHWChannel, callback->orgGetHWChannel)(that, (engineType == 2) ? 1 : engineType, ringId);
 }
 
@@ -228,6 +247,7 @@ int X4000::wrapHwlInitGlobalParams(void *that, const void *creationInfo) {
 
 IOReturn X4000::wrapGetHWInfo(void *ctx, void *hwInfo) {
     auto ret = FunctionCast(wrapGetHWInfo, callback->orgGetHWInfo)(ctx, hwInfo);
+    //! 0x67DF - Ellesmere, 0x7300 - Fiji, 0x6640 - Bonaire.
     getMember<UInt32>(hwInfo, 0x4) = LRed::callback->gcn3 ? (LRed::callback->stoney ? 0x67DF : 0x7300) : 0x6640;
     return ret;
 }
@@ -256,13 +276,21 @@ bool X4000::wrapAMDSMLVCEInit(void *that) {
     return ret;
 }
 
+//! free dmesg spam for 150$!!!!!!
 void X4000::wrapAMDHWRegsWrite(void *that, UInt32 addr, UInt32 val) {
-    //! DBGLOG("X4000", "write >> addr: 0x%x, val: 0x%x", addr, val);
+    DBGLOG("X4000", "ACCEL REG WRITE >> addr: 0x%x, val: 0x%x", addr, val);
     if (addr == mmSRBM_SOFT_RESET) {
         val &= ~SRBM_SOFT_RESET__SOFT_RESET_MC_MASK;
         DBGLOG("X4000", "Stripping SRBM_SOFT_RESET__SOFT_RESET_MC_MASK bit");
     }
     FunctionCast(wrapAMDHWRegsWrite, callback->orgAMDHWRegsWrite)(that, addr, val);
+}
+
+UInt32 X4000::wrapAMDHWRegsRead(void *that, UInt32 addr) {
+    DBGLOG("X4000", "ACCEL REG READ >> addr: 0x%x", addr);
+    auto ret = FunctionCast(wrapAMDHWRegsRead, callback->orgAMDHWRegsRead)(that, addr);
+    DBGLOG("X4000", "ACCEL REG READ << ret: 0x%x", ret);
+    return ret;
 }
 
 void X4000::wrapInitVRAMInfo(void *that) {
@@ -287,5 +315,43 @@ uint64_t X4000::wrapWriteData(void *that, const UInt32 *data, UInt32 size) {
 
 bool X4000::wrapHWRingWrite(void *that, UInt32 data) {
     SYSLOG("X4000", "IAMDHWRing WRITE --- DATA: 0x%x", data);
-    return FunctionCast(wrapHWRingWrite, callback->orgHWRingWrite);
+    return FunctionCast(wrapHWRingWrite, callback->orgHWRingWrite)(that, data);
+}
+
+bool isInPerformClearState = false;
+
+bool X4000::performClearState(void *that) {
+    isInPerformClearState = true;
+    auto ret = FunctionCast(performClearState, callback->orgPerformClearState)(that);
+    isInPerformClearState = false;
+    return ret;
+}
+
+UInt32 X4000::wrapSubmitCommandBufferInfo(void *that, UInt8 *data) {
+    if (isInPerformClearState || callback->dumpIBs) {
+        const size_t size = 2048;
+        char *output = new char[size];
+        bzero(output, size);
+        for (size_t i = 0; i < 0x60; i++) {
+            if ((i + 1) % 0x10) {
+                sprintf(output, "%s %02X", output, data[i]);
+            } else {
+                sprintf(output, "%s %02X\n", output, data[i]);
+            }
+        }
+        SYSLOG("X4000", "COMMAND_BUFFER_INFO:\n%s", output);
+        delete[] output;
+    }
+    auto ret = FunctionCast(wrapSubmitCommandBufferInfo, callback->orgSubmitCommandBufferInfo)(that, data);
+    return ret;
+}
+
+UInt64 X4000::wrapBuildIBCommand(void *that, UInt32 *rawPkt, UInt64 param2, UInt32 param3, UInt64 ibType, UInt32 param5,
+    bool param6, UInt32 param7) {
+    DBGLOG("X4000", "buildIBCommand >> 0x%llx, 0x%x, 0x%llx, 0x%x, 0x%x, 0x%x", param2, param3, ibType, param5, param6,
+        param7);
+    auto ret = FunctionCast(wrapBuildIBCommand, callback->orgBuildIBCommand)(that, rawPkt, param2, param3, ibType,
+        param5, param6, param7);
+    DBGLOG("X4000", "IB: 0x%x, 0x%x, 0x%x, 0x%x", *rawPkt, rawPkt[1], rawPkt[2], rawPkt[3]);
+    return ret;
 }
