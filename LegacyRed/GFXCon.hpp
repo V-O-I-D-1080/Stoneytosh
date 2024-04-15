@@ -15,12 +15,7 @@ class GFXCon {
     private:
     mach_vm_address_t orgPopulateDeviceInfo {0};
     mach_vm_address_t orgGetFamilyId {0};
-    mach_vm_address_t orgGetPllClock {0};
-    mach_vm_address_t orgGetVRAMBaseOffset {0};
 
     static IOReturn wrapPopulateDeviceInfo(void *that);
     static UInt16 wrapGetFamilyId(void);
-    static UInt32 wrapGetPllClock(void *that, uint8_t pll, void *clockparams);
-    static IOReturn wrapPopulateFbLocation(void *that);
-    static UInt64 wrapGetVRAMBaseOffset(void *that);
 };

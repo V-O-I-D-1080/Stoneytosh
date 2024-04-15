@@ -40,8 +40,6 @@ bool GFXCon::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
         RouteRequestPlus requests[] = {
             {"__ZNK18CISharedController11getFamilyIdEv", wrapGetFamilyId, this->orgGetFamilyId},
             {"__ZN13ASIC_INFO__CI18populateDeviceInfoEv", wrapPopulateDeviceInfo, this->orgPopulateDeviceInfo},
-            //{"__ZN13ASIC_INFO__CI18populateFbLocationEv", wrapPopulateFbLocation},
-            //{"__ZN17AMD8000Controller17getVramBaseOffsetEv", wrapGetVRAMBaseOffset, this->orgGetVRAMBaseOffset},
         };
         PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "GFXCon",
             "Failed to route symbols");
@@ -52,7 +50,6 @@ bool GFXCon::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
         RouteRequestPlus requests[] = {
             {"__ZNK18VISharedController11getFamilyIdEv", wrapGetFamilyId, this->orgGetFamilyId},
             {"__ZN13ASIC_INFO__VI18populateDeviceInfoEv", wrapPopulateDeviceInfo, this->orgPopulateDeviceInfo},
-            {"__ZN17AMD9000Controller11getPllClockEhP11ClockParams", wrapGetPllClock, this->orgGetPllClock},
         };
         PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "GFXCon",
             "Failed to route symbols");
@@ -63,7 +60,6 @@ bool GFXCon::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
         RouteRequestPlus requests[] = {
             {"__ZNK22BaffinSharedController11getFamilyIdEv", wrapGetFamilyId, this->orgGetFamilyId},
             {"__ZN17ASIC_INFO__BAFFIN18populateDeviceInfoEv", wrapPopulateDeviceInfo, this->orgPopulateDeviceInfo},
-            {"__ZN17AMD9500Controller11getPllClockEhP11ClockParams", wrapGetPllClock, this->orgGetPllClock},
         };
         PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "GFXCon",
             "Failed to route symbols");
@@ -80,38 +76,4 @@ IOReturn GFXCon::wrapPopulateDeviceInfo(void *that) {
     getMember<uint32_t>(that, 0x40) = LRed::callback->familyId;
     getMember<uint32_t>(that, 0x4C) = LRed::callback->emulatedRevision;
     return ret;
-}
-
-UInt32 GFXCon::wrapGetPllClock(void *that, uint8_t pll, void *clockparams) {
-    DBGLOG("GFXCon", "getPllClock: pll: %x", pll);
-    auto ret = FunctionCast(wrapGetPllClock, callback->orgGetPllClock)(that, pll, clockparams);
-    DBGLOG("GFXCon", "getPllClock: returned %x", ret);
-    return ret;
-}
-
-IOReturn GFXCon::wrapPopulateFbLocation(void *that) {
-    UInt64 base = (LRed::callback->readReg32(mmMC_VM_FB_LOCATION) & 0xFFFF) << 24;
-
-    //! It reads `0x2024`?
-    //! Is it reading from some other BAR?
-    //! This is also the VRAM starting position?
-
-    getMember<UInt64>(that, 0x58) = base;
-
-    //! https://elixir.bootlin.com/linux/latest/source/drivers/gpu/drm/amd/amdgpu/amdgpu_gmc.c#L206
-    //! Assuming that top here means the top of the available VRAM, aka `FB_LOC + MEMSIZE - 1`
-
-    UInt64 memsize = ((LRed::callback->readReg32(mmCONFIG_MEMSIZE) * 1024ULL) * 1024ULL);
-    getMember<UInt64>(that, 0x60) = ((base + memsize) - 1);
-
-    DBGLOG("GFXCon", "populateFbLocation: base: 0x%llx top: 0x%llx", getMember<UInt64>(that, 0x58),
-        getMember<UInt64>(that, 0x60));
-    return kIOReturnSuccess;
-}
-
-UInt64 GFXCon::wrapGetVRAMBaseOffset(void *that) {
-    auto ret = FunctionCast(wrapGetVRAMBaseOffset, callback->orgGetVRAMBaseOffset)(that);
-    DBGLOG("GFXCon", "getVramBaseOffset: returned: 0x%llx, our value: 0x%llx", ret,
-        ret != (ret + LRed::callback->fbOffset) ? (ret + LRed::callback->fbOffset) : ret);
-    return ret != (ret + LRed::callback->fbOffset) ? (ret + LRed::callback->fbOffset) : ret;
 }
