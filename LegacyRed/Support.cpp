@@ -100,6 +100,7 @@ bool Support::wrapNotifyLinkChange(void *atiDeviceControl, kAGDCRegisterLinkCont
 
 bool Support::doNotTestVram([[maybe_unused]] IOService *ctrl, [[maybe_unused]] UInt32 reg,
     [[maybe_unused]] bool retryOnFail) {
+    LRed::signalFBDumpDeviceInfo();
     DBGLOG("Support", "TestVRAM called! Returning true");
     return true;
 }

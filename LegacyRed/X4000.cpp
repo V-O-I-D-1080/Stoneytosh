@@ -225,6 +225,7 @@ UInt64 X4000::wrapAdjustVRAMAddress(void *that, UInt64 addr) {
 
 bool X4000::wrapInitializeMicroEngine(void *that) {
     DBGLOG("X4000", "initializeMicroEngine << (that: %p)", that);
+    LRed::callback->signalFBDumpDeviceInfo();
     auto ret = FunctionCast(wrapInitializeMicroEngine, callback->orgInitializeMicroEngine)(that);
     DBGLOG("X4000", "initializeMicroEngine >> %d", ret);
     return ret;
