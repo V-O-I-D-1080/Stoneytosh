@@ -368,6 +368,8 @@
 			<false/>
 			<key>CFG_WDTH_ALGN</key>
 			<integer>64</integer>
+			<key>CFG_UUC</key>
+			<integer>1</integer>
 			<key>DALReadDelayStutterOff</key>
 			<integer>4</integer>
 			<key>DALUseUrgencyWaterMarkOffset</key>

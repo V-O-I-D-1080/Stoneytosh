@@ -68,6 +68,8 @@
 			<string>IOPCIDevice</string>
 			<key>aty_config</key>
 			<dict>
+				<key>CFG_UUC</key>
+				<integer>1</integer>
 				<key>CFG_APER_MODE</key>
 				<integer>1</integer>
 				<key>CFG_CAA</key>
