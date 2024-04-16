@@ -323,6 +323,23 @@ bool isInPerformClearState = false;
 
 bool X4000::performClearState(void *that) {
     isInPerformClearState = true;
+    DBGLOG("X4000", "mmVM_CONTEXT0_PAGE_TABLE_START_ADDR = 0x%x",
+        LRed::callback->readReg32(mmVM_CONTEXT0_PAGE_TABLE_START_ADDR));
+    DBGLOG("X4000", "mmVM_CONTEXT1_PAGE_TABLE_START_ADDR = 0x%x",
+        LRed::callback->readReg32(mmVM_CONTEXT1_PAGE_TABLE_START_ADDR));
+    DBGLOG("X4000", "mmVM_CONTEXT0_PAGE_TABLE_END_ADDR = 0x%x",
+        LRed::callback->readReg32(mmVM_CONTEXT0_PAGE_TABLE_END_ADDR));
+    DBGLOG("X4000", "mmVM_CONTEXT1_PAGE_TABLE_END_ADDR = 0x%x",
+        LRed::callback->readReg32(mmVM_CONTEXT1_PAGE_TABLE_END_ADDR));
+    DBGLOG("X4000", "mmMC_VM_AGP_TOP = 0x%x", LRed::callback->readReg32(mmMC_VM_AGP_TOP));
+    DBGLOG("X4000", "mmMC_VM_AGP_BOT = 0x%x", LRed::callback->readReg32(mmMC_VM_AGP_BOT));
+    DBGLOG("X4000", "mmMC_VM_AGP_BASE = 0x%x", LRed::callback->readReg32(mmMC_VM_AGP_BASE));
+    DBGLOG("X4000", "mmMC_VM_SYSTEM_APERTURE_LOW_ADDR = 0x%x",
+        LRed::callback->readReg32(mmMC_VM_SYSTEM_APERTURE_LOW_ADDR));
+    DBGLOG("X4000", "mmMC_VM_SYSTEM_APERTURE_HIGH_ADDR = 0x%x",
+        LRed::callback->readReg32(mmMC_VM_SYSTEM_APERTURE_HIGH_ADDR));
+    DBGLOG("X4000", "mmMC_VM_SYSTEM_APERTURE_DEFAULT_ADDR = 0x%x",
+        LRed::callback->readReg32(mmMC_VM_SYSTEM_APERTURE_DEFAULT_ADDR));
     auto ret = FunctionCast(performClearState, callback->orgPerformClearState)(that);
     isInPerformClearState = false;
     return ret;

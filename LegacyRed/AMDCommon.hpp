@@ -48,8 +48,18 @@ constexpr UInt32 SRBM_SOFT_RESET__SOFT_RESET_MC_MASK = 0x800;
 //-------- GMC Registers --------//
 
 constexpr UInt32 mmMC_VM_FB_LOCATION = 0x809;
+constexpr UInt32 mmMC_VM_AGP_TOP = 0x80A;
+constexpr UInt32 mmMC_VM_AGP_BOT = 0x80B;
+constexpr UInt32 mmMC_VM_AGP_BASE = 0x80C;
+constexpr UInt32 mmMC_VM_SYSTEM_APERTURE_LOW_ADDR = 0x80D;
+constexpr UInt32 mmMC_VM_SYSTEM_APERTURE_HIGH_ADDR = 0x80E;
+constexpr UInt32 mmMC_VM_SYSTEM_APERTURE_DEFAULT_ADDR = 0x80F;
 constexpr UInt32 mmMC_VM_FB_OFFSET = 0x81A;
 
+constexpr UInt32 mmVM_CONTEXT0_PAGE_TABLE_START_ADDR = 0x557;
+constexpr UInt32 mmVM_CONTEXT1_PAGE_TABLE_START_ADDR = 0x558;
+constexpr UInt32 mmVM_CONTEXT0_PAGE_TABLE_END_ADDR = 0x55F;
+constexpr UInt32 mmVM_CONTEXT1_PAGE_TABLE_END_ADDR = 0x560;
 //-------- OSS 3.0.1/IH Registers --------//
 
 constexpr UInt32 mmIH_RB_CNTL = 0xE30;
