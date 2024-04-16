@@ -128,6 +128,8 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
             {"__ZN30AMDRadeonX4000_AMDPM4HWChannel17performClearStateEv", performClearState,
                 this->orgPerformClearState},
             {"__ZN29AMDRadeonX4000_AMDHWRegisters4readEj", wrapAMDHWRegsRead, this->orgAMDHWRegsRead},
+            {"__ZN26AMDRadeonX4000_AMDHWMemory12getRangeInfoE22eAMD_MEMORY_RANGE_TYPEP21AMD_MEMORY_RANGE_INFO",
+                wrapGetRangeInfo, this->orgGetRangeInfo},
         };
         PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "X4000",
             "Failed to route symbols");
@@ -371,5 +373,13 @@ UInt64 X4000::wrapBuildIBCommand(void *that, UInt32 *rawPkt, UInt64 param2, UInt
     auto ret = FunctionCast(wrapBuildIBCommand, callback->orgBuildIBCommand)(that, rawPkt, param2, param3, ibType,
         param5, param6, param7);
     DBGLOG("X4000", "IB: 0x%x, 0x%x, 0x%x, 0x%x", *rawPkt, rawPkt[1], rawPkt[2], rawPkt[3]);
+    return ret;
+}
+
+bool X4000::wrapGetRangeInfo(void *that, int memType, void *outData) {
+    auto ret = FunctionCast(wrapGetRangeInfo, callback->orgGetRangeInfo)(that, memType, outData);
+    DBGLOG("X4000", "getRangeInfo - off 0x0: 0x%llx - off 0x8: 0x%llx - off 0x10: 0x%llx",
+        getMember<UInt64>(outData, 0x0), getMember<UInt64>(outData, 0x8), getMember<UInt64>(outData, 0x10));
+    if (memType == 1) { getMember<UInt64>(outData, 0x0) |= LRed::callback->fbOffset; }
     return ret;
 }
