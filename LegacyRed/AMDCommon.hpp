@@ -50,6 +50,18 @@ constexpr UInt32 SRBM_SOFT_RESET__SOFT_RESET_MC_MASK = 0x800;
 constexpr UInt32 mmMC_VM_FB_LOCATION = 0x809;
 constexpr UInt32 mmMC_VM_FB_OFFSET = 0x81A;
 
+//-------- OSS 3.0.1/IH Registers --------//
+
+constexpr UInt32 mmIH_RB_CNTL = 0xE30;
+constexpr UInt32 mmIH_RB_BASE = 0xE31;
+constexpr UInt32 mmIH_RB_RPTR = 0xE32;
+constexpr UInt32 mmIH_RB_WPTR = 0xE33;
+constexpr UInt32 mmIH_RB_WPTR_ADDR_HI = 0xE34;
+constexpr UInt32 mmIH_RB_WPTR_ADDR_LO = 0xE35;
+constexpr UInt32 mmIH_CNTL = 0xE36;
+constexpr UInt32 mmIH_LEVEL_STATUS = 0xE37;
+constexpr UInt32 mmIH_STATUS = 0xE38;
+
 //-------- AMD Catalyst Data Types --------//
 
 struct CAILASICGoldenRegisterSettings {
