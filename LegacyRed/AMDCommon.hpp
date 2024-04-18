@@ -10,6 +10,8 @@ using t_sendMsgToSmc = UInt32 (*)(void *smum, UInt32 msgId);
 constexpr UInt32 AMDGPU_FAMILY_CZ = 0x87;
 constexpr UInt32 AMDGPU_FAMILY_KV = 0x7D;
 
+constexpr UInt64 CIK_DEFAULT_GART_SIZE = 1024 << 20; //! Used on all APU ASICs supported here, look in gfx_v7_0.c and gfx_v8_0.c for details
+
 constexpr UInt32 AMDGPU_MAX_USEC_TIMEOUT = 100000;
 
 //-------- SMU 8 Registers --------//
@@ -27,7 +29,7 @@ constexpr UInt32 mmPCIE_INDEX_2 = 0xC;
 constexpr UInt32 mmPCIE_DATA_2 = 0xD;
 
 constexpr UInt32 mmCONFIG_MEMSIZE = 0x150A;
-constexpr UInt32 mmCONFIG_APER_SIZE = 0x150C;
+constexpr UInt32 mmCONFIG_APER_SIZE = 0x150C; //! Why does AMDGPU not use this?
 
 //-------- GFX 7/GFX 8 Registers --------//
 
@@ -60,6 +62,7 @@ constexpr UInt32 mmVM_CONTEXT0_PAGE_TABLE_START_ADDR = 0x557;
 constexpr UInt32 mmVM_CONTEXT1_PAGE_TABLE_START_ADDR = 0x558;
 constexpr UInt32 mmVM_CONTEXT0_PAGE_TABLE_END_ADDR = 0x55F;
 constexpr UInt32 mmVM_CONTEXT1_PAGE_TABLE_END_ADDR = 0x560;
+
 //-------- OSS 3.0.1/IH Registers --------//
 
 constexpr UInt32 mmIH_RB_CNTL = 0xE30;
