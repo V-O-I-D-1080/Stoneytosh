@@ -48,7 +48,6 @@ class X4000 {
     static int wrapHwlInitGlobalParams(void *that, const void *creationInfo);
     static IOReturn wrapGetHWInfo(void *ctx, void *hwInfo);
     static void wrapAMDHWRegsWrite(void *that, UInt32 addr, UInt32 val);
-    static void wrapInitVRAMInfo(void *that);
     static uint64_t wrapWriteData(void *that, const UInt32 *data, UInt32 size);
     static bool wrapHWRingWrite(void *that, UInt32 data);
     static UInt32 wrapSubmitCommandBufferInfo(void *that, UInt8 *data);

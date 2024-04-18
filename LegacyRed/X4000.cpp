@@ -111,8 +111,6 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
         }
 
         RouteRequestPlus requests[] = {
-            //{"__ZN26AMDRadeonX4000_AMDHWMemory21getVRAMPhysicalOffsetEv", wrapInitVRAMInfo}, - did this even do
-            // anything?
             {"__ZN37AMDRadeonX4000_AMDGraphicsAccelerator5startEP9IOService", wrapAccelStart, orgAccelStart},
             {"__ZN26AMDRadeonX4000_AMDHardware17dumpASICHangStateEb.cold.1", wrapDumpASICHangState},
             {"__ZN26AMDRadeonX4000_AMDHWMemory17adjustVRAMAddressEy", wrapAdjustVRAMAddress,
@@ -286,21 +284,6 @@ void X4000::wrapAMDHWRegsWrite(void *that, UInt32 addr, UInt32 val) {
         DBGLOG("X4000", "Stripping SRBM_SOFT_RESET__SOFT_RESET_MC_MASK bit");
     }
     FunctionCast(wrapAMDHWRegsWrite, callback->orgAMDHWRegsWrite)(that, addr, val);
-}
-
-void X4000::wrapInitVRAMInfo(void *that) {
-    //! Expects the count in bytes?
-    UInt32 reg = LRed::callback->readReg32(mmCONFIG_MEMSIZE);
-    getMember<UInt64>(that, 0x40) = (reg << 0x14);
-
-    reg = LRed::callback->readReg32(mmCONFIG_APER_SIZE);
-    getMember<UInt64>(that, 0x48) = (reg << 0x14);
-
-    //! VRAMSharedApertureBaseAddr
-    reg = LRed::callback->readReg32(mmMC_VM_FB_OFFSET);
-    getMember<UInt64>(that, 0x60) = (reg << 22);
-    getMember<UInt64>(that, 0x58) = (reg << 22);
-    return;
 }
 
 uint64_t X4000::wrapWriteData(void *that, const UInt32 *data, UInt32 size) {
