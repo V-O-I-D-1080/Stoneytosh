@@ -4,6 +4,7 @@
 #include "GFXCon.hpp"
 #include "LRed.hpp"
 #include "PatcherPlus.hpp"
+#include "Support.hpp"
 #include <Headers/kern_api.hpp>
 
 static const char *pathAMD8000Controller =
@@ -47,9 +48,19 @@ bool GFXCon::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
     } else if (kextAMD9KController.loadIndex == index) {
         LRed::callback->setRMMIOIfNecessary();
 
+        SolveRequestPlus solveRequests[] = {
+            {"__ZN18VIInterruptManager16setRBReadPointerEj", this->IHSetRBReadPointer},
+            {"__ZN18VIInterruptManager22getWPTRWriteBackOffsetEv", this->IHGetWPTRWriteBackOffset},
+            {"__ZN18VIInterruptManager24isUsingVRAMForRingBufferEv", this->IHIsUsingVRAMForRingBuffer},
+            {"__ZN18VIInterruptManager31getActiveRingBufferSizeRegValueEv", this->IHGetActiveRingBufferSizeRegValue},
+        };
+        PANIC_COND(!SolveRequestPlus::solveAll(patcher, index, solveRequests, address, size), "GFXCon",
+            "Failed to solve symbols for IH");
+
         RouteRequestPlus requests[] = {
             {"__ZNK18VISharedController11getFamilyIdEv", wrapGetFamilyId, this->orgGetFamilyId},
             {"__ZN13ASIC_INFO__VI18populateDeviceInfoEv", wrapPopulateDeviceInfo, this->orgPopulateDeviceInfo},
+            {"__ZN18VIInterruptManager18setHardwareEnabledEb", IHSetHardwareEnabled},
         };
         PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "GFXCon",
             "Failed to route symbols");
@@ -76,4 +87,62 @@ IOReturn GFXCon::wrapPopulateDeviceInfo(void *that) {
     getMember<uint32_t>(that, 0x40) = LRed::callback->familyId;
     getMember<uint32_t>(that, 0x4C) = LRed::callback->emulatedRevision;
     return ret;
+}
+
+//-------- Carrizo IH fixes !!! WIP DO NOT USE YET !!! --------//
+
+enum InterruptManagerFields {
+    Unk1 = 0x32,
+    Flags = 0x38,
+    Unk2 = 0x3C,
+    GPUAddress = 0x48,
+    Unk3 = 0x50,
+};
+
+enum InterruptManagerFlags {
+    UseSRRB = 0x1,
+    MSIEnabled = 0x2,
+    DontUsePulseBasedInterrupts = 0x8,
+    IHEnableClockGating = 0x10,    //! unused in VIIntMgr
+};
+
+void GFXCon::IHSetHardwareEnabled(void *ihmgr, bool enabled) {
+    DBGLOG("GFXCon", "CZ IH @ setHardwareEnabled: enabled = 0x%x", enabled);
+    if (enabled) {
+        Support::callback->IHAcknowledgeAllOutStandingInterrupts(ihmgr);
+        callback->IHSetRBReadPointer(ihmgr, 0);
+        LRed::callback->writeReg32(mmIH_RB_WPTR, 0);    //! what
+
+        IODelay(10);    //! give it a lil time to catch up
+
+        UInt32 tmp = LRed::callback->readReg32(mmIH_RB_CNTL);
+        UInt32 tmp2 = LRed::callback->readReg32(mmIH_CNTL);
+
+        if (tmp & IH_RB_CNTL__RB_ENABLE || tmp2 & IH_CNTL__ENABLE_INTR) {
+            DBGLOG("GFXCon", "CZ IH @ setHardwareEnabled (true): what.");
+        }
+
+        tmp |= IH_RB_CNTL__RB_ENABLE;
+        tmp2 |= IH_CNTL__ENABLE_INTR;
+
+        LRed::callback->writeReg32(mmIH_RB_CNTL, tmp);
+        LRed::callback->writeReg32(mmIH_CNTL, tmp2);
+    } else {
+        UInt32 tmp = LRed::callback->readReg32(mmIH_RB_CNTL);
+        UInt32 tmp2 = LRed::callback->readReg32(mmIH_CNTL);
+
+        //! assume that it's set
+        tmp &= ~IH_RB_CNTL__RB_ENABLE;
+        tmp2 &= ~IH_CNTL__ENABLE_INTR;
+
+        LRed::callback->writeReg32(mmIH_RB_CNTL, tmp);
+        LRed::callback->writeReg32(mmIH_CNTL, tmp2);
+
+        IODelay(10);    //! give it a lil time to catch up
+
+        callback->IHSetRBReadPointer(ihmgr, 0);
+        LRed::callback->writeReg32(mmIH_RB_WPTR, 0);    //! what
+        Support::callback->IHAcknowledgeAllOutStandingInterrupts(ihmgr);
+    }
+    getMember<char>(ihmgr, InterruptManagerFields::Unk1) = 0;    //! what
 }

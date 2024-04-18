@@ -6,6 +6,8 @@
 #include "PatcherPlus.hpp"
 #include <Headers/kern_util.hpp>
 
+using t_SetRBReadPointer = void (*)(void *that, UInt32 addr);
+
 class GFXCon {
     public:
     static GFXCon *callback;
@@ -15,7 +17,10 @@ class GFXCon {
     private:
     mach_vm_address_t orgPopulateDeviceInfo {0};
     mach_vm_address_t orgGetFamilyId {0};
+    t_SetRBReadPointer IHSetRBReadPointer;
 
     static IOReturn wrapPopulateDeviceInfo(void *that);
     static UInt16 wrapGetFamilyId(void);
+
+    static void IHSetHardwareEnabled(void *that, bool enabled);
 };

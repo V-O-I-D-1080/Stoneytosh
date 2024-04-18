@@ -76,7 +76,12 @@ struct AGDCValidateDetailedTiming_t {
     UInt16 padding3[2];
 };
 
+using t_AcknowledgeAllOutStandingInterrupts = void (*)(void *that);
+using t_InitPulseBasedInterrupts = void (*)(void *that, bool enabled);
+
 class Support {
+    friend class GFXCon;
+
     public:
     static Support *callback;
     void init();
@@ -91,6 +96,8 @@ class Support {
     mach_vm_address_t orgGetImage {0};
     mach_vm_address_t orgObjectInfoTableInit {0};
     mach_vm_address_t orgADCStart {0};
+    t_AcknowledgeAllOutStandingInterrupts IHAcknowledgeAllOutStandingInterrupts {nullptr};
+    t_InitPulseBasedInterrupts IHInitPulseBasedInterrupts {nullptr};
 
     static bool wrapNotifyLinkChange(void *atiDeviceControl, kAGDCRegisterLinkControlEvent_t event, void *eventData,
         UInt32 eventFlags);

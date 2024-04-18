@@ -36,6 +36,16 @@ bool Support::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_
             PANIC_COND(!request.route(patcher, index, address, size), "Support", "Failed to route createAtomParser");
         }
 
+        if (LRed::callback->gcn3) {
+            SolveRequestPlus solveRequests[] = {
+                {"__ZN21AtiFbInterruptManager30initializePulseBasedInterruptsEb", this->IHInitPulseBasedInterrupts},
+                {"__ZN21AtiFbInterruptManager32acknowledgeOutstandingInterruptsEv",
+                    this->IHAcknowledgeAllOutStandingInterrupts},
+            };
+            PANIC_COND(!SolveRequestPlus::solveAll(patcher, index, solveRequests, address, size), "Support",
+                "Failed to solve symbols for CZ IH");
+        }
+
         RouteRequestPlus requests[] = {
             {"__ZN13ATIController20populateDeviceMemoryE13PCI_REG_INDEX", wrapPopulateDeviceMemory,
                 this->orgPopulateDeviceMemory},
