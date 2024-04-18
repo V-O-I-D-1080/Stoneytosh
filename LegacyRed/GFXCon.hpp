@@ -7,6 +7,9 @@
 #include <Headers/kern_util.hpp>
 
 using t_SetRBReadPointer = void (*)(void *that, UInt32 addr);
+using t_GetActiveRingBufferSizeRegValue = UInt32 (*)(void *that);
+using t_GetWPTRWriteBackOffset = long (*)(void *that);
+using t_IsUsingVRAMForRingBuffer = UInt32 (*)(void *that);
 
 class GFXCon {
     public:
@@ -18,6 +21,9 @@ class GFXCon {
     mach_vm_address_t orgPopulateDeviceInfo {0};
     mach_vm_address_t orgGetFamilyId {0};
     t_SetRBReadPointer IHSetRBReadPointer;
+    t_GetWPTRWriteBackOffset IHGetWPTRWriteBackOffset;
+    t_GetActiveRingBufferSizeRegValue IHGetActiveRingBufferSizeRegValue;
+    t_IsUsingVRAMForRingBuffer IHIsUsingVRAMForRingBuffer;
 
     static IOReturn wrapPopulateDeviceInfo(void *that);
     static UInt16 wrapGetFamilyId(void);

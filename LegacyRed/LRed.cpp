@@ -112,17 +112,9 @@ void LRed::processPatcher(KernelPatcher &patcher) {
         SYSLOG("LRed", "Failed to create DeviceInfo");
     }
 
-    bool bypass = checkKernelArgument("-CKBypassOSLimit");
-
-    if (bypass) {
-        SYSLOG("LRed", "--------------------------------------------------------------");
-        SYSLOG("LRed", "|      You Have Enabled ChefKiss Bypass OS Injection Limit   |");
-        SYSLOG("LRed", "|          Do NOT Report any issues encountered to us        |");
-        SYSLOG("LRed", "|          You are on your own, and have been warned.        |");
-        SYSLOG("LRed", "--------------------------------------------------------------");
-    }
-
-    if ((getKernelVersion() <= KernelVersion::Monterey) || bypass) {
+    if (getKernelVersion() >= KernelVersion::Ventura && this->deviceId != 0x98E4) {
+        PANIC("LRed", "GCN 2 iGPUs and Carrizo/Bristol iGPUs are unsupported on macOS Ventura and newer.");
+    } else {
         auto &legacyFBDesc = getFWDescByName("LegacyFramebuffers.xml");
         OSString *legacyFBErrStr = nullptr;
         auto *legacyFBDataNull = new char[legacyFBDesc.size + 1];
@@ -154,21 +146,23 @@ void LRed::processPatcher(KernelPatcher &patcher) {
     PANIC_COND(!gIOCatalogue->addDrivers(drivers), "LegacyRed", "Failed to add drivers");
     dataUnserialized->release();
 
-    if (!(getKernelVersion() <= KernelVersion::Monterey) && !bypass) { return; }
-
-    auto &legacyDesc = getFWDescByName("LegacyDrivers.xml");
-    OSString *legacyErrStr = nullptr;
-    auto *legacyDataNull = new char[legacyDesc.size + 1];
-    memcpy(legacyDataNull, legacyDesc.data, legacyDesc.size);
-    legacyDataNull[legacyDesc.size] = 0;
-    auto *legacyDataUnserialized = OSUnserializeXML(legacyDataNull, legacyDesc.size + 1, &legacyErrStr);
-    delete[] legacyDataNull;
-    PANIC_COND(!legacyDataUnserialized, "LegacyRed", "Failed to unserialize LegacyDrivers.xml: %s",
-        legacyErrStr ? legacyErrStr->getCStringNoCopy() : "<No additional information>");
-    auto *legacyDrivers = OSDynamicCast(OSArray, legacyDataUnserialized);
-    PANIC_COND(!legacyDrivers, "LegacyRed", "Failed to cast LegacyDrivers.xml data");
-    PANIC_COND(!gIOCatalogue->addDrivers(legacyDrivers), "LegacyRed", "Failed to add drivers");
-    legacyDataUnserialized->release();
+    if (getKernelVersion() >= KernelVersion::Ventura && this->deviceId != 0x98E4) {
+        PANIC("LRed", "GCN 2 iGPUs and Carrizo/Bristol iGPUs are unsupported on macOS Ventura and newer.");
+    } else {
+        auto &legacyDesc = getFWDescByName("LegacyDrivers.xml");
+        OSString *legacyErrStr = nullptr;
+        auto *legacyDataNull = new char[legacyDesc.size + 1];
+        memcpy(legacyDataNull, legacyDesc.data, legacyDesc.size);
+        legacyDataNull[legacyDesc.size] = 0;
+        auto *legacyDataUnserialized = OSUnserializeXML(legacyDataNull, legacyDesc.size + 1, &legacyErrStr);
+        delete[] legacyDataNull;
+        PANIC_COND(!legacyDataUnserialized, "LegacyRed", "Failed to unserialize LegacyDrivers.xml: %s",
+            legacyErrStr ? legacyErrStr->getCStringNoCopy() : "<No additional information>");
+        auto *legacyDrivers = OSDynamicCast(OSArray, legacyDataUnserialized);
+        PANIC_COND(!legacyDrivers, "LegacyRed", "Failed to cast LegacyDrivers.xml data");
+        PANIC_COND(!gIOCatalogue->addDrivers(legacyDrivers), "LegacyRed", "Failed to add drivers");
+        legacyDataUnserialized->release();
+    }
 }
 
 void LRed::setRMMIOIfNecessary() {
