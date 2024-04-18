@@ -90,10 +90,7 @@ class Support {
     private:
     mach_vm_address_t orgPopulateDeviceMemory {0};
     mach_vm_address_t orgNotifyLinkChange {0};
-    mach_vm_address_t orgGetGpioPinInfo {0};
     mach_vm_address_t orgCreateAtomBiosParser {0};
-    mach_vm_address_t orgCreateObjectInfoTable {0};
-    mach_vm_address_t orgGetImage {0};
     mach_vm_address_t orgObjectInfoTableInit {0};
     mach_vm_address_t orgADCStart {0};
     t_AcknowledgeAllOutStandingInterrupts IHAcknowledgeAllOutStandingInterrupts {nullptr};
@@ -103,15 +100,10 @@ class Support {
         UInt32 eventFlags);
     static bool doNotTestVram(IOService *ctrl, UInt32 reg, bool retryOnFail);
     static IOReturn wrapPopulateDeviceMemory(void *that, UInt32 reg);
-    static IOReturn wrapGetGpioPinInfo(void *that, UInt32 pin, void *pininfo);
     static void *wrapCreateAtomBiosParser(void *that, void *param1, unsigned char *param2, UInt32 dceVersion);
     static void wrapDoGPUPanic();
-    static void *wrapGetImage(void *that, UInt32 offset, UInt32 length);
     static bool wrapObjectInfoTableInit(void *that, void *initdata);
-    static void *wrapCreateObjectInfoTable(void *helper, UInt32 offset);
     static void *wrapADCStart(void *that, IOService *provider);
-
-    UInt32 currentObjectInfoOffset;
 };
 
 /* ---- Patches ---- */

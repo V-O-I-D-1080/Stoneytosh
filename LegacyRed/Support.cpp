@@ -53,11 +53,8 @@ bool Support::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_
                 this->orgNotifyLinkChange},
             {"__ZN13ATIController8TestVRAME13PCI_REG_INDEXb", doNotTestVram},
             {"__ZN13ATIController10doGPUPanicEPKcz", wrapDoGPUPanic},
-            {"__ZN14AtiVBiosHelper8getImageEjj", wrapGetImage, this->orgGetImage},
             {"__ZN30AtiObjectInfoTableInterface_V14initERN21AtiDataTableBaseClass17DataTableInitInfoE",
                 wrapObjectInfoTableInit, this->orgObjectInfoTableInit},
-            {"__ZN30AtiObjectInfoTableInterface_V121createObjectInfoTableEP14AtiVBiosHelperj",
-                wrapCreateObjectInfoTable, this->orgCreateObjectInfoTable},
         };
         PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "Support",
             "Failed to route symbols");
@@ -111,17 +108,7 @@ bool Support::wrapNotifyLinkChange(void *atiDeviceControl, kAGDCRegisterLinkCont
 bool Support::doNotTestVram([[maybe_unused]] IOService *ctrl, [[maybe_unused]] UInt32 reg,
     [[maybe_unused]] bool retryOnFail) {
     LRed::callback->signalFBDumpDeviceInfo();
-    DBGLOG("Support", "TestVRAM called! Returning true");
     return true;
-}
-
-IOReturn Support::wrapGetGpioPinInfo(void *that, UInt32 pin, void *pininfo) {
-    auto member = getMember<UInt32>(that, 0x30);
-    DBGLOG("Support", "getGpioPinInfo: pin %x, member: %x", pin, member);
-    (void)member;    // to also get clang-analyze to shut up
-    auto ret = FunctionCast(wrapGetGpioPinInfo, callback->orgGetGpioPinInfo)(that, pin, pininfo);
-    DBGLOG("Support", "getGpioPinInfo: returned %x", ret);
-    return ret;
 }
 
 void *Support::wrapCreateAtomBiosParser(void *that, void *param1, unsigned char *param2, UInt32 dceVersion) {
@@ -137,62 +124,24 @@ void Support::wrapDoGPUPanic() {
     while (true) { IOSleep(3600000); }
 }
 
-//! do we even need the display object path table?
-void *Support::wrapGetImage(void *that, UInt32 offset, UInt32 length) {
-    auto ret = FunctionCast(wrapGetImage, callback->orgGetImage)(that, offset, length);
-    return ret;
-}
-
-void *Support::wrapCreateObjectInfoTable(void *helper, UInt32 offset) {
-    DBGLOG("Support", "wrapCreateObjectInfoTable: Object Info Table Offset: 0x%x", offset);
-    callback->currentObjectInfoOffset = offset;
-    auto ret = FunctionCast(wrapCreateObjectInfoTable, callback->orgCreateObjectInfoTable)(helper, offset);
-    return ret;
-}
-
 bool Support::wrapObjectInfoTableInit(void *that, void *initdata) {
     auto ret = FunctionCast(wrapObjectInfoTableInit, callback->orgObjectInfoTableInit)(that, initdata);
-    struct ATOMObjHeader *objHdr = getMember<ATOMObjHeader *>(that, 0x28);    // ?
-    DBGLOG("Support", "objectInfoTable values: conObjTblOff: %x, encObjTblOff: %x, dispPathTblOff: %x",
-        objHdr->connectorObjectTableOffset, objHdr->encoderObjectTableOffset, objHdr->displayPathTableOffset);
+    struct ATOMObjHeader *objHdr = getMember<ATOMObjHeader *>(that, 0x28);
     struct ATOMObjTable *conInfoTbl = getMember<ATOMObjTable *>(that, 0x38);
-    void *vbiosparser = getMember<void *>(that, 0x10);
-    ATOMDispObjPathTable *dispPathTable = static_cast<ATOMDispObjPathTable *>(FunctionCast(wrapGetImage,
-        callback->orgGetImage)(vbiosparser, callback->currentObjectInfoOffset + objHdr->displayPathTableOffset, 0xE));
-    DBGLOG("Support", "dispObjPathTable: numDispPaths = 0x%x, version: 0x%x", dispPathTable->numOfDispPath,
-        dispPathTable->version);
-    auto n = dispPathTable->numOfDispPath;
+    auto n = conInfoTbl->numberOfObjects;
     DBGLOG("Support", "Fixing VBIOS connectors");
     for (size_t i = 0, j = 0; i < n; i++) {
-        //! Skip invalid device tags
-        if (dispPathTable->dispPath[i].deviceTag) {
-            UInt8 conObjType = (conInfoTbl->objects[i].objectID & OBJECT_TYPE_MASK) >> OBJECT_TYPE_SHIFT;
-            DBGLOG("Support", "connectorInfoTable: connector: %zx, objects: %x, objectId: %x, objectTypeFromId: %x", i,
-                conInfoTbl->numberOfObjects, conInfoTbl->objects[i].objectID,
-                (conInfoTbl->objects[i].objectID & OBJECT_TYPE_MASK) >> OBJECT_TYPE_SHIFT);
-            if (conObjType != GRAPH_OBJECT_TYPE_CONNECTOR) {
-                //! Trims out any non-connector objects, proven to work on 2 machines, one with all connectors properly
-                //! defined, one with 2/3 being valid connectors
-                SYSLOG("Support",
-                    "Connector %zx's objectType is not GRAPH_OBJECT_TYPE_CONNECTOR!, detected objectType: %x, if this "
-                    "is a mistake please file a bug report!",
-                    i, conObjType);
-                conInfoTbl->numberOfObjects--;
-                dispPathTable->numOfDispPath--;
-            } else {
-                conInfoTbl->objects[j++] = conInfoTbl->objects[i];
-                dispPathTable->dispPath[j] = dispPathTable->dispPath[i];
-            }
+        UInt8 conObjType = (conInfoTbl->objects[i].objectID & OBJECT_TYPE_MASK) >> OBJECT_TYPE_SHIFT;
+        //! Block out all invalid entries (ones that don't have `GRAPH_OBJECT_TYPE_CONNECTOR`)
+        if (conObjType == GRAPH_OBJECT_TYPE_CONNECTOR) {
+            conInfoTbl->objects[j] = conInfoTbl->objects[i];
+            j++;
         } else {
-            dispPathTable->numOfDispPath--;
+            SYSLOG("Support", "Invalid Connector Info Table entry at index 0x%zx, with object type 0x%x", i,
+                conObjType);
             conInfoTbl->numberOfObjects--;
         }
     }
-    DBGLOG("Support", "Results: numOfDispPath: 0x%x, numberOfObjects: 0x%x", dispPathTable->numOfDispPath,
-        conInfoTbl->numberOfObjects);
-    LRed::callback->iGPU->setProperty("CFG_FB_LIMIT", conInfoTbl->numberOfObjects, sizeof(conInfoTbl->numberOfObjects));
-    //! WEG sets this property to the number of connectors used in AtiBiosParserX::getConnectorInfo, so we use
-    //! numberOfObjects instead
     return ret;
 }
 
