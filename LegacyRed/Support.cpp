@@ -126,7 +126,6 @@ void Support::wrapDoGPUPanic() {
 
 bool Support::wrapObjectInfoTableInit(void *that, void *initdata) {
     auto ret = FunctionCast(wrapObjectInfoTableInit, callback->orgObjectInfoTableInit)(that, initdata);
-    struct ATOMObjHeader *objHdr = getMember<ATOMObjHeader *>(that, 0x28);
     struct ATOMObjTable *conInfoTbl = getMember<ATOMObjTable *>(that, 0x38);
     auto n = conInfoTbl->numberOfObjects;
     DBGLOG("Support", "Fixing VBIOS connectors");
