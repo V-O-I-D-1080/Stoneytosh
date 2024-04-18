@@ -127,7 +127,6 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
                 wrapSubmitCommandBufferInfo, this->orgSubmitCommandBufferInfo},
             {"__ZN30AMDRadeonX4000_AMDPM4HWChannel17performClearStateEv", performClearState,
                 this->orgPerformClearState},
-            {"__ZN29AMDRadeonX4000_AMDHWRegisters4readEj", wrapAMDHWRegsRead, this->orgAMDHWRegsRead},
             {"__ZN26AMDRadeonX4000_AMDHWMemory12getRangeInfoE22eAMD_MEMORY_RANGE_TYPEP21AMD_MEMORY_RANGE_INFO",
                 wrapGetRangeInfo, this->orgGetRangeInfo},
         };
@@ -287,13 +286,6 @@ void X4000::wrapAMDHWRegsWrite(void *that, UInt32 addr, UInt32 val) {
         DBGLOG("X4000", "Stripping SRBM_SOFT_RESET__SOFT_RESET_MC_MASK bit");
     }
     FunctionCast(wrapAMDHWRegsWrite, callback->orgAMDHWRegsWrite)(that, addr, val);
-}
-
-UInt32 X4000::wrapAMDHWRegsRead(void *that, UInt32 addr) {
-    DBGLOG("X4000", "ACCEL REG READ >> addr: 0x%x", addr);
-    auto ret = FunctionCast(wrapAMDHWRegsRead, callback->orgAMDHWRegsRead)(that, addr);
-    DBGLOG("X4000", "ACCEL REG READ << ret: 0x%x", ret);
-    return ret;
 }
 
 void X4000::wrapInitVRAMInfo(void *that) {

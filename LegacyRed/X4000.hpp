@@ -31,7 +31,6 @@ class X4000 {
     mach_vm_address_t orgSubmitCommandBufferInfo {0};
     mach_vm_address_t orgBuildIBCommand {0};
     mach_vm_address_t orgPerformClearState {0};
-    mach_vm_address_t orgAMDHWRegsRead {0};
     mach_vm_address_t orgGetRangeInfo {0};
 
     void *callbackAccelerator = nullptr;
@@ -56,7 +55,6 @@ class X4000 {
     static UInt64 wrapBuildIBCommand(void *that, UInt32 *rawPkt, UInt64 param2, UInt32 param3, UInt64 ibType,
         UInt32 param5, bool param6, UInt32 param7);
     static bool performClearState(void *that);
-    static UInt32 wrapAMDHWRegsRead(void *that, UInt32 addr);
     static bool wrapGetRangeInfo(void *that, int memType, void *outData);
 
     static bool wrapAMDSMLUVDInit(void *that);
