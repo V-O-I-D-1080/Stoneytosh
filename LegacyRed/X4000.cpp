@@ -380,6 +380,9 @@ bool X4000::wrapGetRangeInfo(void *that, int memType, void *outData) {
     auto ret = FunctionCast(wrapGetRangeInfo, callback->orgGetRangeInfo)(that, memType, outData);
     DBGLOG("X4000", "getRangeInfo - off 0x0: 0x%llx - off 0x8: 0x%llx - off 0x10: 0x%llx",
         getMember<UInt64>(outData, 0x0), getMember<UInt64>(outData, 0x8), getMember<UInt64>(outData, 0x10));
-    if (memType == 1) { getMember<UInt64>(outData, 0x0) += 0xFF00000000; }
+    if (memType == 1) {
+         getMember<UInt64>(outData, 0x0) = 0xFF00000000;
+         getMember<UInt64>(outData, 0x8) = CIK_DEFAULT_GART_SIZE;
+     }
     return ret;
 }
