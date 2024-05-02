@@ -368,4 +368,7 @@ bool LRed::wrapApplePanelSetDisplay(IOService *that, IODisplay *display) {
     return result;
 }
 
-void LRed::signalFBDumpDeviceInfo() { fb.fbDumpDevProps(); }
+void LRed::signalFBDumpDeviceInfo() { 
+    fb.dumpAllFramebuffers();
+    fb.fbDumpDevProps();
+}

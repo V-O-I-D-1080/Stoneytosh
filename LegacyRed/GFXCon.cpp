@@ -41,6 +41,7 @@ bool GFXCon::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t
         RouteRequestPlus requests[] = {
             {"__ZNK18CISharedController11getFamilyIdEv", wrapGetFamilyId, this->orgGetFamilyId},
             {"__ZN13ASIC_INFO__CI18populateDeviceInfoEv", wrapPopulateDeviceInfo, this->orgPopulateDeviceInfo},
+            {"__ZN13ASIC_INFO__CI18populateFbLocationEv", wrapPopulateFbLocation},
         };
         PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "GFXCon",
             "Failed to route symbols");
@@ -89,6 +90,23 @@ IOReturn GFXCon::wrapPopulateDeviceInfo(void *that) {
     return ret;
 }
 
+IOReturn GFXCon::wrapPopulateFbLocation(void *that) {
+    UInt64 base = (LRed::callback->readReg32(mmMC_VM_FB_LOCATION) & 0xFFFF) << 24;
+
+    //! experiment
+    base += USUAL_VRAM_PADDR;
+
+    getMember<UInt64>(that, 0x58) = base;
+
+    //! https://elixir.bootlin.com/linux/latest/source/drivers/gpu/drm/amd/amdgpu/amdgpu_gmc.c#L206
+    UInt64 memsize = ((LRed::callback->readReg32(mmCONFIG_MEMSIZE) * 1024ULL) * 1024ULL);
+    getMember<UInt64>(that, 0x60) = ((base + memsize) - 1);
+
+    DBGLOG("GFXCon", "populateFbLocation: base: 0x%llx top: 0x%llx", getMember<UInt64>(that, 0x58),
+        getMember<UInt64>(that, 0x60));
+    return kIOReturnSuccess;
+}
+
 //-------- Carrizo IH fixes !!! WIP DO NOT USE YET !!! --------//
 
 enum InterruptManagerFields {
@@ -106,6 +124,10 @@ enum InterruptManagerFlags {
     IHEnableClockGating = 0x10,    //! unused in VIIntMgr
 };
 
+//! description:
+//! Properly power-up the IH, Tonga's OSS 3.0.0 uses a new bit in the RB_CNTL to fully
+//! get the IH ready for usage, this bit is not present on the OSS 3.0.1 IH and thus
+//! we must override the function here with our own logic
 void GFXCon::IHSetHardwareEnabled(void *ihmgr, bool enabled) {
     DBGLOG("GFXCon", "CZ IH @ setHardwareEnabled: enabled = 0x%x", enabled);
     if (enabled) {

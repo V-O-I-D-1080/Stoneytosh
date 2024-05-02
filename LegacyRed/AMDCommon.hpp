@@ -13,6 +13,20 @@ constexpr UInt32 AMDGPU_FAMILY_KV = 0x7D;
 constexpr UInt64 CIK_DEFAULT_GART_SIZE =
     1024 << 20;    //! Used on all APU ASICs supported here, look in gfx_v7_0.c and gfx_v8_0.c for details
 
+//! seems to be a universal constant for iGPU ASICs
+//! don't know the origin, however, this is observed on even Vega iGPUs
+//! also found on our supported ASICs via research through AMDGPU
+//! bottom paddr: 0xF400000000 (512M)
+//! top paddr:    0xF41FFFFFFF (512M)
+constexpr UInt64 USUAL_VRAM_PADDR = 0xF4 << 20;
+
+//! seems to be another universal constant for iGPU ASICs
+//! don't know the origin, however, this is observed on even Vega iGPUs
+//! also found on our supported ASICs via research through AMDGPU
+//! bottom paddr: 0xFF00000000 (1024M)
+//! top paddr:    0xFF3FFFFFFF (1024M)
+constexpr UInt64 USUAL_GART_PADDR = 0xFF << 20;
+
 constexpr UInt32 AMDGPU_MAX_USEC_TIMEOUT = 100000;
 
 //-------- SMU 8 Registers --------//

@@ -83,6 +83,8 @@
 			<integer>4</integer>
 			<key>DALUseUrgencyWaterMarkOffset</key>
 			<integer>0</integer>
+			<key>CFG_NON_ZERO_MC_LOC</key>
+			<integer>1</integer>
 		</dict>
 		<key>aty_properties</key>
 		<dict>
@@ -170,6 +172,8 @@
 			<integer>4</integer>
 			<key>DALUseUrgencyWaterMarkOffset</key>
 			<integer>0</integer>
+			<key>CFG_NON_ZERO_MC_LOC</key>
+			<integer>1</integer>
 		</dict>
 		<key>aty_properties</key>
 		<dict>
@@ -255,6 +259,8 @@
 			<integer>4</integer>
 			<key>DALUseUrgencyWaterMarkOffset</key>
 			<integer>0</integer>
+			<key>CFG_NON_ZERO_MC_LOC</key>
+			<integer>1</integer>
 		</dict>
 		<key>aty_properties</key>
 		<dict>
