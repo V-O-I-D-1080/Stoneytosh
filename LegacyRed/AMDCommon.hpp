@@ -69,7 +69,7 @@ constexpr UInt32 SRBM_SOFT_RESET__SOFT_RESET_MC_MASK = 0x800;
 
 //-------- GMC Registers --------//
 
-constexpr mmVM_CONTEXT0_PROTECTION_FAULT_DEFAULT_ADDR = 0x546;
+constexpr UInt32 mmVM_CONTEXT0_PROTECTION_FAULT_DEFAULT_ADDR = 0x546;
 constexpr UInt32 mmMC_VM_FB_LOCATION = 0x809;
 constexpr UInt32 mmMC_VM_AGP_TOP = 0x80A;
 constexpr UInt32 mmMC_VM_AGP_BOT = 0x80B;
