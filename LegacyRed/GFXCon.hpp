@@ -28,7 +28,5 @@ class GFXCon {
     static IOReturn wrapPopulateDeviceInfo(void *that);
     static UInt16 wrapGetFamilyId(void);
 
-    static IOReturn wrapPopulateFbLocation(void *that);
-
     static void IHSetHardwareEnabled(void *that, bool enabled);
 };
