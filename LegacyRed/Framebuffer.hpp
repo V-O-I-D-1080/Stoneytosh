@@ -15,6 +15,7 @@ class Framebuffer {
     void init();
     bool processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t address, size_t size);
     IOReturn fbDumpDevProps();
+    IOReturn dumpAllFramebuffers();
 
     private:
     mach_vm_address_t orgPopulateDisplayModeInfo {0};
