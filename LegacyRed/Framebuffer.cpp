@@ -41,7 +41,7 @@ bool Framebuffer::processKext(KernelPatcher &patcher, size_t index, mach_vm_addr
               "P24IODisplayModeInformation", wrapPopulateDisplayModeInfo, this->orgPopulateDisplayModeInfo},
             {"__ZN14AMDFramebuffer5startEP9IOService", wrapStart, this->orgStart},
         };
-        PANIC_COND(!RouteRequestPlus::solveAll(patcher, index, requests, address, size), "Framebuffer",
+        PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "Framebuffer",
             "Failed to route populateDisplayModeInformation!");
         return true;
     }
