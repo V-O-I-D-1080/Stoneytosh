@@ -49,7 +49,6 @@ bool Framebuffer::processKext(KernelPatcher &patcher, size_t index, mach_vm_addr
 }
 
 IOReturn Framebuffer::dumpAllFramebuffers() {
-    OSDictionary *upperDict = OSDictionary::withCapacity(6);
     if (upperDict == nullptr) {
         DBGLOG("Framebuffer", "Failed to create dictionary");
         return kIOReturnNoMemory;
@@ -57,6 +56,7 @@ IOReturn Framebuffer::dumpAllFramebuffers() {
         DBGLOG("Framebuffer", "Cannot dump at this time, FB 0 pointer is null.");
         return kIOReturnNoDevice;
     }
+    OSDictionary *upperDict = OSDictionary::withCapacity(6);
     for (int i = 0; i < MAX_FRAMEBUFFER_COUNT; i++) {
         if (callback->fbPtrs[i] == nullptr) {
             break;
@@ -71,6 +71,7 @@ IOReturn Framebuffer::dumpAllFramebuffers() {
             char name[128];
             snprintf(name, 128, "Framebuffer %d", i);
             upperDict->setObject(name, dict);
+            OSSafeReleaseNULL(dict);
         }
     }
     LRed::callback->iGPU->setProperty("iGPU Framebuffer Config", upperDict);
