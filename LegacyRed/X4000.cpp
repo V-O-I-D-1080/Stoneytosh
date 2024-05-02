@@ -361,7 +361,7 @@ bool X4000::wrapGetRangeInfo(void *that, int memType, void *outData) {
         getMember<UInt64>(outData, 0x0), getMember<UInt64>(outData, 0x8), getMember<UInt64>(outData, 0x10));
     if (memType == kAMDMemoryRangeTypeGART) {
         //! So... this stopped the page faulting. But the PM4 remains hung. What am I missing?
-        getMember<UInt64>(outData, 0x0) = USUAL_GART_PADDR; //! same as before
+        getMember<UInt64>(outData, 0x0) = 0xFF00000000; //! same as before
         getMember<UInt64>(outData, 0x8) = CIK_DEFAULT_GART_SIZE;
     }
     return ret;

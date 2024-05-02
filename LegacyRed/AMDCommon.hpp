@@ -18,14 +18,14 @@ constexpr UInt64 CIK_DEFAULT_GART_SIZE =
 //! also found on our supported ASICs via research through AMDGPU
 //! bottom paddr: 0xF400000000 (512M)
 //! top paddr:    0xF41FFFFFFF (512M)
-constexpr UInt64 USUAL_VRAM_PADDR = 0xF4 << 24;
+constexpr UInt64 USUAL_VRAM_PADDR = 0xF400000000;
 
 //! seems to be another universal constant for iGPU ASICs
 //! don't know the origin, however, this is observed on even Vega iGPUs
 //! also found on our supported ASICs via research through AMDGPU
 //! bottom paddr: 0xFF00000000 (1024M)
 //! top paddr:    0xFF3FFFFFFF (1024M)
-constexpr UInt64 USUAL_GART_PADDR = 0xFF << 24;
+constexpr UInt64 USUAL_GART_PADDR = 0xFF00000000;
 
 constexpr UInt32 AMDGPU_MAX_USEC_TIMEOUT = 100000;
 
