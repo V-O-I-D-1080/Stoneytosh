@@ -62,6 +62,7 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
                 {"__ZN38AMDRadeonX4000_AMDVIPM4CommandsUtility26buildIndirectBufferCommandEPjyj26_eAMD_INDIRECT_BUFFER_"
                  "TYPEjbj",
                     wrapBuildIBCommand, this->orgBuildIBCommand},
+                {"__ZN28AMDRadeonX4000_AMDVIHardware28initializeSystemApertureRegsEv", initializeSystemApertureRegs},
             };
             PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "X4000",
                 "Failed to route symbols");
@@ -82,6 +83,7 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
                 {"__ZN38AMDRadeonX4000_AMDVIPM4CommandsUtility26buildIndirectBufferCommandEPjyj26_eAMD_INDIRECT_BUFFER_"
                  "TYPEjbj",
                     wrapBuildIBCommand, this->orgBuildIBCommand},
+                {"__ZN28AMDRadeonX4000_AMDVIHardware28initializeSystemApertureRegsEv", initializeSystemApertureRegs},
             };
             PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "X4000",
                 "Failed to route symbols");
@@ -105,6 +107,7 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
                 {"__ZN38AMDRadeonX4000_AMDCIPM4CommandsUtility26buildIndirectBufferCommandEPjyj26_eAMD_INDIRECT_BUFFER_"
                  "TYPEjbj",
                     wrapBuildIBCommand, this->orgBuildIBCommand},
+                {"__ZN28AMDRadeonX4000_AMDCIHardware28initializeSystemApertureRegsEv", initializeSystemApertureRegs},
             };
             PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "X4000",
                 "Failed to route symbols");
@@ -361,8 +364,29 @@ bool X4000::wrapGetRangeInfo(void *that, int memType, void *outData) {
         getMember<UInt64>(outData, 0x0), getMember<UInt64>(outData, 0x8), getMember<UInt64>(outData, 0x10));
     if (memType == kAMDMemoryRangeTypeGART) {
         //! So... this stopped the page faulting. But the PM4 remains hung. What am I missing?
-        getMember<UInt64>(outData, 0x0) = 0xFF00000000; //! same as before
+        getMember<UInt64>(outData, 0x0) = APU_COMMON_GART_PADDR; //! same as before
         getMember<UInt64>(outData, 0x8) = CIK_DEFAULT_GART_SIZE;
     }
     return ret;
+}
+
+void X4000::initializeSystemApertureRegs(void *) {
+    //! 0xFF00000000
+    //!    0xFEFFFFF
+
+    //! do these in X4K order
+    LRed::callback->writeReg32(mmMC_VM_SYSTEM_APERTURE_HIGH_ADDR, (LRed::callback->vramEnd >> 12)); //! VRAM START
+    LRed::callback->writeReg32(mmMC_VM_SYSTEM_APERTURE_LOW_ADDR, (LRed::callback->vramStart >> 12));
+    if (checkKernelArgument("-X4KProgramAperDefault")) { //! tmp 4 if the 0 write has the PM4 still borked
+        LRed::callback->writeReg32(mmMC_VM_SYSTEM_APERTURE_DEFAULT_ADDR, (LRed::callback->vramStart >> 12));
+    } else {
+        //! `mem_scratch.gpu_addr` tf is that?
+        LRed::callback->writeReg32(mmMC_VM_SYSTEM_APERTURE_DEFAULT_ADDR, 0x0); //! does the PM4 need this to be non-zero here?
+    }
+
+    LRed::callback->writeReg32(mmVM_CONTEXT0_PROTECTION_FAULT_DEFAULT_ADDR, 0x0); //! does this ever get reprogrammed?
+
+    LRed::callback->writeReg32(mmMC_VM_AGP_BASE, 0x0);
+    LRed::callback->writeReg32(mmMC_VM_AGP_TOP, 0x0);
+    LRed::callback->writeReg32(mmMC_VM_AGP_BOT, AGP_DISABLE_ADDR);
 }

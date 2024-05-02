@@ -176,9 +176,10 @@ void LRed::setRMMIOIfNecessary() {
 
         this->mcLocation = (this->readReg32(mmMC_VM_FB_LOCATION) << 24);
         this->memSize = ((this->readReg32(mmCONFIG_MEMSIZE) * 1024) * 1024);
-        SYSLOG("LRed", "Memory Controller location: 0x%llx", this->mcLocation);
-        SYSLOG("LRed", "Memory size in hex (bytes): 0x%llx", this->memSize);
-        SYSLOG("LRed", "BAR2 (mapped) @ 0x%llx", this->rmmio->getPhysicalAddress());
+        this->vramStart = (APU_COMMON_VRAM_PADDR + this->mcLocation);
+        this->vramEnd = ((this->vramStart + memSize) - 1);
+
+        SYSLOG("LRed", "VRAM: Size %lluMB, Start: 0x%llx, End: 0x%llx", ((this->memSize / 1024ULL) / 1024ULL), this->vramStart, this->vramEnd);
 
         //! Who thought it would be a good idea to use this many Device IDs and Revisions?
         switch (this->deviceId) {

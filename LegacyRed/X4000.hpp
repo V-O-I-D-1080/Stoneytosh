@@ -55,6 +55,7 @@ class X4000 {
         UInt32 param5, bool param6, UInt32 param7);
     static bool performClearState(void *that);
     static bool wrapGetRangeInfo(void *that, int memType, void *outData);
+    static void initializeSystemApertureRegs(void *that);
 
     static bool wrapAMDSMLUVDInit(void *that);
     static bool wrapAMDSMLVCEInit(void *that);

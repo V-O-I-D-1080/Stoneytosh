@@ -230,6 +230,8 @@ class LRed {
     UInt32 familyId {0};
     UInt32 emulatedRevision {0};
     IOPCIDevice *iGPU {nullptr};
+    UInt64 vramStart {0};
+    UInt64 vramEnd {0};
     UInt64 mcLocation {0};
     UInt64 memSize {0};
 
