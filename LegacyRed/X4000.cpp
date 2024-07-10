@@ -408,8 +408,8 @@ void X4000::initializeSystemApertureRegs(void *) {
 bool X4000::wrapHWMemoryInit(void * that, void * hwIf) {
     SYSLOG("X4000", "HWMemory::init(%p)", hwIf);
     //! patch sharedaper?
-    getMember<UInt64>(void, HWMemoryFields::VRAMMCBaseAddress) = LRed::callback->vramStart;
-    getMember<UInt64>(void, HWMemoryFields::VRAMPhysicalOffset) = LRed::callback->fbOffset;
+    getMember<UInt64>(that, HWMemoryFields::VRAMMCBaseAddress) = LRed::callback->vramStart;
+    getMember<UInt64>(that, HWMemoryFields::VRAMPhysicalOffset) = LRed::callback->fbOffset;
     auto ret = FunctionCast(wrapHWMemoryInit, callback->orgHWMemoryInit)(that, hwIf);
     if (ret) {
         callback->hwMemPtr = that;
