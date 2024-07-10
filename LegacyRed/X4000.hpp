@@ -32,6 +32,7 @@ class X4000 {
     mach_vm_address_t orgBuildIBCommand {0};
     mach_vm_address_t orgPerformClearState {0};
     mach_vm_address_t orgGetRangeInfo {0};
+    mach_vm_address_t orgHWMemoryInit {0};
 
     void *callbackAccelerator = nullptr;
     UInt64 mcLocation;
@@ -56,9 +57,12 @@ class X4000 {
     static bool performClearState(void *that);
     static bool wrapGetRangeInfo(void *that, int memType, void *outData);
     static void initializeSystemApertureRegs(void *that);
+    static bool wrapHWMemoryInit(void * that, void * hwIf);
 
     static bool wrapAMDSMLUVDInit(void *that);
     static bool wrapAMDSMLVCEInit(void *that);
+
+    void *hwMemPtr;
 };
 
 // ---- Patches ---- //

@@ -130,6 +130,7 @@ bool X4000::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t 
                 this->orgPerformClearState},
             {"__ZN26AMDRadeonX4000_AMDHWMemory12getRangeInfoE22eAMD_MEMORY_RANGE_TYPEP21AMD_MEMORY_RANGE_INFO",
                 wrapGetRangeInfo, this->orgGetRangeInfo},
+            {"__ZN26AMDRadeonX4000_AMDHWMemory4initEP30AMDRadeonX4000_IAMDHWInterface", wrapHWMemoryInit, this->orgHWMemoryInit},
         };
         PANIC_COND(!RouteRequestPlus::routeAll(patcher, index, requests, address, size), "X4000",
             "Failed to route symbols");
@@ -301,6 +302,12 @@ bool X4000::wrapHWRingWrite(void *that, UInt32 data) {
 
 bool isInPerformClearState = false;
 
+enum HWMemoryFields {
+    VRAMMCBaseAddress = 0x50,
+    VRAMPhysicalOffset = 0x58,
+    SharedApertureBaseAddr = 0x60,
+};
+
 bool X4000::performClearState(void *that) {
     isInPerformClearState = true;
     DBGLOG("X4000", "mmVM_CONTEXT0_PAGE_TABLE_START_ADDR = 0x%x",
@@ -320,6 +327,12 @@ bool X4000::performClearState(void *that) {
         LRed::callback->readReg32(mmMC_VM_SYSTEM_APERTURE_HIGH_ADDR));
     DBGLOG("X4000", "mmMC_VM_SYSTEM_APERTURE_DEFAULT_ADDR = 0x%x",
         LRed::callback->readReg32(mmMC_VM_SYSTEM_APERTURE_DEFAULT_ADDR));
+    if (callback->hwMemPtr != nullptr) { //! juuuust in case.
+        SYSLOG("X4000", "HWMem: base: 0x%llx", getMember<UInt64>(callback->hwMemPtr, HWMemoryFields::VRAMMCBaseAddress));
+        SYSLOG("X4000", "HWMem: offset: 0x%llx", getMember<UInt64>(callback->hwMemPtr, HWMemoryFields::VRAMPhysicalOffset));
+        //! TODO: find out if we need to inject sharedaper
+        SYSLOG("X4000", "HWMem: sharedaper: 0x%llx", getMember<UInt64>(callback->hwMemPtr, HWMemoryFields::SharedApertureBaseAddr));
+    }
     auto ret = FunctionCast(performClearState, callback->orgPerformClearState)(that);
     isInPerformClearState = false;
     return ret;
@@ -375,6 +388,7 @@ void X4000::initializeSystemApertureRegs(void *) {
     //!    0xFEFFFFF
 
     //! do these in X4K order
+    //! KIQ times out now, but that's something.
     LRed::callback->writeReg32(mmMC_VM_SYSTEM_APERTURE_HIGH_ADDR, (LRed::callback->vramEnd >> 12)); //! VRAM START
     LRed::callback->writeReg32(mmMC_VM_SYSTEM_APERTURE_LOW_ADDR, (LRed::callback->vramStart >> 12));
     if (checkKernelArgument("-X4KProgramAperDefault")) { //! tmp 4 if the 0 write has the PM4 still borked
@@ -389,4 +403,16 @@ void X4000::initializeSystemApertureRegs(void *) {
     LRed::callback->writeReg32(mmMC_VM_AGP_BASE, 0x0);
     LRed::callback->writeReg32(mmMC_VM_AGP_TOP, 0x0);
     LRed::callback->writeReg32(mmMC_VM_AGP_BOT, AGP_DISABLE_ADDR);
+}
+
+bool X4000::wrapHWMemoryInit(void * that, void * hwIf) {
+    SYSLOG("X4000", "HWMemory::init(%p)", hwIf);
+    //! patch sharedaper?
+    getMember<UInt64>(void, HWMemoryFields::VRAMMCBaseAddress) = LRed::callback->vramStart;
+    getMember<UInt64>(void, HWMemoryFields::VRAMPhysicalOffset) = LRed::callback->fbOffset;
+    auto ret = FunctionCast(wrapHWMemoryInit, callback->orgHWMemoryInit)(that, hwIf);
+    if (ret) {
+        callback->hwMemPtr = that;
+    }
+    return ret;
 }
