@@ -2,5 +2,7 @@
 
 yeah nah this shit dead ass bro
 
-i did better than Visual at attributing these guys 💀
+fyi if you're looking for a new version:
+- there isn't one (yet)
+
 Thanks to [Acidanthera](https://github.com/acidanthera) for the [WhateverGreen](https://github.com/acidanthera/WhateverGreen) kern_agdc and kern_rad code used in Support.cpp
