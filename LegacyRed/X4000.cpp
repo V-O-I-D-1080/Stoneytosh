@@ -10,6 +10,11 @@ static const char *pathRadeonX4000 = "/System/Library/Extensions/AMDRadeonX4000.
 static KernelPatcher::KextInfo kextRadeonX4000 {"com.apple.kext.AMDRadeonX4000", &pathRadeonX4000, 1, {}, {},
     KernelPatcher::KextInfo::Unloaded};
 
+/*
+ * Misc HW changes to follow up on:
+ * - Raster Config, see https://github.com/ROCm/ROCK-Kernel-Driver/blob/8809b4b2efdcb6eb0a9b7fbb9e11ae5f83b3a8fa/drivers/gpu/drm/amd/amdgpu/gfx_v7_0.c#L1603-L1629
+ */
+
 X4000 *X4000::callback = nullptr;
 
 void X4000::init() {
@@ -308,6 +313,8 @@ enum HWMemoryFields {
     SharedApertureBaseAddr = 0x60,
 };
 
+/* To follow up on: https://github.com/ROCm/ROCK-Kernel-Driver/blob/8809b4b2efdcb6eb0a9b7fbb9e11ae5f83b3a8fa/drivers/gpu/drm/amd/amdgpu/gfx_v7_0.c#L2449 */
+
 bool X4000::performClearState(void *that) {
     isInPerformClearState = true;
     DBGLOG("X4000", "mmVM_CONTEXT0_PAGE_TABLE_START_ADDR = 0x%x",
@@ -383,6 +390,14 @@ bool X4000::wrapGetRangeInfo(void *that, int memType, void *outData) {
     return ret;
 }
 
+/* 
+ * ADDENDUM: 
+ * X4000 writes mmMC_VM_SYSTEM_APERTURE_HIGH_ADDR as the "Virtual Remapping Address"
+ * The wording is confusing, but it seems like it's writing the GART address.
+ * AMDGPU takes a different approach, apparently, See GMC 7 at gmc_v7_0_mc_program.
+ * It's either that X4000 is hardcoded as zero for the memory controller's base address, or something is mucking up elsewhere
+ * Diagnostics from buildIBCommand show that it IS using the correct addresses atleast in certain spots.
+ */
 void X4000::initializeSystemApertureRegs(void *) {
     //! 0xFF00000000
     //!    0xFEFFFFF
@@ -407,7 +422,8 @@ void X4000::initializeSystemApertureRegs(void *) {
 
 bool X4000::wrapHWMemoryInit(void * that, void * hwIf) {
     SYSLOG("X4000", "HWMemory::init(%p)", hwIf);
-    //! patch sharedaper?
+    /* GMC 7 & 8 set the Shared Aperture address as 0x2000000000000000ULL - a weird number, yes, but it's used for selecting the Shader Engine. */
+    /* Otherwise, the Shared Aperture is unused elsewhere in AMDGPU. */
     getMember<UInt64>(that, HWMemoryFields::VRAMMCBaseAddress) = LRed::callback->vramStart;
     getMember<UInt64>(that, HWMemoryFields::VRAMPhysicalOffset) = LRed::callback->fbOffset;
     auto ret = FunctionCast(wrapHWMemoryInit, callback->orgHWMemoryInit)(that, hwIf);
