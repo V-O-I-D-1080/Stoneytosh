@@ -4,12 +4,13 @@ on:
   push:
   pull_request:
   workflow_dispatch:
-  release:
-    types: [published]
+
+env:
+  PROJECT_TYPE: KEXT
+  SCHEME: LegacyRed
 
 jobs:
   build:
-    name: Build Kext
     runs-on: macos-latest
     steps:
       - name: Checkout repository
@@ -26,33 +27,13 @@ jobs:
           src=$(/usr/bin/curl -Lfs https://raw.githubusercontent.com/acidanthera/Lilu/master/Lilu/Scripts/bootstrap.sh) && eval "$src" || exit 1
 
       - name: Build Debug
-        run: xcodebuild -configuration Debug
+        run: xcodebuild -scheme $SCHEME -configuration Debug
 
       - name: Build Release
-        run: xcodebuild -configuration Release
-
-      - name: Package Kexts
-        run: |
-          mkdir -p build/Artifacts
-          for cfg in Debug Release; do
-            cd build/$cfg
-            for kext in *.kext; do
-              zip -r "../Artifacts/${kext%.kext}-${cfg}.zip" "$kext"
-            done
-            cd ../..
-          done
+        run: xcodebuild -scheme $SCHEME -configuration Release
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Kexts
-          path: build/Artifacts/*.zip
-
-      - name: Upload to Release
-        if: github.event_name == 'release'
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: build/Artifacts/*.zip
-          tag: ${{ github.ref }}
-          file_glob: true
+          name: LegacyRed-Kexts
+          path: build/*/*.zip
