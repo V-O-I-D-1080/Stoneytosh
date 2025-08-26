@@ -1,4 +1,6 @@
-# LegacyRed ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/NootInc/LegacyRed/main.yml?branch=master&logo=github&style=for-the-badge)
+![Build](https://img.shields.io/github/actions/workflow/status/V-O-I-D-1080/Stoneytosh/main.yml?label=Build&logo=github&style=flat)
+
+
 
 I forked this from Zormeister's LegacyRed an attempt to get GPU acceleration on these old AMD APUs.
 
