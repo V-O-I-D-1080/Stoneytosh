@@ -1,4 +1,5 @@
-[![Build and Test](https://github.com/V-O-I-D-1080/Stoneytosh/workflows/Build%20and%20Test/badge.svg)](https://github.com/V-O-I-D-1080/Stoneytosh/actions)
+![Build](https://img.shields.io/github/actions/workflow/status/V-O-I-D-1080/Stoneytosh/main.yml?label=Build&logo=github&style=flat)
+
 
 
 I forked this from Zormeister's LegacyRed an attempt to get GPU acceleration on these old AMD APUs.
