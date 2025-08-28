@@ -5,6 +5,13 @@
 #include <Headers/kern_patcher.hpp>
 #include <Headers/kern_util.hpp>
 
+// lets get her upto sonoma
+namespace LRed::Version {
+    static constexpr uint32_t kDYLDPatchVersion = 0x010000;  // 1.0.0
+    static constexpr uint32_t kMinSupportedmacOS = 0x0F0000; // Catalina
+    static constexpr uint32_t kMaxSupportedmacOS = 0x140000; // Sonoma
+}
+
 class DYLDPatch {
     const void *find {nullptr}, *findMask {nullptr};
     const void *replace {nullptr}, *replaceMask {nullptr};
@@ -26,7 +33,26 @@ class DYLDPatch {
     template<typename T, size_t N>
     DYLDPatch(const T (&find)[N], const T (&replace)[N], const char *comment)
         : DYLDPatch(find, replace, N * sizeof(T), comment) {}
+// Add error handling to apply method - beginner lol
+inline bool apply(void *data, size_t size) const {
+    if (UNLIKELY(data == nullptr || size == 0)) {
+        SYSLOG("DYLD", "Invalid parameters for patch '%s'", this->comment);
+        return false;
+    }
 
+    bool success = KernelPatcher::findAndReplaceWithMask(data, size,
+        this->find, this->size,
+        this->findMask, this->findMask ? this->size : 0,
+        this->replace, this->size,
+        this->replaceMask, this->replaceMask ? this->size : 0);
+
+    if (success) {
+        DBGLOG("DYLD", "Applied '%s' patch", this->comment);
+    } else {
+        SYSLOG("DYLD", "Failed to apply '%s' patch", this->comment);
+    }
+    return success;
+}
     template<typename T, size_t N>
     DYLDPatch(const T (&find)[N], const T (&findMask)[N], const T (&replace)[N], const T (&replaceMask)[N],
         const char *comment)
