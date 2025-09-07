@@ -1,0 +1,105 @@
+name: Build LegacyRed Kext
+
+on:
+  push:
+    branches: [ master, develop ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: macos-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive  # In case you have Lilu as submodule
+    
+    - name: Setup Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: '15.0'  # Adjust version as needed
+    
+    - name: Show Xcode version
+      run: xcodebuild -version
+    
+    - name: List repository contents
+      run: |
+        echo "Repository structure:"
+        find . -type f -name "*.xcodeproj" -o -name "Makefile" -o -name "CMakeLists.txt" | head -20
+        echo "SDK folder contents:"
+        ls -la macOS*/ || echo "No macOS SDK folder found"
+    
+    - name: Install dependencies
+      run: |
+        # If you need specific tools
+        # brew install whatever
+        echo "Installing dependencies..."
+    
+    - name: Setup macOS SDK
+      run: |
+        # Setup your custom SDK
+        SDK_PATH=$(find . -name "MacOSX*.sdk" -type d | head -1)
+        if [ -n "$SDK_PATH" ]; then
+          echo "Found SDK: $SDK_PATH"
+          export SDKROOT="$(pwd)/$SDK_PATH"
+          echo "SDKROOT=$SDKROOT" >> $GITHUB_ENV
+        else
+          echo "Using system SDK"
+          export SDKROOT=$(xcrun --show-sdk-path)
+          echo "SDKROOT=$SDKROOT" >> $GITHUB_ENV
+        fi
+    
+    - name: Build with Xcode (if .xcodeproj exists)
+      run: |
+        if [ -f *.xcodeproj/project.pbxproj ]; then
+          echo "Building with Xcode..."
+          xcodebuild -project *.xcodeproj -configuration Debug -arch x86_64 clean build
+        else
+          echo "No Xcode project found"
+        fi
+      continue-on-error: true
+    
+    - name: Build with Makefile (if Makefile exists)
+      run: |
+        if [ -f Makefile ]; then
+          echo "Building with Makefile..."
+          make clean
+          make
+        else
+          echo "No Makefile found"
+        fi
+      continue-on-error: true
+    
+    - name: Build with CMake (if CMakeLists.txt exists)
+      run: |
+        if [ -f CMakeLists.txt ]; then
+          echo "Building with CMake..."
+          mkdir -p build
+          cd build
+          cmake ..
+          make
+        else
+          echo "No CMakeLists.txt found"
+        fi
+      continue-on-error: true
+    
+    - name: Show build results
+      run: |
+        echo "Looking for built kext..."
+        find . -name "*.kext" -type d | head -10
+        echo "Looking for build artifacts..."
+        find . -name "*.o" -o -name "*.a" | head -10
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: LegacyRed-kext-build
+        path: |
+          build/**/*.kext
+          build/**/LegacyRed*
+          build/**/*.dSYM
+          **/*.log
+        retention-days: 30
+      continue-on-error: true

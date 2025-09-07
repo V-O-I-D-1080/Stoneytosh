@@ -6,6 +6,7 @@
 #include "PatcherPlus.hpp"
 #include "Support.hpp"
 #include <Headers/kern_api.hpp>
+#include <iostream>
 
 static const char *pathAMD8000Controller =
     "/System/Library/Extensions/AMD8000Controller.kext/Contents/MacOS/AMD8000Controller";

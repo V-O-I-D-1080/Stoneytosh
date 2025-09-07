@@ -27,7 +27,7 @@ set(SOURCES
 )
 
 # Build settings
-add_library(LegacyRed MODULE ${SOURCES})
+add_library(LegacyRed MODULE ${SOURCES} "Learning/learning.cpp")
 set_target_properties(LegacyRed PROPERTIES
     BUNDLE TRUE
     BUNDLE_EXTENSION "kext"

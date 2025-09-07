@@ -2,7 +2,9 @@
 //! See LICENSE for details.
 
 #pragma once
-#include <Headers/kern_util.hpp>
+#include "kern_util.hpp"
+#include <LRed.cpp>
+#include <ATOMBIOS.hpp>
 
 using t_GenericConstructor = void (*)(void *that);
 using t_sendMsgToSmc = UInt32 (*)(void *smum, UInt32 msgId);
